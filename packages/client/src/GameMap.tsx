@@ -2,6 +2,7 @@ import { Box } from "@chakra-ui/react";
 import { Entity } from "@latticexyz/recs";
 
 type GameMapProps = {
+  height: number;
   onTileClick?: (x: number, y: number) => void;
   players?: {
     x: number;
@@ -9,12 +10,21 @@ type GameMapProps = {
     emoji: JSX.Element;
     entity: Entity;
   }[];
+  terrain?: {
+    x: number;
+    y: number;
+    emoji: string;
+  }[];
+  width: number;
 };
 
-export const GameMap = ({ onTileClick, players }: GameMapProps) => {
-  const width = 20;
-  const height = 20;
-
+export const GameMap = ({
+  height,
+  onTileClick,
+  players,
+  terrain,
+  width,
+}: GameMapProps) => {
   const rows = new Array(width).fill(0).map((_, i) => i);
   const columns = new Array(height).fill(0).map((_, i) => i);
 
@@ -28,6 +38,9 @@ export const GameMap = ({ onTileClick, players }: GameMapProps) => {
     >
       {rows.map((y) =>
         columns.map((x) => {
+          const terrainEmoji = terrain?.find(
+            (t) => t.x === x && t.y === y
+          )?.emoji;
           const playersHere = players?.filter((p) => p.x === x && p.y === y);
 
           return (
@@ -37,6 +50,7 @@ export const GameMap = ({ onTileClick, players }: GameMapProps) => {
               gridRow={y + 1}
               h={9}
               onClick={() => onTileClick?.(x, y)}
+              position="relative"
               w={9}
               _hover={{
                 bg: "green.500",
@@ -48,6 +62,13 @@ export const GameMap = ({ onTileClick, players }: GameMapProps) => {
                 bg: "green.600",
               }}
             >
+              <Box
+                display="flex"
+                justifyContent="center"
+                transform="scale(1.75)"
+              >
+                {terrainEmoji}
+              </Box>
               {playersHere?.map((p) => p.emoji)}
             </Box>
           );

@@ -1,6 +1,9 @@
 import { mudConfig } from "@latticexyz/world/register";
 
 export default mudConfig({
+  enums: {
+    TerrainType: ["None", "Tree", "Boulder", "Water"],
+  },
   tables: {
     MapConfig: {
       keySchema: {},
