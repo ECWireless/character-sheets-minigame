@@ -26,7 +26,7 @@ export const App = () => {
   }
 
   return (
-    <Flex alignItems="center" h="100vh" justifyContent="center">
+    <Flex alignItems="center" bg="black" h="100vh" justifyContent="center">
       <GameBoard />
     </Flex>
   );

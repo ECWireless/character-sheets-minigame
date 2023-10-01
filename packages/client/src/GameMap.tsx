@@ -1,6 +1,8 @@
 import { Box } from "@chakra-ui/react";
 import { Entity } from "@latticexyz/recs";
 
+import { useMUD } from "./MUDContext";
+
 type GameMapProps = {
   height: number;
   onTileClick?: (x: number, y: number) => void;
@@ -25,8 +27,14 @@ export const GameMap = ({
   terrain,
   width,
 }: GameMapProps) => {
+  const {
+    network: { playerEntity },
+  } = useMUD();
+
   const rows = new Array(width).fill(0).map((_, i) => i);
   const columns = new Array(height).fill(0).map((_, i) => i);
+
+  const playerExists = !!(playerEntity && players?.length);
 
   return (
     <Box
@@ -52,15 +60,23 @@ export const GameMap = ({
               onClick={() => onTileClick?.(x, y)}
               position="relative"
               w={9}
-              _hover={{
-                bg: "green.500",
-                border: "2px solid",
-                borderColor: "green.600",
-                cursor: "pointer",
-              }}
-              _active={{
-                bg: "green.600",
-              }}
+              _hover={
+                !playerExists
+                  ? {
+                      bg: "green.500",
+                      border: "2px solid",
+                      borderColor: "green.600",
+                      cursor: "pointer",
+                    }
+                  : {}
+              }
+              _active={
+                !playerExists
+                  ? {
+                      bg: "green.600",
+                    }
+                  : {}
+              }
             >
               <Box
                 display="flex"

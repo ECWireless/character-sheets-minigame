@@ -27,8 +27,8 @@ contract MapSystem is System {
     bytes32 player = addressToEntityKey(address(_msgSender()));
     require(Movable.get(player), "not movable");
 
-    (uint32 fromX, uint32 fromY) = Position.get(player);
-    require(distance(fromX, fromY, x, y) == 1, "can only move to adjacent spaces");
+    // (uint32 fromX, uint32 fromY) = Position.get(player);
+    // require(distance(fromX, fromY, x, y) == 1, "can only move to adjacent spaces");
 
     // Constrain position to map size, wrapping around if necessary
     (uint32 width, uint32 height, ) = MapConfig.get();
