@@ -4,9 +4,9 @@
  */
 
 import { getComponentValue } from "@latticexyz/recs";
+import { uuid } from "@latticexyz/utils";
 import { ClientComponents } from "./createClientComponents";
 import { SetupNetworkResult } from "./setupNetwork";
-import { singletonEntity } from "@latticexyz/store-sync/recs";
 
 export type SystemCalls = ReturnType<typeof createSystemCalls>;
 
@@ -28,22 +28,71 @@ export function createSystemCalls(
    *   through createClientComponents.ts, but it originates in
    *   syncToRecs (https://github.com/latticexyz/mud/blob/26dabb34321eedff7a43f3fcb46da4f3f5ba3708/templates/react/packages/client/src/mud/setupNetwork.ts#L39).
    */
-  { worldContract, waitForTransaction }: SetupNetworkResult,
-  { Counter }: ClientComponents
+  { worldContract, waitForTransaction, playerEntity }: SetupNetworkResult,
+  { Player, Position }: ClientComponents
 ) {
-  const increment = async () => {
-    /*
-     * Because IncrementSystem
-     * (https://mud.dev/tutorials/walkthrough/minimal-onchain#incrementsystemsol)
-     * is in the root namespace, `.increment` can be called directly
-     * on the World contract.
-     */
-    const tx = await worldContract.write.increment();
-    await waitForTransaction(tx);
-    return getComponentValue(Counter, singletonEntity);
+  const moveTo = async (x: number, y: number) => {
+    if (!playerEntity) {
+      throw new Error("No player entity");
+    }
+
+    const positionId = uuid();
+    Position.addOverride(positionId, {
+      entity: playerEntity,
+      value: { x, y },
+    });
+
+    try {
+      const tx = await worldContract.write.move([x, y]);
+      await waitForTransaction(tx);
+    } finally {
+      Position.removeOverride(positionId);
+    }
+  };
+
+  const moveBy = async (deltaX: number, deltaY: number) => {
+    if (!playerEntity) {
+      throw new Error("No player entity");
+    }
+
+    const playerPosition = getComponentValue(Position, playerEntity);
+    if (!playerPosition) {
+      console.warn("Cannot moveBy without a player position. Not yet spawned?");
+      return;
+    }
+
+    await moveTo(playerPosition.x + deltaX, playerPosition.y + deltaY);
+  };
+
+  const spawn = async (x: number, y: number) => {
+    if (!playerEntity) {
+      throw new Error("No player entity");
+    }
+
+    const positionId = uuid();
+    Position.addOverride(positionId, {
+      entity: playerEntity,
+      value: { x, y },
+    });
+
+    const playerId = uuid();
+    Player.addOverride(playerId, {
+      entity: playerEntity,
+      value: { value: true },
+    });
+
+    try {
+      const tx = await worldContract.write.spawn([x, y]);
+      await waitForTransaction(tx);
+    } finally {
+      Position.removeOverride(positionId);
+      Player.removeOverride(playerId);
+    }
   };
 
   return {
-    increment,
+    moveTo,
+    moveBy,
+    spawn,
   };
 }
