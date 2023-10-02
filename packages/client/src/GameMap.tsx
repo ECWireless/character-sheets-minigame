@@ -15,6 +15,7 @@ type GameMapProps = {
   terrain?: {
     x: number;
     y: number;
+    color: string;
     emoji: string;
   }[];
   width: number;
@@ -46,13 +47,13 @@ export const GameMap = ({
     >
       {rows.map((y) =>
         columns.map((x) => {
-          const terrainEmoji = terrain?.find(
-            (t) => t.x === x && t.y === y
-          )?.emoji;
+          const { color: terrainColor, emoji: terrainEmoji } =
+            terrain?.find((t) => t.x === x && t.y === y) || {};
           const playersHere = players?.filter((p) => p.x === x && p.y === y);
 
           return (
             <Box
+              background={terrainColor}
               key={`${x},${y}`}
               gridColumn={x + 1}
               gridRow={y + 1}
