@@ -1,7 +1,8 @@
-import { useComponentValue } from "@latticexyz/react";
+import { useComponentValue, useEntityQuery } from "@latticexyz/react";
 import { Image } from "@chakra-ui/react";
 import { hexToArray } from "@latticexyz/utils";
 import { singletonEntity } from "@latticexyz/store-sync/recs";
+import { Has, getComponentValueStrict } from "@latticexyz/recs";
 
 import { GameMap } from "./GameMap";
 import { useMUD } from "./MUDContext";
@@ -19,22 +20,24 @@ export const GameBoard = () => {
   } = useMUD();
 
   const canSpawn = useComponentValue(Player, playerEntity)?.value !== true;
-  const playerPosition = useComponentValue(Position, playerEntity);
-
-  const player =
-    playerEntity && playerPosition
-      ? {
-          x: playerPosition.x,
-          y: playerPosition.y,
-          emoji: (
-            <Image
-              src={warrior}
-              transform={flipCharacterImage ? "scaleX(-1)" : undefined}
-            />
-          ),
-          entity: playerEntity,
-        }
-      : null;
+  const players = useEntityQuery([Has(Player), Has(Position)]).map((entity) => {
+    const position = getComponentValueStrict(Position, entity);
+    return {
+      entity,
+      x: position.x,
+      y: position.y,
+      emoji: (
+        <Image
+          src={warrior}
+          transform={
+            flipCharacterImage && entity === playerEntity
+              ? "scaleX(-1)"
+              : undefined
+          }
+        />
+      ),
+    };
+  });
 
   const mapConfig = useComponentValue(MapConfig, singletonEntity);
   if (mapConfig == null) {
@@ -61,7 +64,7 @@ export const GameBoard = () => {
     <GameMap
       height={height}
       onTileClick={canSpawn ? spawn : undefined}
-      players={player ? [player] : []}
+      players={players}
       terrain={terrain}
       width={width}
     />
