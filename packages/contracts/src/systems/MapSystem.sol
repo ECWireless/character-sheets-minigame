@@ -23,6 +23,14 @@ contract MapSystem is System {
     Movable.set(player, true);
   }
 
+  function logout() public {
+    bytes32 player = addressToEntityKey(address(_msgSender()));
+    require(Player.get(player), "not logged in");
+
+    Player.set(player, false);
+    Movable.set(player, false);
+  }
+
   function move(uint32 x, uint32 y) public {
     bytes32 player = addressToEntityKey(address(_msgSender()));
     require(Movable.get(player), "not movable");

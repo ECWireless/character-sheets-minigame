@@ -30,6 +30,31 @@ export function createSystemCalls(
     return runQuery([Has(Obstruction), HasValue(Position, { x, y })]).size > 0;
   };
 
+  const logout = async () => {
+    if (!playerEntity) {
+      throw new Error("No player entity");
+    }
+
+    const canLogout = getComponentValue(Player, playerEntity)?.value === true;
+    if (!canLogout) {
+      throw new Error("Not spawned");
+    }
+
+    const playerId = uuid();
+    Player.addOverride(playerId, {
+      entity: playerEntity,
+      value: { value: false },
+    });
+
+    try {
+      const tx = await worldContract.write.logout();
+      await waitForTransaction(tx);
+      return getComponentValue(Position, playerEntity);
+    } finally {
+      Player.removeOverride(playerId);
+    }
+  };
+
   const moveTo = async (inputX: number, inputY: number) => {
     if (!playerEntity) {
       throw new Error("No player entity");
@@ -109,6 +134,7 @@ export function createSystemCalls(
   };
 
   return {
+    logout,
     moveTo,
     moveBy,
     spawn,

@@ -1,4 +1,5 @@
 import { Box } from "@chakra-ui/react";
+import { useComponentValue } from "@latticexyz/react";
 import { Entity } from "@latticexyz/recs";
 
 import { useMUD } from "./MUDContext";
@@ -29,13 +30,14 @@ export const GameMap = ({
   width,
 }: GameMapProps) => {
   const {
+    components: { Player },
     network: { playerEntity },
   } = useMUD();
 
+  const playerExists = useComponentValue(Player, playerEntity)?.value === true;
+
   const rows = new Array(width).fill(0).map((_, i) => i);
   const columns = new Array(height).fill(0).map((_, i) => i);
-
-  const playerExists = !!(playerEntity && players?.length);
 
   return (
     <Box

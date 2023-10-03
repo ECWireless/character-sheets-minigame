@@ -6,5 +6,7 @@ pragma solidity >=0.8.21;
 interface IMapSystem {
   function spawn(uint32 x, uint32 y) external;
 
+  function logout() external;
+
   function move(uint32 x, uint32 y) external;
 }

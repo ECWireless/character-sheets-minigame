@@ -2,7 +2,7 @@ import { useComponentValue, useEntityQuery } from "@latticexyz/react";
 import { Image } from "@chakra-ui/react";
 import { hexToArray } from "@latticexyz/utils";
 import { singletonEntity } from "@latticexyz/store-sync/recs";
-import { Has, getComponentValueStrict } from "@latticexyz/recs";
+import { Has, HasValue, getComponentValueStrict } from "@latticexyz/recs";
 
 import { GameMap } from "./GameMap";
 import { useMUD } from "./MUDContext";
@@ -20,7 +20,10 @@ export const GameBoard = () => {
   } = useMUD();
 
   const canSpawn = useComponentValue(Player, playerEntity)?.value !== true;
-  const players = useEntityQuery([Has(Player), Has(Position)]).map((entity) => {
+  const players = useEntityQuery([
+    HasValue(Player, { value: true }),
+    Has(Position),
+  ]).map((entity) => {
     const position = getComponentValueStrict(Position, entity);
     return {
       entity,
