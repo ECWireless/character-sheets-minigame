@@ -1,0 +1,14 @@
+query GetCharacters(
+  $gameAddress: String!
+  $playerAddress: Bytes!
+  $limit: Int
+  $skip: Int
+) {
+  characters(
+    where: { game: $gameAddress, player: $playerAddress }
+    first: $limit
+    skip: $skip
+  ) {
+    ...CharacterInfo
+  }
+}

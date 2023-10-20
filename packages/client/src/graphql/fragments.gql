@@ -1,0 +1,64 @@
+fragment CharacterInfo on Character {
+  id
+  characterId
+  account
+  player
+  jailed
+  removed
+  experience
+  uri
+  heldClasses {
+    classEntity {
+      ...ClassInfo
+    }
+  }
+  heldItems {
+    amount
+    item {
+      ...ItemInfo
+    }
+  }
+  equippedItems {
+    heldItem {
+      amount
+    }
+    item {
+      ...ItemInfo
+    }
+  }
+}
+
+fragment ClassInfo on Class {
+  id
+  classId
+  uri
+  holders {
+    id
+  }
+}
+
+fragment ItemInfo on Item {
+  id
+  itemId
+  uri
+  soulbound
+  supply
+  totalSupply
+  merkleRoot
+  requirements {
+    ...ItemRequirementInfo
+  }
+  holders {
+    id
+  }
+  equippers {
+    id
+  }
+}
+
+fragment ItemRequirementInfo on ItemRequirement {
+  assetCategory
+  assetAddress
+  assetId
+  amount
+}
