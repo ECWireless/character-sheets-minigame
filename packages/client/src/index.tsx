@@ -1,9 +1,11 @@
 import ReactDOM from "react-dom/client";
 import { ChakraProvider } from "@chakra-ui/react";
+import { Provider } from "urql";
 import { App } from "./App";
 import { setup } from "./mud/setup";
 import { MUDProvider } from "./MUDContext";
 import mudConfig from "contracts/mud.config";
+import { client } from "./graphql/client";
 
 const rootElement = document.getElementById("react-root");
 if (!rootElement) throw new Error("React root not found");
@@ -14,7 +16,9 @@ setup().then(async (result) => {
   root.render(
     <MUDProvider value={result}>
       <ChakraProvider resetCSS>
-        <App />
+        <Provider value={client}>
+          <App />
+        </Provider>
       </ChakraProvider>
     </MUDProvider>
   );

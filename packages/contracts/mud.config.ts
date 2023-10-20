@@ -5,6 +5,14 @@ export default mudConfig({
     TerrainType: ["None", "Tree", "Boulder", "Water"],
   },
   tables: {
+    CharacterSheetInfo: {
+      dataStruct: false,
+      valueSchema: {
+        chainId: "uint256",
+        gameAddress: "address",
+        playerAddress: "address",
+      },
+    },
     MapConfig: {
       keySchema: {},
       dataStruct: false,
