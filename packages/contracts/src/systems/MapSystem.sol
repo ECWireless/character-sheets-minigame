@@ -3,10 +3,10 @@ pragma solidity >=0.8.0;
 import { System } from "@latticexyz/world/src/System.sol";
 import { addressToEntityKey } from "../lib/addressToEntityKey.sol";
 import { positionToEntityKey } from "../lib/positionToEntityKey.sol";
-import { MapConfig, Movable, Obstruction, Player, Position } from "../codegen/index.sol";
+import { CharacterSheetInfo, MapConfig, Movable, Obstruction, Player, Position } from "../codegen/index.sol";
 
 contract MapSystem is System {
-  function spawn(uint32 x, uint32 y) public {
+  function spawn(uint32 x, uint32 y, uint256 chainId, address gameAddress, address playerAddress) public {
     bytes32 player = addressToEntityKey(address(_msgSender()));
     require(!Player.get(player), "already spawned");
 
@@ -21,6 +21,7 @@ contract MapSystem is System {
     Player.set(player, true);
     Position.set(player, x, y);
     Movable.set(player, true);
+    CharacterSheetInfo.set(player, chainId, gameAddress, playerAddress);
   }
 
   function logout() public {
