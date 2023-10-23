@@ -1,3 +1,9 @@
+query GetGames($limit: Int, $skip: Int) {
+  games(first: $limit, skip: $skip, orderBy: createdAt, orderDirection: desc) {
+    ...GameMetaInfo
+  }
+}
+
 query GetCharacters(
   $gameAddress: String!
   $playerAddress: Bytes!

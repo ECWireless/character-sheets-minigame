@@ -1,3 +1,21 @@
+fragment GameMetaInfo on Game {
+  id
+  uri
+  owners
+  masters
+  experience
+  characters {
+    id
+    player
+  }
+  classes {
+    id
+  }
+  items {
+    id
+  }
+}
+
 fragment CharacterInfo on Character {
   id
   characterId

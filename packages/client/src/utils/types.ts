@@ -4,6 +4,18 @@ export type Metadata = {
   image: string;
 };
 
+export type GameMeta = Metadata & {
+  id: string;
+  uri: string;
+  owners: string[];
+  masters: string[];
+  players: string[];
+  characters: { id: string }[];
+  classes: { id: string }[];
+  items: { id: string }[];
+  experience: string;
+};
+
 export type Character = Metadata & {
   id: string;
   name: string;

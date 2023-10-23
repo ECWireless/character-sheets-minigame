@@ -1,11 +1,19 @@
 import {
   CharacterInfoFragment,
   ClassInfoFragment,
+  GameMetaInfoFragment,
   ItemInfoFragment,
   ItemRequirementInfoFragment,
 } from "../graphql/autogen/types";
 
-import { Character, Class, Item, ItemRequirement, Metadata } from "./types";
+import {
+  Character,
+  Class,
+  GameMeta,
+  Item,
+  ItemRequirement,
+  Metadata,
+} from "./types";
 
 /**
  * Given a URI that may be ipfs, ipns, http, https, ar, or data protocol, return the fetch-able http(s) URLs for the same content
@@ -69,6 +77,27 @@ export const timeout = (ms: number): Promise<void> => {
 export const fetchMetadata = async (uri: string): Promise<Metadata> => {
   const res = await fetch(`${uri}`);
   return await res.json();
+};
+
+export const formatGameMeta = async (
+  game: GameMetaInfoFragment
+): Promise<GameMeta> => {
+  const metadata = await fetchMetadata(uriToHttp(game.uri)[0]);
+
+  return {
+    id: game.id,
+    uri: game.uri,
+    owners: game.owners,
+    masters: game.masters,
+    players: game.characters.map((c) => c.player),
+    name: metadata.name,
+    description: metadata.description,
+    image: uriToHttp(metadata.image)[0],
+    characters: game.characters,
+    classes: game.classes,
+    items: game.items,
+    experience: game.experience,
+  };
 };
 
 export const formatCharacter = async (

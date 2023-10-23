@@ -6,6 +6,7 @@ import { setup } from "./mud/setup";
 import { MUDProvider } from "./MUDContext";
 import mudConfig from "contracts/mud.config";
 import { client } from "./graphql/client";
+import { GamesProvider } from "./contexts/GamesContext";
 
 const rootElement = document.getElementById("react-root");
 if (!rootElement) throw new Error("React root not found");
@@ -17,7 +18,9 @@ setup().then(async (result) => {
     <MUDProvider value={result}>
       <ChakraProvider resetCSS>
         <Provider value={client}>
-          <App />
+          <GamesProvider>
+            <App />
+          </GamesProvider>
         </Provider>
       </ChakraProvider>
     </MUDProvider>
