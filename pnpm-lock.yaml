@@ -41,6 +41,9 @@ importers:
       '@emotion/styled':
         specifier: ^11.11.0
         version: 11.11.0(@emotion/react@11.11.1)(@types/react@18.2.22)(react@18.2.0)
+      '@fontsource/unbounded':
+        specifier: ^5.0.17
+        version: 5.0.17
       '@latticexyz/common':
         specifier: 2.0.0-next.11
         version: 2.0.0-next.11(typescript@5.1.6)(zod@3.22.2)
@@ -2509,6 +2512,10 @@ packages:
       '@ethersproject/logger': 5.7.0
       '@ethersproject/properties': 5.7.0
       '@ethersproject/strings': 5.7.0
+
+  /@fontsource/unbounded@5.0.17:
+    resolution: {integrity: sha512-5Cp8OHQrctQ6hshtPaYZVg8mSnI0vkIJ0mRkBeTJ3pyYbu5hHhMLyIz0gm7/hH69qcRRJg9usf1BZaoLS3DCGQ==}
+    dev: false
 
   /@graphql-codegen/add@5.0.0(graphql@16.8.1):
     resolution: {integrity: sha512-ynWDOsK2yxtFHwcJTB9shoSkUd7YXd6ZE57f0nk7W5cu/nAgxZZpEsnTPEpZB/Mjf14YRGe2uJHQ7AfElHjqUQ==}

@@ -1,4 +1,4 @@
-import {
+import React, {
   createContext,
   useCallback,
   useContext,
@@ -31,7 +31,9 @@ const GamesContext = createContext<GamesContextType>({
 
 export const useGamesContext = (): GamesContextType => useContext(GamesContext);
 
-export const GamesProvider = ({ children }: { children: JSX.Element }) => {
+export const GamesProvider: React.FC<{ children: JSX.Element }> = ({
+  children,
+}) => {
   const [games, setGames] = useState<GameMeta[] | null>(null);
   const [activeGame, setActiveGame] = useState<GameMeta | null>(null);
   const [isFormatting, setIsFormatting] = useState(false);

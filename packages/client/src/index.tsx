@@ -1,5 +1,6 @@
 import ReactDOM from "react-dom/client";
 import { ChakraProvider } from "@chakra-ui/react";
+import { Global } from "@emotion/react";
 import { Provider } from "urql";
 import { App } from "./App";
 import { setup } from "./mud/setup";
@@ -7,6 +8,7 @@ import { MUDProvider } from "./MUDContext";
 import mudConfig from "contracts/mud.config";
 import { client } from "./graphql/client";
 import { GamesProvider } from "./contexts/GamesContext";
+import { globalStyles, theme } from "./utils/theme";
 
 const rootElement = document.getElementById("react-root");
 if (!rootElement) throw new Error("React root not found");
@@ -16,7 +18,8 @@ const root = ReactDOM.createRoot(rootElement);
 setup().then(async (result) => {
   root.render(
     <MUDProvider value={result}>
-      <ChakraProvider resetCSS>
+      <ChakraProvider resetCSS theme={theme}>
+        <Global styles={globalStyles} />
         <Provider value={client}>
           <GamesProvider>
             <App />
