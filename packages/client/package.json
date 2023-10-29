@@ -25,6 +25,7 @@
     "@latticexyz/store-sync": "2.0.0-next.11",
     "@latticexyz/utils": "2.0.0-next.11",
     "@latticexyz/world": "2.0.0-next.11",
+    "@rainbow-me/rainbowkit": "^1.1.3",
     "contracts": "workspace:*",
     "framer-motion": "^10.16.4",
     "graphql": "^16.8.1",
@@ -34,7 +35,8 @@
     "react-router-dom": "^6.17.0",
     "rxjs": "7.5.5",
     "urql": "^4.0.5",
-    "viem": "1.14.0"
+    "viem": "1.14.0",
+    "wagmi": "^1.4.5"
   },
   "devDependencies": {
     "@graphql-codegen/add": "^5.0.0",

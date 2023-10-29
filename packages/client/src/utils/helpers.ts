@@ -14,13 +14,13 @@ import {
   ItemRequirement,
   Metadata,
 } from "./types";
-import warriorRight1 from "./assets/warrior/right1.svg";
-import warriorLeft1 from "./assets/warrior/left1.svg";
-import warriorUp1 from "./assets/warrior/up1.svg";
-import warriorDown1 from "./assets/warrior/down1.svg";
-import wizard from "./assets/wizard.svg";
-import scribe from "./assets/scribe.svg";
-import villager from "./assets/villager.png";
+import warriorRight1 from "../assets/warrior/right1.svg";
+import warriorLeft1 from "../assets/warrior/left1.svg";
+import warriorUp1 from "../assets/warrior/up1.svg";
+import warriorDown1 from "../assets/warrior/down1.svg";
+import wizard from "../assets/wizard.svg";
+import scribe from "../assets/scribe.svg";
+import villager from "../assets/villager.png";
 
 /**
  * Given a URI that may be ipfs, ipns, http, https, ar, or data protocol, return the fetch-able http(s) URLs for the same content
@@ -201,7 +201,7 @@ export const getDirection = (
   previousY: number
 ) => {
   if (x === previousX) {
-    return y > previousY ? "down" : "up";
+    return y >= previousY ? "down" : "up";
   }
   return x > previousX ? "right" : "left";
 };

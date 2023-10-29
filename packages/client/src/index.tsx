@@ -1,6 +1,10 @@
+import "@rainbow-me/rainbowkit/styles.css";
+
 import ReactDOM from "react-dom/client";
 import { ChakraProvider } from "@chakra-ui/react";
 import { Global } from "@emotion/react";
+import { WagmiConfig } from "wagmi";
+import { darkTheme, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { Provider } from "urql";
 import { App } from "./App";
 import { setup } from "./mud/setup";
@@ -9,6 +13,7 @@ import mudConfig from "contracts/mud.config";
 import { client } from "./graphql/client";
 import { GamesProvider } from "./contexts/GamesContext";
 import { globalStyles, theme } from "./utils/theme";
+import { wagmiConfig, DEFAULT_CHAIN } from "./lib/web3";
 
 const rootElement = document.getElementById("react-root");
 if (!rootElement) throw new Error("React root not found");
@@ -21,9 +26,13 @@ setup().then(async (result) => {
       <ChakraProvider resetCSS theme={theme}>
         <Global styles={globalStyles} />
         <Provider value={client}>
-          <GamesProvider>
-            <App />
-          </GamesProvider>
+          <WagmiConfig config={wagmiConfig}>
+            <RainbowKitProvider chains={[DEFAULT_CHAIN]} theme={darkTheme()}>
+              <GamesProvider>
+                <App />
+              </GamesProvider>
+            </RainbowKitProvider>
+          </WagmiConfig>
         </Provider>
       </ChakraProvider>
     </MUDProvider>
