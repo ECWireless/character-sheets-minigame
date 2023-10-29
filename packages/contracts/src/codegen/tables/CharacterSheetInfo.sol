@@ -21,15 +21,15 @@ import { ResourceId } from "@latticexyz/store/src/ResourceId.sol";
 import { RESOURCE_TABLE, RESOURCE_OFFCHAIN_TABLE } from "@latticexyz/store/src/storeResourceTypes.sol";
 
 ResourceId constant _tableId = ResourceId.wrap(
-  bytes32(abi.encodePacked(RESOURCE_TABLE, bytes14(""), bytes16("Position")))
+  bytes32(abi.encodePacked(RESOURCE_TABLE, bytes14(""), bytes16("CharacterSheetIn")))
 );
-ResourceId constant PositionTableId = _tableId;
+ResourceId constant CharacterSheetInfoTableId = _tableId;
 
 FieldLayout constant _fieldLayout = FieldLayout.wrap(
-  0x0010040004040404000000000000000000000000000000000000000000000000
+  0x0048030020141400000000000000000000000000000000000000000000000000
 );
 
-library Position {
+library CharacterSheetInfo {
   /**
    * @notice Get the table values' field layout.
    * @return _fieldLayout The field layout for the table.
@@ -54,11 +54,10 @@ library Position {
    * @return _valueSchema The value schema for the table.
    */
   function getValueSchema() internal pure returns (Schema) {
-    SchemaType[] memory _valueSchema = new SchemaType[](4);
-    _valueSchema[0] = SchemaType.UINT32;
-    _valueSchema[1] = SchemaType.UINT32;
-    _valueSchema[2] = SchemaType.UINT32;
-    _valueSchema[3] = SchemaType.UINT32;
+    SchemaType[] memory _valueSchema = new SchemaType[](3);
+    _valueSchema[0] = SchemaType.UINT256;
+    _valueSchema[1] = SchemaType.ADDRESS;
+    _valueSchema[2] = SchemaType.ADDRESS;
 
     return SchemaLib.encode(_valueSchema);
   }
@@ -77,11 +76,10 @@ library Position {
    * @return fieldNames An array of strings with the names of value fields.
    */
   function getFieldNames() internal pure returns (string[] memory fieldNames) {
-    fieldNames = new string[](4);
-    fieldNames[0] = "x";
-    fieldNames[1] = "y";
-    fieldNames[2] = "previousX";
-    fieldNames[3] = "previousY";
+    fieldNames = new string[](3);
+    fieldNames[0] = "chainId";
+    fieldNames[1] = "gameAddress";
+    fieldNames[2] = "playerAddress";
   }
 
   /**
@@ -106,261 +104,198 @@ library Position {
   }
 
   /**
-   * @notice Get x.
+   * @notice Get chainId.
    */
-  function getX(bytes32 key) internal view returns (uint32 x) {
+  function getChainId(bytes32 key) internal view returns (uint256 chainId) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 0, _fieldLayout);
-    return (uint32(bytes4(_blob)));
+    return (uint256(bytes32(_blob)));
   }
 
   /**
-   * @notice Get x.
+   * @notice Get chainId.
    */
-  function _getX(bytes32 key) internal view returns (uint32 x) {
+  function _getChainId(bytes32 key) internal view returns (uint256 chainId) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 0, _fieldLayout);
-    return (uint32(bytes4(_blob)));
+    return (uint256(bytes32(_blob)));
   }
 
   /**
-   * @notice Get x (using the specified store).
+   * @notice Get chainId (using the specified store).
    */
-  function getX(IStore _store, bytes32 key) internal view returns (uint32 x) {
+  function getChainId(IStore _store, bytes32 key) internal view returns (uint256 chainId) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = _store.getStaticField(_tableId, _keyTuple, 0, _fieldLayout);
-    return (uint32(bytes4(_blob)));
+    return (uint256(bytes32(_blob)));
   }
 
   /**
-   * @notice Set x.
+   * @notice Set chainId.
    */
-  function setX(bytes32 key, uint32 x) internal {
+  function setChainId(bytes32 key, uint256 chainId) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    StoreSwitch.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((x)), _fieldLayout);
+    StoreSwitch.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((chainId)), _fieldLayout);
   }
 
   /**
-   * @notice Set x.
+   * @notice Set chainId.
    */
-  function _setX(bytes32 key, uint32 x) internal {
+  function _setChainId(bytes32 key, uint256 chainId) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    StoreCore.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((x)), _fieldLayout);
+    StoreCore.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((chainId)), _fieldLayout);
   }
 
   /**
-   * @notice Set x (using the specified store).
+   * @notice Set chainId (using the specified store).
    */
-  function setX(IStore _store, bytes32 key, uint32 x) internal {
+  function setChainId(IStore _store, bytes32 key, uint256 chainId) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    _store.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((x)), _fieldLayout);
+    _store.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((chainId)), _fieldLayout);
   }
 
   /**
-   * @notice Get y.
+   * @notice Get gameAddress.
    */
-  function getY(bytes32 key) internal view returns (uint32 y) {
+  function getGameAddress(bytes32 key) internal view returns (address gameAddress) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 1, _fieldLayout);
-    return (uint32(bytes4(_blob)));
+    return (address(bytes20(_blob)));
   }
 
   /**
-   * @notice Get y.
+   * @notice Get gameAddress.
    */
-  function _getY(bytes32 key) internal view returns (uint32 y) {
+  function _getGameAddress(bytes32 key) internal view returns (address gameAddress) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 1, _fieldLayout);
-    return (uint32(bytes4(_blob)));
+    return (address(bytes20(_blob)));
   }
 
   /**
-   * @notice Get y (using the specified store).
+   * @notice Get gameAddress (using the specified store).
    */
-  function getY(IStore _store, bytes32 key) internal view returns (uint32 y) {
+  function getGameAddress(IStore _store, bytes32 key) internal view returns (address gameAddress) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = _store.getStaticField(_tableId, _keyTuple, 1, _fieldLayout);
-    return (uint32(bytes4(_blob)));
+    return (address(bytes20(_blob)));
   }
 
   /**
-   * @notice Set y.
+   * @notice Set gameAddress.
    */
-  function setY(bytes32 key, uint32 y) internal {
+  function setGameAddress(bytes32 key, address gameAddress) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    StoreSwitch.setStaticField(_tableId, _keyTuple, 1, abi.encodePacked((y)), _fieldLayout);
+    StoreSwitch.setStaticField(_tableId, _keyTuple, 1, abi.encodePacked((gameAddress)), _fieldLayout);
   }
 
   /**
-   * @notice Set y.
+   * @notice Set gameAddress.
    */
-  function _setY(bytes32 key, uint32 y) internal {
+  function _setGameAddress(bytes32 key, address gameAddress) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    StoreCore.setStaticField(_tableId, _keyTuple, 1, abi.encodePacked((y)), _fieldLayout);
+    StoreCore.setStaticField(_tableId, _keyTuple, 1, abi.encodePacked((gameAddress)), _fieldLayout);
   }
 
   /**
-   * @notice Set y (using the specified store).
+   * @notice Set gameAddress (using the specified store).
    */
-  function setY(IStore _store, bytes32 key, uint32 y) internal {
+  function setGameAddress(IStore _store, bytes32 key, address gameAddress) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    _store.setStaticField(_tableId, _keyTuple, 1, abi.encodePacked((y)), _fieldLayout);
+    _store.setStaticField(_tableId, _keyTuple, 1, abi.encodePacked((gameAddress)), _fieldLayout);
   }
 
   /**
-   * @notice Get previousX.
+   * @notice Get playerAddress.
    */
-  function getPreviousX(bytes32 key) internal view returns (uint32 previousX) {
+  function getPlayerAddress(bytes32 key) internal view returns (address playerAddress) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 2, _fieldLayout);
-    return (uint32(bytes4(_blob)));
+    return (address(bytes20(_blob)));
   }
 
   /**
-   * @notice Get previousX.
+   * @notice Get playerAddress.
    */
-  function _getPreviousX(bytes32 key) internal view returns (uint32 previousX) {
+  function _getPlayerAddress(bytes32 key) internal view returns (address playerAddress) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 2, _fieldLayout);
-    return (uint32(bytes4(_blob)));
+    return (address(bytes20(_blob)));
   }
 
   /**
-   * @notice Get previousX (using the specified store).
+   * @notice Get playerAddress (using the specified store).
    */
-  function getPreviousX(IStore _store, bytes32 key) internal view returns (uint32 previousX) {
+  function getPlayerAddress(IStore _store, bytes32 key) internal view returns (address playerAddress) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = _store.getStaticField(_tableId, _keyTuple, 2, _fieldLayout);
-    return (uint32(bytes4(_blob)));
+    return (address(bytes20(_blob)));
   }
 
   /**
-   * @notice Set previousX.
+   * @notice Set playerAddress.
    */
-  function setPreviousX(bytes32 key, uint32 previousX) internal {
+  function setPlayerAddress(bytes32 key, address playerAddress) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    StoreSwitch.setStaticField(_tableId, _keyTuple, 2, abi.encodePacked((previousX)), _fieldLayout);
+    StoreSwitch.setStaticField(_tableId, _keyTuple, 2, abi.encodePacked((playerAddress)), _fieldLayout);
   }
 
   /**
-   * @notice Set previousX.
+   * @notice Set playerAddress.
    */
-  function _setPreviousX(bytes32 key, uint32 previousX) internal {
+  function _setPlayerAddress(bytes32 key, address playerAddress) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    StoreCore.setStaticField(_tableId, _keyTuple, 2, abi.encodePacked((previousX)), _fieldLayout);
+    StoreCore.setStaticField(_tableId, _keyTuple, 2, abi.encodePacked((playerAddress)), _fieldLayout);
   }
 
   /**
-   * @notice Set previousX (using the specified store).
+   * @notice Set playerAddress (using the specified store).
    */
-  function setPreviousX(IStore _store, bytes32 key, uint32 previousX) internal {
+  function setPlayerAddress(IStore _store, bytes32 key, address playerAddress) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    _store.setStaticField(_tableId, _keyTuple, 2, abi.encodePacked((previousX)), _fieldLayout);
-  }
-
-  /**
-   * @notice Get previousY.
-   */
-  function getPreviousY(bytes32 key) internal view returns (uint32 previousY) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 3, _fieldLayout);
-    return (uint32(bytes4(_blob)));
-  }
-
-  /**
-   * @notice Get previousY.
-   */
-  function _getPreviousY(bytes32 key) internal view returns (uint32 previousY) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 3, _fieldLayout);
-    return (uint32(bytes4(_blob)));
-  }
-
-  /**
-   * @notice Get previousY (using the specified store).
-   */
-  function getPreviousY(IStore _store, bytes32 key) internal view returns (uint32 previousY) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    bytes32 _blob = _store.getStaticField(_tableId, _keyTuple, 3, _fieldLayout);
-    return (uint32(bytes4(_blob)));
-  }
-
-  /**
-   * @notice Set previousY.
-   */
-  function setPreviousY(bytes32 key, uint32 previousY) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    StoreSwitch.setStaticField(_tableId, _keyTuple, 3, abi.encodePacked((previousY)), _fieldLayout);
-  }
-
-  /**
-   * @notice Set previousY.
-   */
-  function _setPreviousY(bytes32 key, uint32 previousY) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    StoreCore.setStaticField(_tableId, _keyTuple, 3, abi.encodePacked((previousY)), _fieldLayout);
-  }
-
-  /**
-   * @notice Set previousY (using the specified store).
-   */
-  function setPreviousY(IStore _store, bytes32 key, uint32 previousY) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    _store.setStaticField(_tableId, _keyTuple, 3, abi.encodePacked((previousY)), _fieldLayout);
+    _store.setStaticField(_tableId, _keyTuple, 2, abi.encodePacked((playerAddress)), _fieldLayout);
   }
 
   /**
    * @notice Get the full data.
    */
-  function get(bytes32 key) internal view returns (uint32 x, uint32 y, uint32 previousX, uint32 previousY) {
+  function get(bytes32 key) internal view returns (uint256 chainId, address gameAddress, address playerAddress) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
@@ -375,7 +310,7 @@ library Position {
   /**
    * @notice Get the full data.
    */
-  function _get(bytes32 key) internal view returns (uint32 x, uint32 y, uint32 previousX, uint32 previousY) {
+  function _get(bytes32 key) internal view returns (uint256 chainId, address gameAddress, address playerAddress) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
@@ -393,7 +328,7 @@ library Position {
   function get(
     IStore _store,
     bytes32 key
-  ) internal view returns (uint32 x, uint32 y, uint32 previousX, uint32 previousY) {
+  ) internal view returns (uint256 chainId, address gameAddress, address playerAddress) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
@@ -408,8 +343,8 @@ library Position {
   /**
    * @notice Set the full data using individual values.
    */
-  function set(bytes32 key, uint32 x, uint32 y, uint32 previousX, uint32 previousY) internal {
-    bytes memory _staticData = encodeStatic(x, y, previousX, previousY);
+  function set(bytes32 key, uint256 chainId, address gameAddress, address playerAddress) internal {
+    bytes memory _staticData = encodeStatic(chainId, gameAddress, playerAddress);
 
     PackedCounter _encodedLengths;
     bytes memory _dynamicData;
@@ -423,8 +358,8 @@ library Position {
   /**
    * @notice Set the full data using individual values.
    */
-  function _set(bytes32 key, uint32 x, uint32 y, uint32 previousX, uint32 previousY) internal {
-    bytes memory _staticData = encodeStatic(x, y, previousX, previousY);
+  function _set(bytes32 key, uint256 chainId, address gameAddress, address playerAddress) internal {
+    bytes memory _staticData = encodeStatic(chainId, gameAddress, playerAddress);
 
     PackedCounter _encodedLengths;
     bytes memory _dynamicData;
@@ -438,8 +373,8 @@ library Position {
   /**
    * @notice Set the full data using individual values (using the specified store).
    */
-  function set(IStore _store, bytes32 key, uint32 x, uint32 y, uint32 previousX, uint32 previousY) internal {
-    bytes memory _staticData = encodeStatic(x, y, previousX, previousY);
+  function set(IStore _store, bytes32 key, uint256 chainId, address gameAddress, address playerAddress) internal {
+    bytes memory _staticData = encodeStatic(chainId, gameAddress, playerAddress);
 
     PackedCounter _encodedLengths;
     bytes memory _dynamicData;
@@ -455,14 +390,12 @@ library Position {
    */
   function decodeStatic(
     bytes memory _blob
-  ) internal pure returns (uint32 x, uint32 y, uint32 previousX, uint32 previousY) {
-    x = (uint32(Bytes.slice4(_blob, 0)));
+  ) internal pure returns (uint256 chainId, address gameAddress, address playerAddress) {
+    chainId = (uint256(Bytes.slice32(_blob, 0)));
 
-    y = (uint32(Bytes.slice4(_blob, 4)));
+    gameAddress = (address(Bytes.slice20(_blob, 32)));
 
-    previousX = (uint32(Bytes.slice4(_blob, 8)));
-
-    previousY = (uint32(Bytes.slice4(_blob, 12)));
+    playerAddress = (address(Bytes.slice20(_blob, 52)));
   }
 
   /**
@@ -475,8 +408,8 @@ library Position {
     bytes memory _staticData,
     PackedCounter,
     bytes memory
-  ) internal pure returns (uint32 x, uint32 y, uint32 previousX, uint32 previousY) {
-    (x, y, previousX, previousY) = decodeStatic(_staticData);
+  ) internal pure returns (uint256 chainId, address gameAddress, address playerAddress) {
+    (chainId, gameAddress, playerAddress) = decodeStatic(_staticData);
   }
 
   /**
@@ -513,8 +446,12 @@ library Position {
    * @notice Tightly pack static (fixed length) data using this table's schema.
    * @return The static data, encoded into a sequence of bytes.
    */
-  function encodeStatic(uint32 x, uint32 y, uint32 previousX, uint32 previousY) internal pure returns (bytes memory) {
-    return abi.encodePacked(x, y, previousX, previousY);
+  function encodeStatic(
+    uint256 chainId,
+    address gameAddress,
+    address playerAddress
+  ) internal pure returns (bytes memory) {
+    return abi.encodePacked(chainId, gameAddress, playerAddress);
   }
 
   /**
@@ -524,12 +461,11 @@ library Position {
    * @return The dyanmic (variable length) data, encoded into a sequence of bytes.
    */
   function encode(
-    uint32 x,
-    uint32 y,
-    uint32 previousX,
-    uint32 previousY
+    uint256 chainId,
+    address gameAddress,
+    address playerAddress
   ) internal pure returns (bytes memory, PackedCounter, bytes memory) {
-    bytes memory _staticData = encodeStatic(x, y, previousX, previousY);
+    bytes memory _staticData = encodeStatic(chainId, gameAddress, playerAddress);
 
     PackedCounter _encodedLengths;
     bytes memory _dynamicData;

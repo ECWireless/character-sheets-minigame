@@ -55,7 +55,12 @@ export function createSystemCalls(
     }
   };
 
-  const moveTo = async (inputX: number, inputY: number) => {
+  const moveTo = async (
+    inputX: number,
+    inputY: number,
+    previousX: number,
+    previousY: number
+  ) => {
     if (!playerEntity) {
       throw new Error("No player entity");
     }
@@ -69,7 +74,7 @@ export function createSystemCalls(
     const positionId = uuid();
     Position.addOverride(positionId, {
       entity: playerEntity,
-      value: { x, y },
+      value: { x, y, previousX, previousY },
     });
 
     try {
@@ -92,10 +97,20 @@ export function createSystemCalls(
       return;
     }
 
-    await moveTo(playerPosition.x + deltaX, playerPosition.y + deltaY);
+    await moveTo(
+      playerPosition.x + deltaX,
+      playerPosition.y + deltaY,
+      playerPosition.x,
+      playerPosition.y
+    );
   };
 
-  const spawn = async (inputX: number, inputY: number) => {
+  const spawn = async (
+    inputX: number,
+    inputY: number,
+    gameAddress: string,
+    playerAddress: string
+  ) => {
     if (!playerEntity) {
       throw new Error("No player entity");
     }
@@ -124,7 +139,13 @@ export function createSystemCalls(
     });
 
     try {
-      const tx = await worldContract.write.spawn([x, y]);
+      const tx = await worldContract.write.spawn([
+        x,
+        y,
+        BigInt(5),
+        gameAddress.toLowerCase(),
+        playerAddress.toLowerCase(),
+      ]);
       await waitForTransaction(tx);
       return getComponentValue(Position, playerEntity);
     } finally {

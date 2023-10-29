@@ -1,3 +1,10 @@
 node_modules
 dist
 .DS_Store
+
+# local env files
+.env
+.env*.local
+
+# graphql autogen types
+src/graphql/autogen/types.ts

@@ -3,10 +3,10 @@ pragma solidity >=0.8.0;
 import { System } from "@latticexyz/world/src/System.sol";
 import { addressToEntityKey } from "../lib/addressToEntityKey.sol";
 import { positionToEntityKey } from "../lib/positionToEntityKey.sol";
-import { MapConfig, Movable, Obstruction, Player, Position } from "../codegen/index.sol";
+import { CharacterSheetInfo, MapConfig, Movable, Obstruction, Player, Position } from "../codegen/index.sol";
 
 contract MapSystem is System {
-  function spawn(uint32 x, uint32 y) public {
+  function spawn(uint32 x, uint32 y, uint256 chainId, address gameAddress, address playerAddress) public {
     bytes32 player = addressToEntityKey(address(_msgSender()));
     require(!Player.get(player), "already spawned");
 
@@ -19,8 +19,9 @@ contract MapSystem is System {
     require(!Obstruction.get(position), "this space is obstructed");
  
     Player.set(player, true);
-    Position.set(player, x, y);
+    Position.set(player, x, y, x, y);
     Movable.set(player, true);
+    CharacterSheetInfo.set(player, chainId, gameAddress, playerAddress);
   }
 
   function logout() public {
@@ -35,7 +36,7 @@ contract MapSystem is System {
     bytes32 player = addressToEntityKey(address(_msgSender()));
     require(Movable.get(player), "not movable");
 
-    // (uint32 fromX, uint32 fromY) = Position.get(player);
+    (uint32 previousX, uint32 previousY, ,) = Position.get(player);
     // require(distance(fromX, fromY, x, y) == 1, "can only move to adjacent spaces");
 
     // Constrain position to map size, wrapping around if necessary
@@ -46,7 +47,7 @@ contract MapSystem is System {
     bytes32 position = positionToEntityKey(x, y);
     require(!Obstruction.get(position), "this space is obstructed");
 
-    Position.set(player, x, y);
+    Position.set(player, x, y, previousX, previousY);
   }
 
   function distance(uint32 fromX, uint32 fromY, uint32 toX, uint32 toY) internal pure returns (uint32) {

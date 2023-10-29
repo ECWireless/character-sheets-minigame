@@ -1,12 +1,14 @@
-import { Box } from "@chakra-ui/react";
+import { Box, useToast } from "@chakra-ui/react";
+import { useCallback } from "react";
+import { useAccount } from "wagmi";
 import { useComponentValue } from "@latticexyz/react";
 import { Entity } from "@latticexyz/recs";
 
 import { useMUD } from "./MUDContext";
+import { useGamesContext } from "./contexts/GamesContext";
 
 type GameMapProps = {
   height: number;
-  onTileClick?: (x: number, y: number) => void;
   players?: {
     x: number;
     y: number;
@@ -22,22 +24,38 @@ type GameMapProps = {
   width: number;
 };
 
-export const GameMap = ({
-  height,
-  onTileClick,
-  players,
-  terrain,
-  width,
-}: GameMapProps) => {
+export const GameMap = ({ height, players, terrain, width }: GameMapProps) => {
+  const { address } = useAccount();
   const {
     components: { Player },
     network: { playerEntity },
+    systemCalls: { spawn },
   } = useMUD();
+  const { activeGame } = useGamesContext();
+  const toast = useToast();
 
   const playerExists = useComponentValue(Player, playerEntity)?.value === true;
+  const canSpawn = useComponentValue(Player, playerEntity)?.value !== true;
 
   const rows = new Array(width).fill(0).map((_, i) => i);
   const columns = new Array(height).fill(0).map((_, i) => i);
+
+  const onTileClick = useCallback(
+    (x: number, y: number, gameAddress: string) => {
+      if (!address) {
+        toast({
+          title: "Login to play",
+          status: "warning",
+          position: "top",
+          duration: 5000,
+          isClosable: true,
+        });
+      } else if (canSpawn) {
+        spawn(x, y, gameAddress, address);
+      }
+    },
+    [address, canSpawn, spawn, toast]
+  );
 
   return (
     <Box
@@ -60,7 +78,9 @@ export const GameMap = ({
               gridColumn={x + 1}
               gridRow={y + 1}
               h={9}
-              onClick={() => onTileClick?.(x, y)}
+              onClick={() =>
+                activeGame ? onTileClick?.(x, y, activeGame.id) : undefined
+              }
               position="relative"
               w={9}
               _hover={
