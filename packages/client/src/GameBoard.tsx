@@ -6,23 +6,31 @@ import { Has, HasValue, getComponentValueStrict } from "@latticexyz/recs";
 
 import { GameMap } from "./GameMap";
 import { useMUD } from "./MUDContext";
-import warrior from "./assets/warrior.svg";
 import { useKeyboardMovement } from "./utils/useKeyboardMovement";
 import { TerrainType, terrainTypes } from "./terrainTypes";
+import { useCharacter } from "./hooks/useCharacter";
+import { getCharacterImage } from "./utils/helpers";
 
 export const GameBoard = () => {
-  const { flipCharacterImage } = useKeyboardMovement();
+  useKeyboardMovement();
 
   const {
-    components: { MapConfig, Player, Position },
+    components: { CharacterSheetInfo, MapConfig, Player, Position },
     network: { playerEntity },
-    systemCalls: { spawn },
   } = useMUD();
 
-  const canSpawn = useComponentValue(Player, playerEntity)?.value !== true;
+  const csInfo = useComponentValue(CharacterSheetInfo, playerEntity) as {
+    playerAddress: string;
+    gameAddress: string;
+  };
+
+  const { playerAddress, gameAddress } = csInfo ?? {};
+  const { character } = useCharacter(playerAddress, gameAddress);
+
   const players = useEntityQuery([
     HasValue(Player, { value: true }),
     Has(Position),
+    Has(CharacterSheetInfo),
   ]).map((entity) => {
     const position = getComponentValueStrict(Position, entity);
     return {
@@ -31,12 +39,14 @@ export const GameBoard = () => {
       y: position.y,
       emoji: (
         <Image
-          src={warrior}
-          transform={
-            flipCharacterImage && entity === playerEntity
-              ? "scaleX(-1)"
-              : undefined
-          }
+          key={entity}
+          height="100%"
+          transform="scale(1.5)"
+          objectFit="contain"
+          src={getCharacterImage(
+            character?.classes[0]?.name ?? "villager",
+            position
+          )}
         />
       ),
     };
@@ -66,7 +76,6 @@ export const GameBoard = () => {
   return (
     <GameMap
       height={height}
-      onTileClick={canSpawn ? spawn : undefined}
       players={players}
       terrain={terrain}
       width={width}

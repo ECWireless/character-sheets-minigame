@@ -1,10 +1,11 @@
-import { Button, Flex, Heading, VStack } from "@chakra-ui/react";
+import { Button, Flex, Heading, VStack, Spinner } from "@chakra-ui/react";
 import { useComponentValue } from "@latticexyz/react";
 import { singletonEntity } from "@latticexyz/store-sync/recs";
 import { SyncStep } from "@latticexyz/store-sync";
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useMemo } from "react";
 
+import { ConnectWalletButton } from "../components/ConnectWalletButton";
 import { useGamesContext } from "../contexts/GamesContext";
 import { GameBoard } from "../GameBoard";
 import { useMUD } from "../MUDContext";
@@ -14,13 +15,11 @@ export const GameView = () => {
   const navigate = useNavigate();
 
   const {
-    components: { Player, SyncProgress },
-    network: { playerEntity },
+    components: { SyncProgress },
     systemCalls: { logout },
   } = useMUD();
-  const { games, setActiveGame } = useGamesContext();
+  const { games, loading, setActiveGame } = useGamesContext();
 
-  const playerExists = useComponentValue(Player, playerEntity)?.value === true;
   const syncProgress = useComponentValue(SyncProgress, singletonEntity);
 
   const activeGame = useMemo(() => {
@@ -36,6 +35,15 @@ export const GameView = () => {
       setActiveGame(activeGame);
     }
   }, [activeGame, setActiveGame]);
+
+  if (loading) {
+    return (
+      <VStack py={12} spacing={8}>
+        <Heading>Loading...</Heading>
+        <Spinner size="lg" />
+      </VStack>
+    );
+  }
 
   if (!activeGame) {
     return (
@@ -72,11 +80,7 @@ export const GameView = () => {
         >
           Leave game
         </Button>
-        {playerExists && (
-          <Button onClick={logout} variant="solid" w="100%">
-            Logout
-          </Button>
-        )}
+        <ConnectWalletButton />
       </VStack>
       <Heading>{activeGame.name}</Heading>
       <GameBoard />
