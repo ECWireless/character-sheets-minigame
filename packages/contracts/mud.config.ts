@@ -30,6 +30,8 @@ export default mudConfig({
       valueSchema: {
         x: "uint32",
         y: "uint32",
+        previousX: "uint32",
+        previousY: "uint32",
       },
     },
   },

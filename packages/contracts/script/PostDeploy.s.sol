@@ -60,7 +60,7 @@ contract PostDeploy is Script {
 
         bytes32 entity = positionToEntityKey(x, y);
         if (terrainType == TerrainType.Boulder || terrainType == TerrainType.Tree || terrainType == TerrainType.Water) {
-          Position.set(world, entity, x, y);
+          Position.set(world, entity, x, y, x, y);
           Obstruction.set(world, entity, true);
         }
       }

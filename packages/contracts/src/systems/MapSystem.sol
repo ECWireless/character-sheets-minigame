@@ -19,7 +19,7 @@ contract MapSystem is System {
     require(!Obstruction.get(position), "this space is obstructed");
  
     Player.set(player, true);
-    Position.set(player, x, y);
+    Position.set(player, x, y, x, y);
     Movable.set(player, true);
     CharacterSheetInfo.set(player, chainId, gameAddress, playerAddress);
   }
@@ -36,7 +36,7 @@ contract MapSystem is System {
     bytes32 player = addressToEntityKey(address(_msgSender()));
     require(Movable.get(player), "not movable");
 
-    // (uint32 fromX, uint32 fromY) = Position.get(player);
+    (uint32 previousX, uint32 previousY, ,) = Position.get(player);
     // require(distance(fromX, fromY, x, y) == 1, "can only move to adjacent spaces");
 
     // Constrain position to map size, wrapping around if necessary
@@ -47,7 +47,7 @@ contract MapSystem is System {
     bytes32 position = positionToEntityKey(x, y);
     require(!Obstruction.get(position), "this space is obstructed");
 
-    Position.set(player, x, y);
+    Position.set(player, x, y, previousX, previousY);
   }
 
   function distance(uint32 fromX, uint32 fromY, uint32 toX, uint32 toY) internal pure returns (uint32) {

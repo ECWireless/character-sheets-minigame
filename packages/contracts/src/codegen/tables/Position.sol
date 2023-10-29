@@ -26,7 +26,7 @@ ResourceId constant _tableId = ResourceId.wrap(
 ResourceId constant PositionTableId = _tableId;
 
 FieldLayout constant _fieldLayout = FieldLayout.wrap(
-  0x0008020004040000000000000000000000000000000000000000000000000000
+  0x0010040004040404000000000000000000000000000000000000000000000000
 );
 
 library Position {
@@ -54,9 +54,11 @@ library Position {
    * @return _valueSchema The value schema for the table.
    */
   function getValueSchema() internal pure returns (Schema) {
-    SchemaType[] memory _valueSchema = new SchemaType[](2);
+    SchemaType[] memory _valueSchema = new SchemaType[](4);
     _valueSchema[0] = SchemaType.UINT32;
     _valueSchema[1] = SchemaType.UINT32;
+    _valueSchema[2] = SchemaType.UINT32;
+    _valueSchema[3] = SchemaType.UINT32;
 
     return SchemaLib.encode(_valueSchema);
   }
@@ -75,9 +77,11 @@ library Position {
    * @return fieldNames An array of strings with the names of value fields.
    */
   function getFieldNames() internal pure returns (string[] memory fieldNames) {
-    fieldNames = new string[](2);
+    fieldNames = new string[](4);
     fieldNames[0] = "x";
     fieldNames[1] = "y";
+    fieldNames[2] = "previousX";
+    fieldNames[3] = "previousY";
   }
 
   /**
@@ -228,9 +232,135 @@ library Position {
   }
 
   /**
+   * @notice Get previousX.
+   */
+  function getPreviousX(bytes32 key) internal view returns (uint32 previousX) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 2, _fieldLayout);
+    return (uint32(bytes4(_blob)));
+  }
+
+  /**
+   * @notice Get previousX.
+   */
+  function _getPreviousX(bytes32 key) internal view returns (uint32 previousX) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 2, _fieldLayout);
+    return (uint32(bytes4(_blob)));
+  }
+
+  /**
+   * @notice Get previousX (using the specified store).
+   */
+  function getPreviousX(IStore _store, bytes32 key) internal view returns (uint32 previousX) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    bytes32 _blob = _store.getStaticField(_tableId, _keyTuple, 2, _fieldLayout);
+    return (uint32(bytes4(_blob)));
+  }
+
+  /**
+   * @notice Set previousX.
+   */
+  function setPreviousX(bytes32 key, uint32 previousX) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    StoreSwitch.setStaticField(_tableId, _keyTuple, 2, abi.encodePacked((previousX)), _fieldLayout);
+  }
+
+  /**
+   * @notice Set previousX.
+   */
+  function _setPreviousX(bytes32 key, uint32 previousX) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    StoreCore.setStaticField(_tableId, _keyTuple, 2, abi.encodePacked((previousX)), _fieldLayout);
+  }
+
+  /**
+   * @notice Set previousX (using the specified store).
+   */
+  function setPreviousX(IStore _store, bytes32 key, uint32 previousX) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    _store.setStaticField(_tableId, _keyTuple, 2, abi.encodePacked((previousX)), _fieldLayout);
+  }
+
+  /**
+   * @notice Get previousY.
+   */
+  function getPreviousY(bytes32 key) internal view returns (uint32 previousY) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 3, _fieldLayout);
+    return (uint32(bytes4(_blob)));
+  }
+
+  /**
+   * @notice Get previousY.
+   */
+  function _getPreviousY(bytes32 key) internal view returns (uint32 previousY) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 3, _fieldLayout);
+    return (uint32(bytes4(_blob)));
+  }
+
+  /**
+   * @notice Get previousY (using the specified store).
+   */
+  function getPreviousY(IStore _store, bytes32 key) internal view returns (uint32 previousY) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    bytes32 _blob = _store.getStaticField(_tableId, _keyTuple, 3, _fieldLayout);
+    return (uint32(bytes4(_blob)));
+  }
+
+  /**
+   * @notice Set previousY.
+   */
+  function setPreviousY(bytes32 key, uint32 previousY) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    StoreSwitch.setStaticField(_tableId, _keyTuple, 3, abi.encodePacked((previousY)), _fieldLayout);
+  }
+
+  /**
+   * @notice Set previousY.
+   */
+  function _setPreviousY(bytes32 key, uint32 previousY) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    StoreCore.setStaticField(_tableId, _keyTuple, 3, abi.encodePacked((previousY)), _fieldLayout);
+  }
+
+  /**
+   * @notice Set previousY (using the specified store).
+   */
+  function setPreviousY(IStore _store, bytes32 key, uint32 previousY) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    _store.setStaticField(_tableId, _keyTuple, 3, abi.encodePacked((previousY)), _fieldLayout);
+  }
+
+  /**
    * @notice Get the full data.
    */
-  function get(bytes32 key) internal view returns (uint32 x, uint32 y) {
+  function get(bytes32 key) internal view returns (uint32 x, uint32 y, uint32 previousX, uint32 previousY) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
@@ -245,7 +375,7 @@ library Position {
   /**
    * @notice Get the full data.
    */
-  function _get(bytes32 key) internal view returns (uint32 x, uint32 y) {
+  function _get(bytes32 key) internal view returns (uint32 x, uint32 y, uint32 previousX, uint32 previousY) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
@@ -260,7 +390,10 @@ library Position {
   /**
    * @notice Get the full data (using the specified store).
    */
-  function get(IStore _store, bytes32 key) internal view returns (uint32 x, uint32 y) {
+  function get(
+    IStore _store,
+    bytes32 key
+  ) internal view returns (uint32 x, uint32 y, uint32 previousX, uint32 previousY) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
@@ -275,8 +408,8 @@ library Position {
   /**
    * @notice Set the full data using individual values.
    */
-  function set(bytes32 key, uint32 x, uint32 y) internal {
-    bytes memory _staticData = encodeStatic(x, y);
+  function set(bytes32 key, uint32 x, uint32 y, uint32 previousX, uint32 previousY) internal {
+    bytes memory _staticData = encodeStatic(x, y, previousX, previousY);
 
     PackedCounter _encodedLengths;
     bytes memory _dynamicData;
@@ -290,8 +423,8 @@ library Position {
   /**
    * @notice Set the full data using individual values.
    */
-  function _set(bytes32 key, uint32 x, uint32 y) internal {
-    bytes memory _staticData = encodeStatic(x, y);
+  function _set(bytes32 key, uint32 x, uint32 y, uint32 previousX, uint32 previousY) internal {
+    bytes memory _staticData = encodeStatic(x, y, previousX, previousY);
 
     PackedCounter _encodedLengths;
     bytes memory _dynamicData;
@@ -305,8 +438,8 @@ library Position {
   /**
    * @notice Set the full data using individual values (using the specified store).
    */
-  function set(IStore _store, bytes32 key, uint32 x, uint32 y) internal {
-    bytes memory _staticData = encodeStatic(x, y);
+  function set(IStore _store, bytes32 key, uint32 x, uint32 y, uint32 previousX, uint32 previousY) internal {
+    bytes memory _staticData = encodeStatic(x, y, previousX, previousY);
 
     PackedCounter _encodedLengths;
     bytes memory _dynamicData;
@@ -320,10 +453,16 @@ library Position {
   /**
    * @notice Decode the tightly packed blob of static data using this table's field layout.
    */
-  function decodeStatic(bytes memory _blob) internal pure returns (uint32 x, uint32 y) {
+  function decodeStatic(
+    bytes memory _blob
+  ) internal pure returns (uint32 x, uint32 y, uint32 previousX, uint32 previousY) {
     x = (uint32(Bytes.slice4(_blob, 0)));
 
     y = (uint32(Bytes.slice4(_blob, 4)));
+
+    previousX = (uint32(Bytes.slice4(_blob, 8)));
+
+    previousY = (uint32(Bytes.slice4(_blob, 12)));
   }
 
   /**
@@ -332,8 +471,12 @@ library Position {
    *
    *
    */
-  function decode(bytes memory _staticData, PackedCounter, bytes memory) internal pure returns (uint32 x, uint32 y) {
-    (x, y) = decodeStatic(_staticData);
+  function decode(
+    bytes memory _staticData,
+    PackedCounter,
+    bytes memory
+  ) internal pure returns (uint32 x, uint32 y, uint32 previousX, uint32 previousY) {
+    (x, y, previousX, previousY) = decodeStatic(_staticData);
   }
 
   /**
@@ -370,8 +513,8 @@ library Position {
    * @notice Tightly pack static (fixed length) data using this table's schema.
    * @return The static data, encoded into a sequence of bytes.
    */
-  function encodeStatic(uint32 x, uint32 y) internal pure returns (bytes memory) {
-    return abi.encodePacked(x, y);
+  function encodeStatic(uint32 x, uint32 y, uint32 previousX, uint32 previousY) internal pure returns (bytes memory) {
+    return abi.encodePacked(x, y, previousX, previousY);
   }
 
   /**
@@ -380,8 +523,13 @@ library Position {
    * @return The lengths of the dynamic fields (packed into a single bytes32 value).
    * @return The dyanmic (variable length) data, encoded into a sequence of bytes.
    */
-  function encode(uint32 x, uint32 y) internal pure returns (bytes memory, PackedCounter, bytes memory) {
-    bytes memory _staticData = encodeStatic(x, y);
+  function encode(
+    uint32 x,
+    uint32 y,
+    uint32 previousX,
+    uint32 previousY
+  ) internal pure returns (bytes memory, PackedCounter, bytes memory) {
+    bytes memory _staticData = encodeStatic(x, y, previousX, previousY);
 
     PackedCounter _encodedLengths;
     bytes memory _dynamicData;

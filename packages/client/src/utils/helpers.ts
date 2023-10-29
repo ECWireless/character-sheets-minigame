@@ -14,6 +14,13 @@ import {
   ItemRequirement,
   Metadata,
 } from "./types";
+import warriorRight1 from "./assets/warrior/right1.svg";
+import warriorLeft1 from "./assets/warrior/left1.svg";
+import warriorUp1 from "./assets/warrior/up1.svg";
+import warriorDown1 from "./assets/warrior/down1.svg";
+import wizard from "./assets/wizard.svg";
+import scribe from "./assets/scribe.svg";
+import villager from "./assets/villager.png";
 
 /**
  * Given a URI that may be ipfs, ipns, http, https, ar, or data protocol, return the fetch-able http(s) URLs for the same content
@@ -185,4 +192,52 @@ export const formatItem = async (item: ItemInfoFragment): Promise<Item> => {
     equippers: item.equippers,
     merkleRoot: item.merkleRoot,
   };
+};
+
+export const getDirection = (
+  x: number,
+  y: number,
+  previousX: number,
+  previousY: number
+) => {
+  if (x === previousX) {
+    return y > previousY ? "down" : "up";
+  }
+  return x > previousX ? "right" : "left";
+};
+
+export const getCharacterImage = (
+  className: string,
+  position: { x: number; y: number; previousX: number; previousY: number }
+) => {
+  const lcName = className.toLowerCase();
+
+  const direction = getDirection(
+    position.x,
+    position.y,
+    position.previousX,
+    position.previousY
+  );
+
+  switch (lcName) {
+    case "warrior":
+      switch (direction) {
+        case "up":
+          return warriorUp1;
+        case "down":
+          return warriorDown1;
+        case "left":
+          return warriorLeft1;
+        case "right":
+          return warriorRight1;
+        default:
+          return warriorDown1;
+      }
+    case "wizard":
+      return wizard;
+    case "scribe":
+      return scribe;
+    default:
+      return villager;
+  }
 };

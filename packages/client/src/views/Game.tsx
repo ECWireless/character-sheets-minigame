@@ -73,7 +73,7 @@ export const GameView = () => {
           Leave game
         </Button>
         {playerExists && (
-          <Button onClick={logout} w="100%">
+          <Button onClick={logout} variant="solid" w="100%">
             Logout
           </Button>
         )}
