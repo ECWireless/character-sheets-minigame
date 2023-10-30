@@ -14,7 +14,7 @@ import {
   ItemRequirement,
   Metadata,
 } from "./types";
-import warriorRight1 from "../assets/warrior/right1.svg";
+import warriorRight from "../assets/warrior/walkRight.gif";
 import warriorLeft1 from "../assets/warrior/left1.svg";
 import warriorUp1 from "../assets/warrior/up1.svg";
 import warriorDown1 from "../assets/warrior/down1.svg";
@@ -229,7 +229,7 @@ export const getCharacterImage = (
         case "left":
           return warriorLeft1;
         case "right":
-          return warriorRight1;
+          return warriorRight;
         default:
           return warriorDown1;
       }
