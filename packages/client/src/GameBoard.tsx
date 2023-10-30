@@ -41,12 +41,13 @@ export const GameBoard = () => {
         <Image
           key={entity}
           height="100%"
+          position="absolute"
           transform="scale(1.5)"
-          objectFit="contain"
           src={getCharacterImage(
             character?.classes[0]?.name ?? "villager",
             position
           )}
+          zIndex={1}
         />
       ),
     };
@@ -61,15 +62,15 @@ export const GameBoard = () => {
 
   const { width, height, terrain: terrainData } = mapConfig;
   const terrain = Array.from(hexToArray(terrainData)).map((value, index) => {
-    const { color, emoji } =
+    const { color, sprite } =
       value in TerrainType
         ? terrainTypes[value as TerrainType]
-        : { color: "green.400", emoji: "" };
+        : { color: "green.400", sprite: "" };
     return {
       x: index % width,
       y: Math.floor(index / width),
       color,
-      emoji,
+      sprite,
     };
   });
 

@@ -1,4 +1,4 @@
-import { Box, useToast } from "@chakra-ui/react";
+import { Box, Image, useToast } from "@chakra-ui/react";
 import { useCallback } from "react";
 import { useAccount } from "wagmi";
 import { useComponentValue } from "@latticexyz/react";
@@ -19,7 +19,7 @@ type GameMapProps = {
     x: number;
     y: number;
     color: string;
-    emoji: string;
+    sprite: string;
   }[];
   width: number;
 };
@@ -59,21 +59,18 @@ export const GameMap = ({ height, players, terrain, width }: GameMapProps) => {
 
   return (
     <Box
-      bg="green.400"
       display="inline-grid"
       gridTemplateColumns={`repeat(${width}, 1fr)`}
       gridTemplateRows={`repeat(${height}, 1fr)`}
-      overflow="hidden"
     >
       {rows.map((y) =>
         columns.map((x) => {
-          const { color: terrainColor, emoji: terrainEmoji } =
+          const { color: terrainColor, sprite } =
             terrain?.find((t) => t.x === x && t.y === y) || {};
           const playersHere = players?.filter((p) => p.x === x && p.y === y);
 
           return (
             <Box
-              background={terrainColor}
               key={`${x},${y}`}
               gridColumn={x + 1}
               gridRow={y + 1}
@@ -102,12 +99,13 @@ export const GameMap = ({ height, players, terrain, width }: GameMapProps) => {
               }
             >
               <Box
-                display="flex"
-                justifyContent="center"
-                transform="scale(1.75)"
-              >
-                {terrainEmoji}
-              </Box>
+                background={terrainColor}
+                h="100%"
+                position="absolute"
+                w="100%"
+                zIndex={0}
+              />
+              <Image position="absolute" src={sprite} />
               {playersHere?.map((p) => p.emoji)}
             </Box>
           );
