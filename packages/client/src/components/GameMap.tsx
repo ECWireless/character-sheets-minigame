@@ -4,8 +4,8 @@ import { useAccount } from "wagmi";
 import { useComponentValue } from "@latticexyz/react";
 import { Entity } from "@latticexyz/recs";
 
-import { useMUD } from "./MUDContext";
-import { useGamesContext } from "./contexts/GamesContext";
+import { useMUD } from "../contexts/MUDContext";
+import { useGamesContext } from "../contexts/GamesContext";
 
 type GameMapProps = {
   height: number;

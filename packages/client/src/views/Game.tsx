@@ -7,8 +7,8 @@ import { useEffect, useMemo } from "react";
 
 import { ConnectWalletButton } from "../components/ConnectWalletButton";
 import { useGamesContext } from "../contexts/GamesContext";
-import { GameBoard } from "../GameBoard";
-import { useMUD } from "../MUDContext";
+import { GameBoard } from "../components/GameBoard";
+import { useMUD } from "../contexts/MUDContext";
 
 export const GameView = () => {
   const { gameId } = useParams();

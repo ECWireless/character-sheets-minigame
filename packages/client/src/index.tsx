@@ -8,7 +8,7 @@ import { darkTheme, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { Provider } from "urql";
 import { App } from "./App";
 import { setup } from "./mud/setup";
-import { MUDProvider } from "./MUDContext";
+import { MUDProvider } from "./contexts/MUDContext";
 import mudConfig from "contracts/mud.config";
 import { client } from "./graphql/client";
 import { GamesProvider } from "./contexts/GamesContext";

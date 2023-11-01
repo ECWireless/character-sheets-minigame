@@ -5,11 +5,11 @@ import { singletonEntity } from "@latticexyz/store-sync/recs";
 import { Has, HasValue, getComponentValueStrict } from "@latticexyz/recs";
 
 import { GameMap } from "./GameMap";
-import { useMUD } from "./MUDContext";
-import { useKeyboardMovement } from "./utils/useKeyboardMovement";
-import { TerrainType, terrainTypes } from "./terrainTypes";
-import { useCharacter } from "./hooks/useCharacter";
-import { getDirection, getCharacterImage } from "./utils/helpers";
+import { useMUD } from "../contexts/MUDContext";
+import { useKeyboardMovement } from "../utils/useKeyboardMovement";
+import { TerrainType, terrainTypes } from "../utils/terrainTypes";
+import { useCharacter } from "../hooks/useCharacter";
+import { getDirection, getCharacterImage } from "../utils/helpers";
 import warriorAction1 from "./assets/warrior/warrior_attack1.gif";
 import warriorAction2 from "./assets/warrior/warrior_attack2.gif";
 
