@@ -18,9 +18,12 @@ import warriorRight from "../assets/warrior/warrior_right.gif";
 import warriorLeft from "../assets/warrior/warrior_left.gif";
 import warriorUp from "../assets/warrior/warrior_up.gif";
 import warriorDown from "../assets/warrior/warrior_down.gif";
+import villagerRight from "../assets/villager/villager_right.gif";
+import villagerLeft from "../assets/villager/villager_left.gif";
+import villagerUp from "../assets/villager/villager_up.gif";
+import villagerDown from "../assets/villager/villager_down.gif";
 import wizard from "../assets/wizard.svg";
 import scribe from "../assets/scribe.svg";
-import villager from "../assets/villager.png";
 
 /**
  * Given a URI that may be ipfs, ipns, http, https, ar, or data protocol, return the fetch-able http(s) URLs for the same content
@@ -234,6 +237,17 @@ export const getCharacterImage = (
     case "scribe":
       return scribe;
     default:
-      return villager;
+      switch (direction) {
+        case "up":
+          return villagerUp;
+        case "down":
+          return villagerDown;
+        case "left":
+          return villagerLeft;
+        case "right":
+          return villagerRight;
+        default:
+          return villagerDown;
+      }
   }
 };
