@@ -4,7 +4,7 @@ pragma solidity >=0.8.21;
 import { Script } from "forge-std/Script.sol";
 import { console } from "forge-std/console.sol";
 import { IWorld } from "../src/codegen/world/IWorld.sol";
-import { MapConfig, Obstruction, Position } from "../src/codegen/index.sol";
+import { MapConfig, Health, MolochSoldier, Obstruction, Position } from "../src/codegen/index.sol";
 import { TerrainType } from "../src/codegen/common.sol";
 import { positionToEntityKey } from "../src/lib/positionToEntityKey.sol";
 
@@ -23,18 +23,19 @@ contract PostDeploy is Script {
     TerrainType T = TerrainType.Tree;
     TerrainType B = TerrainType.Boulder;
     TerrainType W = TerrainType.Water;
+    TerrainType X = TerrainType.MolochSoldier;
 
     TerrainType[20][20] memory map = [
       [O, O, O, O, O, O, T, O, O, O, O, O, O, O, O, O, O, O, O, O],
-      [O, O, T, O, O, O, O, O, T, O, O, O, O, B, O, O, O, O, O, O],
+      [O, O, T, O, O, X, O, O, T, O, O, O, O, B, O, O, O, O, O, O],
       [O, T, T, T, T, O, O, O, O, O, O, O, O, O, O, T, T, O, O, O],
       [O, O, T, T, T, T, O, O, O, O, B, O, O, O, O, O, T, O, O, O],
       [O, O, O, O, T, T, O, O, O, O, O, O, O, O, O, O, O, T, O, O],
-      [O, O, O, B, B, O, O, O, O, O, O, O, O, O, O, O, O, O, O, O],
+      [O, O, O, B, B, O, O, O, O, O, O, O, O, O, O, O, X, O, O, O],
       [O, T, O, O, O, B, B, O, O, O, O, T, O, O, O, O, O, B, O, O],
       [O, O, T, T, O, O, O, O, O, T, O, B, O, O, T, O, B, O, O, O],
       [O, O, T, O, O, O, O, T, T, T, O, B, B, O, O, O, O, O, O, O],
-      [O, O, O, O, O, O, O, T, T, T, O, B, T, O, T, T, O, O, O, O],
+      [O, O, X, O, O, O, O, T, T, T, O, B, T, O, T, T, O, O, O, O],
       [O, B, O, O, O, B, O, O, T, T, O, B, O, O, T, T, O, O, O, O],
       [O, O, B, O, O, O, T, O, T, T, O, O, B, T, T, T, O, O, O, O],
       [O, O, B, B, O, O, O, O, T, O, O, O, B, O, T, O, O, O, O, O],
@@ -42,7 +43,7 @@ contract PostDeploy is Script {
       [O, O, O, O, B, O, O, O, O, O, O, O, O, O, O, O, O, O, O, O],
       [W, W, O, O, O, O, O, O, O, O, B, B, O, O, T, O, O, O, O, O],
       [O, O, W, O, W, O, O, O, T, B, O, O, O, T, T, O, B, O, O, O],
-      [O, O, O, W, O, W, T, T, O, O, O, O, O, T, O, O, O, O, O, O],
+      [O, O, O, W, O, W, T, T, X, O, O, O, O, T, O, O, O, O, O, O],
       [O, O, O, T, T, T, W, O, O, O, O, T, O, O, O, T, O, O, O, O],
       [O, O, O, O, O, T, O, W, O, O, O, O, O, O, O, O, O, O, O, O]
     ];
@@ -63,9 +64,16 @@ contract PostDeploy is Script {
           Position.set(world, entity, x, y, x, y);
           Obstruction.set(world, entity, true);
         }
+
+        if (terrainType == TerrainType.MolochSoldier) {
+          MolochSoldier.set(world, entity, true);
+          Position.set(world, entity, x, y, x, y);
+          Obstruction.set(world, entity, true);
+          Health.set(world, entity, 1);
+        }
       }
     }
- 
+
     MapConfig.set(world, width, height, terrain);
 
     vm.stopBroadcast();

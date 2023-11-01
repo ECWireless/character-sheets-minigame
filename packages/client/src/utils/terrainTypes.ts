@@ -1,5 +1,5 @@
-import rock1 from "./assets/map/rock1.svg";
-import tree1 from "./assets/map/tree.svg";
+import rock1 from "../assets/map/rock1.svg";
+import tree1 from "../assets/map/tree.svg";
 
 export enum TerrainType {
   Tree = 1,

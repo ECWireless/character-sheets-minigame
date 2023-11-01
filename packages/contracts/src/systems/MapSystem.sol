@@ -3,9 +3,26 @@ pragma solidity >=0.8.0;
 import { System } from "@latticexyz/world/src/System.sol";
 import { addressToEntityKey } from "../lib/addressToEntityKey.sol";
 import { positionToEntityKey } from "../lib/positionToEntityKey.sol";
-import { CharacterSheetInfo, MapConfig, Movable, Obstruction, Player, Position } from "../codegen/index.sol";
+import { CharacterSheetInfo, Health, MapConfig, MolochSoldier, Movable, Obstruction, Player, Position } from "../codegen/index.sol";
 
 contract MapSystem is System {
+  function attack(uint32 x, uint32 y) public {
+    bytes32 player = addressToEntityKey(address(_msgSender()));
+    bytes32 molochSoldier = positionToEntityKey(x, y);
+    require(Player.get(player), "not a player");
+    require(MolochSoldier.get(molochSoldier), "not a moloch soldier");
+
+    (uint32 playerX, uint32 playerY, ,) = Position.get(player);
+    (uint32 molochSoldierX, uint32 molochSoldierY, ,) = Position.get(molochSoldier);
+    
+    require(distance(playerX, playerY, molochSoldierX, molochSoldierY) == 1, "can only attack adjacent spaces");
+
+    uint32 molochSoldierHealth = Health.get(molochSoldier);
+    require(molochSoldierHealth > 0, "moloch soldier is already dead");
+
+    Health.set(molochSoldier, molochSoldierHealth - 1);
+  }
+
   function spawn(uint32 x, uint32 y, uint256 chainId, address gameAddress, address playerAddress) public {
     bytes32 player = addressToEntityKey(address(_msgSender()));
     require(!Player.get(player), "already spawned");

@@ -14,13 +14,16 @@ import {
   ItemRequirement,
   Metadata,
 } from "./types";
-import warriorRight from "../assets/warrior/walkRight.gif";
-import warriorLeft1 from "../assets/warrior/left1.svg";
-import warriorUp1 from "../assets/warrior/up1.svg";
-import warriorDown1 from "../assets/warrior/down1.svg";
+import warriorRight from "../assets/warrior/warrior_right.gif";
+import warriorLeft from "../assets/warrior/warrior_left.gif";
+import warriorUp from "../assets/warrior/warrior_up.gif";
+import warriorDown from "../assets/warrior/warrior_down.gif";
+import villagerRight from "../assets/villager/villager_right.gif";
+import villagerLeft from "../assets/villager/villager_left.gif";
+import villagerUp from "../assets/villager/villager_up.gif";
+import villagerDown from "../assets/villager/villager_down.gif";
 import wizard from "../assets/wizard.svg";
 import scribe from "../assets/scribe.svg";
-import villager from "../assets/villager.png";
 
 /**
  * Given a URI that may be ipfs, ipns, http, https, ar, or data protocol, return the fetch-able http(s) URLs for the same content
@@ -194,12 +197,13 @@ export const formatItem = async (item: ItemInfoFragment): Promise<Item> => {
   };
 };
 
-export const getDirection = (
-  x: number,
-  y: number,
-  previousX: number,
-  previousY: number
-) => {
+export const getDirection = (position: {
+  x: number;
+  y: number;
+  previousX: number;
+  previousY: number;
+}) => {
+  const { x, y, previousX, previousY } = position;
   if (x === previousX) {
     return y >= previousY ? "down" : "up";
   }
@@ -212,32 +216,38 @@ export const getCharacterImage = (
 ) => {
   const lcName = className.toLowerCase();
 
-  const direction = getDirection(
-    position.x,
-    position.y,
-    position.previousX,
-    position.previousY
-  );
+  const direction = getDirection(position);
 
   switch (lcName) {
     case "warrior":
       switch (direction) {
         case "up":
-          return warriorUp1;
+          return warriorUp;
         case "down":
-          return warriorDown1;
+          return warriorDown;
         case "left":
-          return warriorLeft1;
+          return warriorLeft;
         case "right":
           return warriorRight;
         default:
-          return warriorDown1;
+          return warriorDown;
       }
     case "wizard":
       return wizard;
     case "scribe":
       return scribe;
     default:
-      return villager;
+      switch (direction) {
+        case "up":
+          return villagerUp;
+        case "down":
+          return villagerDown;
+        case "left":
+          return villagerLeft;
+        case "right":
+          return villagerRight;
+        default:
+          return villagerDown;
+      }
   }
 };

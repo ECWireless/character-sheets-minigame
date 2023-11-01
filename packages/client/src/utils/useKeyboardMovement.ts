@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
-import { useMUD } from "../MUDContext";
+import { useMUD } from "../contexts/MUDContext";
+import { getComponentValueStrict } from "@latticexyz/recs";
 
-export const useKeyboardMovement = () => {
+export const useKeyboardMovement = (characterClass: string) => {
   const {
-    systemCalls: { moveBy },
+    components: { Position },
+    systemCalls: { attack, moveBy },
+    network: { playerEntity },
   } = useMUD();
 
-  const [flipCharacterImage, setFlipCharacterImage] = useState(false);
+  const [actionRunning, setActionRunning] = useState(false);
 
   useEffect(() => {
     const listener = (e: KeyboardEvent) => {
@@ -18,11 +21,9 @@ export const useKeyboardMovement = () => {
       }
       if (e.key === "a") {
         moveBy(-1, 0);
-        setFlipCharacterImage(false);
       }
       if (e.key === "d") {
         moveBy(1, 0);
-        setFlipCharacterImage(true);
       }
 
       if (e.key === "ArrowUp") {
@@ -33,17 +34,34 @@ export const useKeyboardMovement = () => {
       }
       if (e.key === "ArrowLeft") {
         moveBy(-1, 0);
-        setFlipCharacterImage(false);
       }
       if (e.key === "ArrowRight") {
         moveBy(1, 0);
-        setFlipCharacterImage(true);
+      }
+
+      if (e.key === "e") {
+        if (characterClass !== "warrior") return;
+        setActionRunning(true);
+        const playerPosition = getComponentValueStrict(Position, playerEntity);
+        const { x, y, previousX } = playerPosition;
+        if (x > previousX) {
+          attack(x + 1, y);
+        } else if (x < previousX) {
+          attack(x - 1, y);
+        }
       }
     };
 
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
-  }, [moveBy]);
+  }, [attack, characterClass, moveBy, playerEntity, Position]);
 
-  return { flipCharacterImage };
+  useEffect(() => {
+    if (!actionRunning) return;
+    setTimeout(() => {
+      setActionRunning(false);
+    }, 500);
+  });
+
+  return { actionRunning };
 };

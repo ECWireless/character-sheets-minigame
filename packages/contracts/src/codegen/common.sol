@@ -6,5 +6,6 @@ enum TerrainType {
   None,
   Tree,
   Boulder,
-  Water
+  Water,
+  MolochSoldier
 }

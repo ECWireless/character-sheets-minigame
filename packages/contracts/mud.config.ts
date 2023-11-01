@@ -2,7 +2,7 @@ import { mudConfig } from "@latticexyz/world/register";
 
 export default mudConfig({
   enums: {
-    TerrainType: ["None", "Tree", "Boulder", "Water"],
+    TerrainType: ["None", "Tree", "Boulder", "Water", "MolochSoldier"],
   },
   tables: {
     CharacterSheetInfo: {
@@ -13,6 +13,7 @@ export default mudConfig({
         playerAddress: "address",
       },
     },
+    Health: "uint32",
     MapConfig: {
       keySchema: {},
       dataStruct: false,
@@ -22,6 +23,7 @@ export default mudConfig({
         terrain: "bytes",
       },
     },
+    MolochSoldier: "bool",
     Movable: "bool",
     Obstruction: "bool",
     Player: "bool",
