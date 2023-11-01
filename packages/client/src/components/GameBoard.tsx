@@ -10,14 +10,23 @@ import { useKeyboardMovement } from "../utils/useKeyboardMovement";
 import { TerrainType, terrainTypes } from "../utils/terrainTypes";
 import { useCharacter } from "../hooks/useCharacter";
 import { getDirection, getCharacterImage } from "../utils/helpers";
-import warriorAction1 from "./assets/warrior/warrior_attack1.gif";
-import warriorAction2 from "./assets/warrior/warrior_attack2.gif";
+import warriorAction1 from "../assets/warrior/warrior_attack1.gif";
+import warriorAction2 from "../assets/warrior/warrior_attack2.gif";
+import molochSoldier from "../assets/moloch/moloch_left.gif";
+import molochSoldierDead from "../assets/moloch/moloch_dead_left.gif";
 
 export const GameBoard = () => {
   const { actionRunning } = useKeyboardMovement();
 
   const {
-    components: { CharacterSheetInfo, MapConfig, Player, Position },
+    components: {
+      CharacterSheetInfo,
+      Health,
+      MapConfig,
+      MolochSoldier,
+      Player,
+      Position,
+    },
     network: { playerEntity },
   } = useMUD();
 
@@ -29,6 +38,30 @@ export const GameBoard = () => {
   const { playerAddress, gameAddress } = csInfo ?? {};
   const { character } = useCharacter(playerAddress, gameAddress);
 
+  const molochSoldiers = useEntityQuery([
+    HasValue(MolochSoldier, { value: true }),
+    Has(Position),
+  ]).map((entity) => {
+    const position = getComponentValueStrict(Position, entity);
+    const health = getComponentValueStrict(Health, entity).value ?? 0;
+
+    return {
+      entity,
+      x: position.x,
+      y: position.y,
+      sprite: (
+        <Image
+          key={entity}
+          height="100%"
+          position="absolute"
+          src={health > 0 ? molochSoldier : molochSoldierDead}
+          transform="scale(1.5) translateY(-8px)"
+          zIndex={1}
+        />
+      ),
+    };
+  });
+
   const players = useEntityQuery([
     HasValue(Player, { value: true }),
     Has(Position),
@@ -36,9 +69,20 @@ export const GameBoard = () => {
   ]).map((entity) => {
     const position = getComponentValueStrict(Position, entity);
     const direction = getDirection(position);
+    const characterClass = character?.classes[0]?.name ?? "villager";
     let transform = "scale(1.5)";
 
-    if (direction === "up" || direction === "down") {
+    if (
+      (direction === "up" || direction === "down") &&
+      characterClass === "warrior"
+    ) {
+      transform = "scale(1.2)";
+    }
+
+    if (
+      (direction === "right" || direction === "left") &&
+      characterClass === "villager"
+    ) {
       transform = "scale(1.2)";
     }
 
@@ -49,10 +93,7 @@ export const GameBoard = () => {
           : "scale(1.7) translate(5px, -4px)";
     }
 
-    let src = getCharacterImage(
-      character?.classes[0]?.name ?? "villager",
-      position
-    );
+    let src = getCharacterImage(characterClass, position);
 
     if (actionRunning) {
       src = direction === "right" ? warriorAction1 : warriorAction2;
@@ -62,7 +103,7 @@ export const GameBoard = () => {
       entity,
       x: position.x,
       y: position.y,
-      emoji: (
+      sprite: (
         <Image
           key={entity}
           height="100%"
@@ -99,6 +140,7 @@ export const GameBoard = () => {
   return (
     <GameMap
       height={height}
+      molochSoldiers={molochSoldiers}
       players={players}
       terrain={terrain}
       width={width}

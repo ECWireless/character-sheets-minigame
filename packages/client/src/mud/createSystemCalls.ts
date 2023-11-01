@@ -6,6 +6,7 @@
 import { Has, HasValue, getComponentValue, runQuery } from "@latticexyz/recs";
 import { singletonEntity } from "@latticexyz/store-sync/recs";
 import { uuid } from "@latticexyz/utils";
+import { Address } from "viem";
 import { ClientComponents } from "./createClientComponents";
 import { SetupNetworkResult } from "./setupNetwork";
 
@@ -13,8 +14,50 @@ export type SystemCalls = ReturnType<typeof createSystemCalls>;
 
 export function createSystemCalls(
   { worldContract, waitForTransaction, playerEntity }: SetupNetworkResult,
-  { MapConfig, Obstruction, Player, Position }: ClientComponents
+  {
+    Health,
+    MapConfig,
+    MolochSoldier,
+    Obstruction,
+    Player,
+    Position,
+  }: ClientComponents
 ) {
+  const attack = async (x: number, y: number) => {
+    if (!playerEntity) {
+      throw new Error("No player entity");
+    }
+
+    const molochSoldierEntities = runQuery([
+      Has(MolochSoldier),
+      HasValue(Position, { x, y }),
+    ]);
+    const molochSoldierEntity = Array.from(molochSoldierEntities)[0];
+    if (!molochSoldierEntity) {
+      console.warn("No moloch soldier to attack");
+      return;
+    }
+
+    const molochHealth = getComponentValue(Health, molochSoldierEntity);
+    if (molochHealth?.value === 0) {
+      console.warn("Moloch soldier already dead");
+      return;
+    }
+
+    const healthId = uuid();
+    Health.addOverride(healthId, {
+      entity: molochSoldierEntity,
+      value: { value: 0 },
+    });
+
+    try {
+      const tx = await worldContract.write.attack([x, y]);
+      await waitForTransaction(tx);
+    } finally {
+      Health.removeOverride(healthId);
+    }
+  };
+
   const wrapPosition = (x: number, y: number) => {
     const mapConfig = getComponentValue(MapConfig, singletonEntity);
     if (!mapConfig) {
@@ -143,8 +186,8 @@ export function createSystemCalls(
         x,
         y,
         BigInt(5),
-        gameAddress.toLowerCase(),
-        playerAddress.toLowerCase(),
+        gameAddress.toLowerCase() as Address,
+        playerAddress.toLowerCase() as Address,
       ]);
       await waitForTransaction(tx);
       return getComponentValue(Position, playerEntity);
@@ -155,6 +198,7 @@ export function createSystemCalls(
   };
 
   return {
+    attack,
     logout,
     moveTo,
     moveBy,

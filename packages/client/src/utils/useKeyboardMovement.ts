@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useMUD } from "../contexts/MUDContext";
+import { getComponentValueStrict } from "@latticexyz/recs";
 
 export const useKeyboardMovement = () => {
   const {
-    systemCalls: { moveBy },
+    components: { Position },
+    systemCalls: { attack, moveBy },
+    network: { playerEntity },
   } = useMUD();
 
-  const [flipCharacterImage, setFlipCharacterImage] = useState(false);
   const [actionRunning, setActionRunning] = useState(false);
 
   useEffect(() => {
@@ -19,11 +21,9 @@ export const useKeyboardMovement = () => {
       }
       if (e.key === "a") {
         moveBy(-1, 0);
-        setFlipCharacterImage(false);
       }
       if (e.key === "d") {
         moveBy(1, 0);
-        setFlipCharacterImage(true);
       }
 
       if (e.key === "ArrowUp") {
@@ -34,21 +34,26 @@ export const useKeyboardMovement = () => {
       }
       if (e.key === "ArrowLeft") {
         moveBy(-1, 0);
-        setFlipCharacterImage(false);
       }
       if (e.key === "ArrowRight") {
         moveBy(1, 0);
-        setFlipCharacterImage(true);
       }
 
       if (e.key === "e") {
         setActionRunning(true);
+        const playerPosition = getComponentValueStrict(Position, playerEntity);
+        const { x, y, previousX } = playerPosition;
+        if (x > previousX) {
+          attack(x + 1, y);
+        } else if (x < previousX) {
+          attack(x - 1, y);
+        }
       }
     };
 
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
-  }, [moveBy]);
+  }, [attack, moveBy, playerEntity, Position]);
 
   useEffect(() => {
     if (!actionRunning) return;
@@ -57,5 +62,5 @@ export const useKeyboardMovement = () => {
     }, 500);
   });
 
-  return { actionRunning, flipCharacterImage };
+  return { actionRunning };
 };

@@ -9,10 +9,16 @@ import { useGamesContext } from "../contexts/GamesContext";
 
 type GameMapProps = {
   height: number;
+  molochSoldiers?: {
+    x: number;
+    y: number;
+    sprite: JSX.Element;
+    entity: Entity;
+  }[];
   players?: {
     x: number;
     y: number;
-    emoji: JSX.Element;
+    sprite: JSX.Element;
     entity: Entity;
   }[];
   terrain?: {
@@ -24,7 +30,13 @@ type GameMapProps = {
   width: number;
 };
 
-export const GameMap = ({ height, players, terrain, width }: GameMapProps) => {
+export const GameMap = ({
+  height,
+  molochSoldiers,
+  players,
+  terrain,
+  width,
+}: GameMapProps) => {
   const { address } = useAccount();
   const {
     components: { Player },
@@ -68,6 +80,9 @@ export const GameMap = ({ height, players, terrain, width }: GameMapProps) => {
           const { color: terrainColor, sprite } =
             terrain?.find((t) => t.x === x && t.y === y) || {};
           const playersHere = players?.filter((p) => p.x === x && p.y === y);
+          const molochsHere = molochSoldiers?.filter(
+            (m) => m.x === x && m.y === y
+          );
 
           return (
             <Box
@@ -106,7 +121,8 @@ export const GameMap = ({ height, players, terrain, width }: GameMapProps) => {
                 zIndex={0}
               />
               <Image position="absolute" src={sprite} />
-              {playersHere?.map((p) => p.emoji)}
+              {playersHere?.map((p) => p.sprite)}
+              {molochsHere?.map((m) => m.sprite)}
             </Box>
           );
         })
