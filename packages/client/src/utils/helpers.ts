@@ -14,10 +14,10 @@ import {
   ItemRequirement,
   Metadata,
 } from "./types";
-import warriorRight from "../assets/warrior/walkRight.gif";
-import warriorLeft1 from "../assets/warrior/left1.svg";
-import warriorUp1 from "../assets/warrior/up1.svg";
-import warriorDown1 from "../assets/warrior/down1.svg";
+import warriorRight from "../assets/warrior/warrior_right.gif";
+import warriorLeft from "../assets/warrior/warrior_left.gif";
+import warriorUp from "../assets/warrior/warrior_up.gif";
+import warriorDown from "../assets/warrior/warrior_down.gif";
 import wizard from "../assets/wizard.svg";
 import scribe from "../assets/scribe.svg";
 import villager from "../assets/villager.png";
@@ -194,12 +194,13 @@ export const formatItem = async (item: ItemInfoFragment): Promise<Item> => {
   };
 };
 
-export const getDirection = (
-  x: number,
-  y: number,
-  previousX: number,
-  previousY: number
-) => {
+export const getDirection = (position: {
+  x: number;
+  y: number;
+  previousX: number;
+  previousY: number;
+}) => {
+  const { x, y, previousX, previousY } = position;
   if (x === previousX) {
     return y >= previousY ? "down" : "up";
   }
@@ -212,26 +213,21 @@ export const getCharacterImage = (
 ) => {
   const lcName = className.toLowerCase();
 
-  const direction = getDirection(
-    position.x,
-    position.y,
-    position.previousX,
-    position.previousY
-  );
+  const direction = getDirection(position);
 
   switch (lcName) {
     case "warrior":
       switch (direction) {
         case "up":
-          return warriorUp1;
+          return warriorUp;
         case "down":
-          return warriorDown1;
+          return warriorDown;
         case "left":
-          return warriorLeft1;
+          return warriorLeft;
         case "right":
           return warriorRight;
         default:
-          return warriorDown1;
+          return warriorDown;
       }
     case "wizard":
       return wizard;

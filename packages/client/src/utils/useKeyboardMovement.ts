@@ -7,6 +7,7 @@ export const useKeyboardMovement = () => {
   } = useMUD();
 
   const [flipCharacterImage, setFlipCharacterImage] = useState(false);
+  const [actionRunning, setActionRunning] = useState(false);
 
   useEffect(() => {
     const listener = (e: KeyboardEvent) => {
@@ -39,11 +40,22 @@ export const useKeyboardMovement = () => {
         moveBy(1, 0);
         setFlipCharacterImage(true);
       }
+
+      if (e.key === "e") {
+        setActionRunning(true);
+      }
     };
 
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
   }, [moveBy]);
 
-  return { flipCharacterImage };
+  useEffect(() => {
+    if (!actionRunning) return;
+    setTimeout(() => {
+      setActionRunning(false);
+    }, 500);
+  });
+
+  return { actionRunning, flipCharacterImage };
 };

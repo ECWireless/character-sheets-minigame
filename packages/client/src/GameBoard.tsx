@@ -9,10 +9,12 @@ import { useMUD } from "./MUDContext";
 import { useKeyboardMovement } from "./utils/useKeyboardMovement";
 import { TerrainType, terrainTypes } from "./terrainTypes";
 import { useCharacter } from "./hooks/useCharacter";
-import { getCharacterImage } from "./utils/helpers";
+import { getDirection, getCharacterImage } from "./utils/helpers";
+import warriorAction1 from "./assets/warrior/warrior_attack1.gif";
+import warriorAction2 from "./assets/warrior/warrior_attack2.gif";
 
 export const GameBoard = () => {
-  useKeyboardMovement();
+  const { actionRunning } = useKeyboardMovement();
 
   const {
     components: { CharacterSheetInfo, MapConfig, Player, Position },
@@ -33,6 +35,29 @@ export const GameBoard = () => {
     Has(CharacterSheetInfo),
   ]).map((entity) => {
     const position = getComponentValueStrict(Position, entity);
+    const direction = getDirection(position);
+    let transform = "scale(1.5)";
+
+    if (direction === "up" || direction === "down") {
+      transform = "scale(1.2)";
+    }
+
+    if (actionRunning) {
+      transform =
+        direction === "left"
+          ? "scale(1.7) translate(-5px, -4px)"
+          : "scale(1.7) translate(5px, -4px)";
+    }
+
+    let src = getCharacterImage(
+      character?.classes[0]?.name ?? "villager",
+      position
+    );
+
+    if (actionRunning) {
+      src = direction === "right" ? warriorAction1 : warriorAction2;
+    }
+
     return {
       entity,
       x: position.x,
@@ -42,11 +67,8 @@ export const GameBoard = () => {
           key={entity}
           height="100%"
           position="absolute"
-          transform="scale(1.5)"
-          src={getCharacterImage(
-            character?.classes[0]?.name ?? "villager",
-            position
-          )}
+          transform={transform}
+          src={src}
           zIndex={1}
         />
       ),
