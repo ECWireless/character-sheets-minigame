@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useMUD } from "../contexts/MUDContext";
 import { getComponentValueStrict } from "@latticexyz/recs";
 
-export const useKeyboardMovement = () => {
+export const useKeyboardMovement = (characterClass: string) => {
   const {
     components: { Position },
     systemCalls: { attack, moveBy },
@@ -40,6 +40,7 @@ export const useKeyboardMovement = () => {
       }
 
       if (e.key === "e") {
+        if (characterClass !== "warrior") return;
         setActionRunning(true);
         const playerPosition = getComponentValueStrict(Position, playerEntity);
         const { x, y, previousX } = playerPosition;
@@ -53,7 +54,7 @@ export const useKeyboardMovement = () => {
 
     window.addEventListener("keydown", listener);
     return () => window.removeEventListener("keydown", listener);
-  }, [attack, moveBy, playerEntity, Position]);
+  }, [attack, characterClass, moveBy, playerEntity, Position]);
 
   useEffect(() => {
     if (!actionRunning) return;

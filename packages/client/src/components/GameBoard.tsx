@@ -12,12 +12,13 @@ import { useCharacter } from "../hooks/useCharacter";
 import { getDirection, getCharacterImage } from "../utils/helpers";
 import warriorAction1 from "../assets/warrior/warrior_attack1.gif";
 import warriorAction2 from "../assets/warrior/warrior_attack2.gif";
-import molochSoldier from "../assets/moloch/moloch_left.gif";
-import molochSoldierDead from "../assets/moloch/moloch_dead_left.gif";
+import molochSoldierLeft from "../assets/moloch/moloch_left.gif";
+import molochSoldierRight from "../assets/moloch/moloch_right.gif";
+import molochSoldierDeadLeft from "../assets/moloch/moloch_dead_left.gif";
+import molochSoldierDeadRight from "../assets/moloch/moloch_dead_right.gif";
+import { useMemo } from "react";
 
 export const GameBoard = () => {
-  const { actionRunning } = useKeyboardMovement();
-
   const {
     components: {
       CharacterSheetInfo,
@@ -37,6 +38,11 @@ export const GameBoard = () => {
 
   const { playerAddress, gameAddress } = csInfo ?? {};
   const { character } = useCharacter(playerAddress, gameAddress);
+  const characterClass = useMemo(
+    () => character?.classes[0]?.name.toLowerCase() ?? "villager",
+    [character]
+  );
+  const { actionRunning } = useKeyboardMovement(characterClass);
 
   const molochSoldiers = useEntityQuery([
     HasValue(MolochSoldier, { value: true }),
@@ -44,6 +50,12 @@ export const GameBoard = () => {
   ]).map((entity) => {
     const position = getComponentValueStrict(Position, entity);
     const health = getComponentValueStrict(Health, entity).value ?? 0;
+
+    const direction = position.x % 2 === 0 ? "left" : "right";
+    const molochSoldier =
+      direction === "left" ? molochSoldierLeft : molochSoldierRight;
+    const molochSoldierDead =
+      direction === "left" ? molochSoldierDeadLeft : molochSoldierDeadRight;
 
     return {
       entity,
@@ -69,7 +81,7 @@ export const GameBoard = () => {
   ]).map((entity) => {
     const position = getComponentValueStrict(Position, entity);
     const direction = getDirection(position);
-    const characterClass = character?.classes[0]?.name ?? "villager";
+
     let transform = "scale(1.5)";
 
     if (
