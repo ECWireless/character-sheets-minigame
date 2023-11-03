@@ -97,8 +97,9 @@ export const formatGameMeta = async (
   return {
     id: game.id,
     uri: game.uri,
-    owners: game.owners,
-    masters: game.masters,
+    owner: game.owner.address,
+    admins: game.admins.map((a) => a.address),
+    masters: game.masters.map((m) => m.address),
     players: game.characters.map((c) => c.player),
     name: metadata.name,
     description: metadata.description,
