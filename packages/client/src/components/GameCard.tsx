@@ -1,5 +1,6 @@
 import {
   AspectRatio,
+  Button,
   Heading,
   HStack,
   Image,
@@ -22,12 +23,12 @@ type GameCardProps = GameMeta & {
 export const GameCard: React.FC<GameCardProps> = ({
   chainId,
   characters,
-  description,
   experience,
   id,
   image,
   items,
   name,
+  description,
 }) => {
   const navigate = useNavigate();
 
@@ -36,56 +37,51 @@ export const GameCard: React.FC<GameCardProps> = ({
       bg="cardBG"
       justify="space-between"
       p={8}
-      spacing={12}
       transition="background 0.3s ease"
       w="100%"
+      spacing={12}
     >
-      <AspectRatio maxW="12rem" ratio={1} w="100%">
+      <AspectRatio ratio={1} w="100%" maxW="12rem">
         <Image
           alt="game emblem"
-          background="gray.400"
-          h="100%"
           objectFit="cover"
-          onClick={() => navigate(`/${id}`)}
           src={image}
           w="100%"
-          _hover={{
-            cursor: "pointer",
-          }}
+          h="100%"
         />
       </AspectRatio>
-      <VStack align="flex-start" flex={1} spacing={4}>
+      <VStack spacing={4} align="flex-start" flex={1}>
         <Heading
           display="inline-block"
           fontSize="40px"
           fontWeight="normal"
           lineHeight="40px"
-          onClick={() => navigate(`/${id}`)}
-          _hover={{
-            color: "accent",
-            cursor: "pointer",
-          }}
         >
           {name}
         </Heading>
-        <Text fontSize="xl" fontWeight={200} mb={2}>
-          {shortenText(description, 60)}
-        </Text>
-        <Link
-          fontSize="sm"
-          fontWeight={300}
-          href={`${EXPLORER_URLS[chainId]}/address/${id}`}
-          isExternal
-          mb={3}
-          textDecoration={"underline"}
-        >
-          {shortenAddress(id)}
-        </Link>
+        <VStack spacing={2} align="flex-start">
+          <Text fontWeight={200} mb={2}>
+            {shortenText(description, 60)}
+          </Text>
+          <Link
+            fontSize="sm"
+            href={`${EXPLORER_URLS[chainId]}/address/${id}`}
+            isExternal
+            fontWeight={300}
+            mb={3}
+            textDecoration={"underline"}
+          >
+            {shortenAddress(id)}
+          </Link>
+        </VStack>
+        <Button onClick={() => navigate(`/${id}`)} variant="play">
+          play
+        </Button>
       </VStack>
 
       <GameTotals
-        characters={characters}
         experience={experience}
+        characters={characters}
         items={items}
       />
     </HStack>

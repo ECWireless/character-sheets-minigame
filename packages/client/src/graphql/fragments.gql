@@ -1,19 +1,6 @@
-fragment GameMetaInfo on Game {
+fragment GlobalInfo on Global {
   id
-  uri
-  owners
-  masters
-  experience
-  characters {
-    id
-    player
-  }
-  classes {
-    id
-  }
-  items {
-    id
-  }
+  gameFactory
 }
 
 fragment CharacterInfo on Character {
@@ -23,6 +10,7 @@ fragment CharacterInfo on Character {
   player
   jailed
   removed
+  approved
   experience
   uri
   heldClasses {
@@ -50,9 +38,17 @@ fragment ClassInfo on Class {
   id
   classId
   uri
+  claimable
   holders {
     id
   }
+}
+
+fragment ItemRequirementInfo on ItemRequirement {
+  assetCategory
+  assetAddress
+  assetId
+  amount
 }
 
 fragment ItemInfo on Item {
@@ -74,9 +70,55 @@ fragment ItemInfo on Item {
   }
 }
 
-fragment ItemRequirementInfo on ItemRequirement {
-  assetCategory
-  assetAddress
-  assetId
-  amount
+fragment GameMetaInfo on Game {
+  id
+  uri
+  owner {
+    address
+  }
+  admins {
+    address
+  }
+  masters {
+    address
+  }
+  experience
+  characters {
+    id
+    player
+  }
+  classes {
+    id
+  }
+  items {
+    id
+  }
+}
+
+fragment FullGameInfo on Game {
+  id
+  classesAddress
+  itemsAddress
+  experienceAddress
+  characterEligibilityAdaptor
+  uri
+  owner {
+    address
+  }
+  admins {
+    address
+  }
+  masters {
+    address
+  }
+  experience
+  characters {
+    ...CharacterInfo
+  }
+  classes {
+    ...ClassInfo
+  }
+  items {
+    ...ItemInfo
+  }
 }
