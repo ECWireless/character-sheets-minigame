@@ -17,6 +17,8 @@ import molochSoldierRight from "../assets/moloch/moloch_right.gif";
 import molochSoldierDeadLeft from "../assets/moloch/moloch_dead_left.gif";
 import molochSoldierDeadRight from "../assets/moloch/moloch_dead_right.gif";
 import { useMemo } from "react";
+import { useAccount } from "wagmi";
+import { getPlayerEntity } from "../utils/helpers";
 
 export const GameBoard = () => {
   const {
@@ -28,8 +30,12 @@ export const GameBoard = () => {
       Player,
       Position,
     },
-    network: { playerEntity },
   } = useMUD();
+  const { address } = useAccount();
+
+  const playerEntity = useMemo(() => {
+    return getPlayerEntity(address ?? "");
+  }, [address]);
 
   const csInfo = useComponentValue(CharacterSheetInfo, playerEntity) as {
     playerAddress: string;
@@ -42,7 +48,7 @@ export const GameBoard = () => {
     () => character?.classes[0]?.name.toLowerCase() ?? "villager",
     [character]
   );
-  const { actionRunning } = useKeyboardMovement(characterClass);
+  const { actionRunning } = useKeyboardMovement(playerAddress, characterClass);
 
   const molochSoldiers = useEntityQuery([
     HasValue(MolochSoldier, { value: true }),
