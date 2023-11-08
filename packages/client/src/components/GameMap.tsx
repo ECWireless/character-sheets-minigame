@@ -1,11 +1,27 @@
 import { Box, Image, useToast } from "@chakra-ui/react";
-import { useCallback } from "react";
-import { useAccount } from "wagmi";
+import { useCallback, useMemo } from "react";
+import { TypedDataDomain } from "viem";
+import { useAccount, useWalletClient } from "wagmi";
 import { useComponentValue } from "@latticexyz/react";
-import { Entity } from "@latticexyz/recs";
+import { Entity, getComponentValue } from "@latticexyz/recs";
 
 import { useMUD } from "../contexts/MUDContext";
 import { useGamesContext } from "../contexts/GamesContext";
+import { getPlayerEntity } from "../utils/helpers";
+import { decodeEntity } from "@latticexyz/store-sync/recs";
+
+const domain = {
+  name: "CharacterSheets - Minigame",
+  chainId: 100,
+} as TypedDataDomain;
+
+const types = {
+  SpawnRequest: [
+    { name: "playerAddress", type: "address" },
+    { name: "burnerAddress", type: "address" },
+    { name: "nonce", type: "uint256" },
+  ],
+};
 
 type GameMapProps = {
   height: number;
@@ -38,13 +54,18 @@ export const GameMap = ({
   width,
 }: GameMapProps) => {
   const { address } = useAccount();
+  const { data: walletClient } = useWalletClient();
   const {
-    components: { Player },
-    network: { playerEntity },
+    components: { Player, SpawnInfo },
+    network: { playerEntity: burnerPlayerEntity },
     systemCalls: { spawn },
   } = useMUD();
   const { activeGame } = useGamesContext();
   const toast = useToast();
+
+  const playerEntity = useMemo(() => {
+    return getPlayerEntity(address ?? "");
+  }, [address]);
 
   const playerExists = useComponentValue(Player, playerEntity)?.value === true;
   const canSpawn = useComponentValue(Player, playerEntity)?.value !== true;
@@ -53,8 +74,8 @@ export const GameMap = ({
   const columns = new Array(height).fill(0).map((_, i) => i);
 
   const onTileClick = useCallback(
-    (x: number, y: number, gameAddress: string) => {
-      if (!address) {
+    async (x: number, y: number, gameAddress: string) => {
+      if (!(address && walletClient)) {
         toast({
           title: "Login to play",
           status: "warning",
@@ -63,10 +84,36 @@ export const GameMap = ({
           isClosable: true,
         });
       } else if (canSpawn) {
-        spawn(x, y, gameAddress, address);
+        const currentNonce =
+          getComponentValue(SpawnInfo, playerEntity)?.nonce ?? BigInt(0);
+        const message = {
+          playerAddress: address,
+          burnerAddress: decodeEntity(
+            { address: "address" },
+            burnerPlayerEntity
+          ).address,
+          nonce: currentNonce + BigInt(1),
+        };
+
+        const signature = (await walletClient.signTypedData({
+          domain,
+          types,
+          primaryType: "SpawnRequest",
+          message,
+        })) as `0x${string}`;
+        spawn(gameAddress, address, x, y, signature);
       }
     },
-    [address, canSpawn, spawn, toast]
+    [
+      address,
+      burnerPlayerEntity,
+      canSpawn,
+      playerEntity,
+      spawn,
+      SpawnInfo,
+      toast,
+      walletClient,
+    ]
   );
 
   return (

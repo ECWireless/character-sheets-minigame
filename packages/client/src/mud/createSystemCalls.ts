@@ -9,11 +9,12 @@ import { uuid } from "@latticexyz/utils";
 import { Address } from "viem";
 import { ClientComponents } from "./createClientComponents";
 import { SetupNetworkResult } from "./setupNetwork";
+import { getPlayerEntity } from "../utils/helpers";
 
 export type SystemCalls = ReturnType<typeof createSystemCalls>;
 
 export function createSystemCalls(
-  { worldContract, waitForTransaction, playerEntity }: SetupNetworkResult,
+  { worldContract, waitForTransaction }: SetupNetworkResult,
   {
     Health,
     MapConfig,
@@ -23,7 +24,8 @@ export function createSystemCalls(
     Position,
   }: ClientComponents
 ) {
-  const attack = async (x: number, y: number) => {
+  const attack = async (playerAddress: string, x: number, y: number) => {
+    const playerEntity = getPlayerEntity(playerAddress);
     if (!playerEntity) {
       throw new Error("No player entity");
     }
@@ -51,7 +53,7 @@ export function createSystemCalls(
     });
 
     try {
-      const tx = await worldContract.write.attack([x, y]);
+      const tx = await worldContract.write.attack([playerAddress, x, y]);
       await waitForTransaction(tx);
     } finally {
       Health.removeOverride(healthId);
@@ -73,7 +75,8 @@ export function createSystemCalls(
     return runQuery([Has(Obstruction), HasValue(Position, { x, y })]).size > 0;
   };
 
-  const logout = async () => {
+  const logout = async (playerAddress: string) => {
+    const playerEntity = getPlayerEntity(playerAddress);
     if (!playerEntity) {
       throw new Error("No player entity");
     }
@@ -90,7 +93,7 @@ export function createSystemCalls(
     });
 
     try {
-      const tx = await worldContract.write.logout();
+      const tx = await worldContract.write.logout(playerAddress);
       await waitForTransaction(tx);
       return getComponentValue(Position, playerEntity);
     } finally {
@@ -99,11 +102,13 @@ export function createSystemCalls(
   };
 
   const moveTo = async (
+    playerAddress: string,
     inputX: number,
     inputY: number,
     previousX: number,
     previousY: number
   ) => {
+    const playerEntity = getPlayerEntity(playerAddress);
     if (!playerEntity) {
       throw new Error("No player entity");
     }
@@ -121,7 +126,7 @@ export function createSystemCalls(
     });
 
     try {
-      const tx = await worldContract.write.move([x, y]);
+      const tx = await worldContract.write.move([playerAddress, x, y]);
       await waitForTransaction(tx);
       return getComponentValue(Position, playerEntity);
     } finally {
@@ -129,7 +134,12 @@ export function createSystemCalls(
     }
   };
 
-  const moveBy = async (deltaX: number, deltaY: number) => {
+  const moveBy = async (
+    playerAddress: string,
+    deltaX: number,
+    deltaY: number
+  ) => {
+    const playerEntity = getPlayerEntity(playerAddress);
     if (!playerEntity) {
       throw new Error("No player entity");
     }
@@ -141,6 +151,7 @@ export function createSystemCalls(
     }
 
     await moveTo(
+      playerAddress,
       playerPosition.x + deltaX,
       playerPosition.y + deltaY,
       playerPosition.x,
@@ -149,11 +160,13 @@ export function createSystemCalls(
   };
 
   const spawn = async (
+    gameAddress: string,
+    playerAddress: string,
     inputX: number,
     inputY: number,
-    gameAddress: string,
-    playerAddress: string
+    signature: `0x${string}`
   ) => {
+    const playerEntity = getPlayerEntity(playerAddress);
     if (!playerEntity) {
       throw new Error("No player entity");
     }
@@ -183,11 +196,12 @@ export function createSystemCalls(
 
     try {
       const tx = await worldContract.write.spawn([
-        x,
-        y,
-        BigInt(5),
+        BigInt(100),
         gameAddress.toLowerCase() as Address,
         playerAddress.toLowerCase() as Address,
+        x,
+        y,
+        signature,
       ]);
       await waitForTransaction(tx);
       return getComponentValue(Position, playerEntity);

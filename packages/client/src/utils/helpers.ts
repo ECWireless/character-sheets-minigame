@@ -1,3 +1,4 @@
+import { encodeEntity } from "@latticexyz/store-sync/recs";
 import {
   CharacterInfoFragment,
   ClassInfoFragment,
@@ -251,4 +252,15 @@ export const getCharacterImage = (
           return villagerDown;
       }
   }
+};
+
+export const getPlayerEntity = (address: string) => {
+  return encodeEntity(
+    {
+      address: "address",
+    },
+    {
+      address: address as `0x${string}`,
+    }
+  );
 };

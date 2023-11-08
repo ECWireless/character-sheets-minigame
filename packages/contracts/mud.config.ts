@@ -13,6 +13,13 @@ export default mudConfig({
         playerAddress: "address",
       },
     },
+    // Game: {
+    //   dataStruct: false,
+    //   valueSchema: {
+    //     chainId: "uint256",
+    //     gameAddress: "address",
+    //   },
+    // },
     Health: "uint32",
     MapConfig: {
       keySchema: {},
@@ -34,6 +41,13 @@ export default mudConfig({
         y: "uint32",
         previousX: "uint32",
         previousY: "uint32",
+      },
+    },
+    SpawnInfo: {
+      dataStruct: false,
+      valueSchema: {
+        burnerAddress: "address",
+        nonce: "uint256",
       },
     },
   },
