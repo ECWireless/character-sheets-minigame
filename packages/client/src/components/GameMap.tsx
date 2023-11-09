@@ -73,11 +73,23 @@ export const GameMap = ({
   const rows = new Array(width).fill(0).map((_, i) => i);
   const columns = new Array(height).fill(0).map((_, i) => i);
 
+  const allActiveGamePlayers = useMemo(() => {
+    return activeGame?.players.map((p) => p) ?? [];
+  }, [activeGame]);
+
   const onTileClick = useCallback(
     async (x: number, y: number, gameAddress: string) => {
       if (!(address && walletClient)) {
         toast({
           title: "Login to play",
+          status: "warning",
+          position: "top",
+          duration: 5000,
+          isClosable: true,
+        });
+      } else if (!allActiveGamePlayers.includes(address.toLowerCase())) {
+        toast({
+          title: "You aren't a part of this game!",
           status: "warning",
           position: "top",
           duration: 5000,
@@ -106,6 +118,7 @@ export const GameMap = ({
     },
     [
       address,
+      allActiveGamePlayers,
       burnerPlayerEntity,
       canSpawn,
       playerEntity,
