@@ -41,10 +41,10 @@ contract PostDeploy is Script {
       [O, O, B, B, O, O, O, O, T, O, O, O, B, O, T, O, O, O, O, O],
       [O, O, O, B, B, O, O, O, O, O, O, O, O, B, O, T, O, O, O, O],
       [O, O, O, O, B, O, O, O, O, O, O, O, O, O, O, O, O, O, O, O],
-      [W, W, O, O, O, O, O, O, O, O, B, B, O, O, T, O, O, O, O, O],
-      [O, O, W, O, W, O, O, O, T, B, O, O, O, T, T, O, B, O, O, O],
-      [O, O, O, W, O, W, T, T, X, O, O, O, O, T, O, O, O, O, O, O],
-      [O, O, O, T, T, T, W, O, O, O, O, T, O, O, O, T, O, O, O, O],
+      [W, W, W, O, O, O, O, O, O, O, B, B, O, O, T, O, O, O, O, O],
+      [O, O, W, W, O, O, O, O, T, B, O, O, O, T, T, O, B, O, O, O],
+      [O, O, O, W, W, W, W, O, X, O, O, O, O, T, O, O, O, O, O, O],
+      [O, O, O, T, T, T, W, W, O, O, O, T, O, O, O, T, O, O, O, O],
       [O, O, O, O, O, T, O, W, O, O, O, O, O, O, O, O, O, O, O, O]
     ];
 

@@ -6,7 +6,7 @@ import { Has, HasValue, getComponentValueStrict } from "@latticexyz/recs";
 
 import { GameMap } from "./GameMap";
 import { useMUD } from "../contexts/MUDContext";
-import { useKeyboardMovement } from "../utils/useKeyboardMovement";
+import { useKeyboardMovement } from "../hooks/useKeyboardMovement";
 import { TerrainType, terrainTypes } from "../utils/terrainTypes";
 import { useCharacter } from "../hooks/useCharacter";
 import { getDirection, getCharacterImage } from "../utils/helpers";
@@ -34,7 +34,7 @@ export const GameBoard = () => {
   const { address } = useAccount();
 
   const playerEntity = useMemo(() => {
-    return getPlayerEntity(address ?? "");
+    return getPlayerEntity(address);
   }, [address]);
 
   const csInfo = useComponentValue(CharacterSheetInfo, playerEntity) as {
@@ -74,7 +74,7 @@ export const GameBoard = () => {
           position="absolute"
           src={health > 0 ? molochSoldier : molochSoldierDead}
           transform="scale(1.5) translateY(-8px)"
-          zIndex={1}
+          zIndex={3}
         />
       ),
     };
@@ -101,7 +101,7 @@ export const GameBoard = () => {
       (direction === "right" || direction === "left") &&
       characterClass === "villager"
     ) {
-      transform = "scale(1.2)";
+      transform = "scale(1.4)";
     }
 
     if (actionRunning) {
@@ -143,15 +143,22 @@ export const GameBoard = () => {
 
   const { width, height, terrain: terrainData } = mapConfig;
   const terrain = Array.from(hexToArray(terrainData)).map((value, index) => {
-    const { color, sprite } =
+    const { color, name, sprite, spriteSelections } =
       value in TerrainType
         ? terrainTypes[value as TerrainType]
-        : { color: "green.400", sprite: "" };
+        : {
+            color: "green.400",
+            name: "grass",
+            sprite: "",
+            spriteSelections: [],
+          };
     return {
       x: index % width,
       y: Math.floor(index / width),
       color,
+      name,
       sprite,
+      spriteSelections,
     };
   });
 

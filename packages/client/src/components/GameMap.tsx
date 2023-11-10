@@ -2,13 +2,14 @@ import { Box, Image, useToast } from "@chakra-ui/react";
 import { useCallback, useMemo } from "react";
 import { TypedDataDomain } from "viem";
 import { useAccount, useWalletClient } from "wagmi";
-import { useComponentValue } from "@latticexyz/react";
 import { Entity, getComponentValue } from "@latticexyz/recs";
+import { useComponentValue } from "@latticexyz/react";
 
 import { useMUD } from "../contexts/MUDContext";
 import { useGamesContext } from "../contexts/GamesContext";
 import { getPlayerEntity } from "../utils/helpers";
 import { decodeEntity } from "@latticexyz/store-sync/recs";
+import grass1 from "../assets/map/grass1.svg";
 
 const domain = {
   name: "CharacterSheets - Minigame",
@@ -41,7 +42,9 @@ type GameMapProps = {
     x: number;
     y: number;
     color: string;
+    name: string;
     sprite: string;
+    spriteSelections: string[];
   }[];
   width: number;
 };
@@ -64,14 +67,20 @@ export const GameMap = ({
   const toast = useToast();
 
   const playerEntity = useMemo(() => {
-    return getPlayerEntity(address ?? "");
+    return getPlayerEntity(address);
   }, [address]);
 
   const playerExists = useComponentValue(Player, playerEntity)?.value === true;
   const canSpawn = useComponentValue(Player, playerEntity)?.value !== true;
 
-  const rows = new Array(width).fill(0).map((_, i) => i);
-  const columns = new Array(height).fill(0).map((_, i) => i);
+  const rows = useMemo(
+    () => new Array(width).fill(0).map((_, i) => i),
+    [width]
+  );
+  const columns = useMemo(
+    () => new Array(height).fill(0).map((_, i) => i),
+    [height]
+  );
 
   const allActiveGamePlayers = useMemo(() => {
     return activeGame?.players.map((p) => p) ?? [];
@@ -96,6 +105,7 @@ export const GameMap = ({
           isClosable: true,
         });
       } else if (canSpawn) {
+        if (!playerEntity) return;
         const currentNonce =
           getComponentValue(SpawnInfo, playerEntity)?.nonce ?? BigInt(0);
         const message = {
@@ -129,64 +139,108 @@ export const GameMap = ({
     ]
   );
 
-  return (
-    <Box
-      display="inline-grid"
-      gridTemplateColumns={`repeat(${width}, 1fr)`}
-      gridTemplateRows={`repeat(${height}, 1fr)`}
-    >
-      {rows.map((y) =>
-        columns.map((x) => {
-          const { color: terrainColor, sprite } =
-            terrain?.find((t) => t.x === x && t.y === y) || {};
-          const playersHere = players?.filter((p) => p.x === x && p.y === y);
-          const molochsHere = molochSoldiers?.filter(
-            (m) => m.x === x && m.y === y
+  const entityLayers = useMemo(() => {
+    return rows.map((y) =>
+      columns.map((x) => {
+        const { name, sprite, spriteSelections } = terrain?.find(
+          (t) => t.x === x && t.y === y
+        ) || { name: "grass", sprite: grass1, spriteSelections: [] };
+        let terrainSprite = sprite;
+        if (name === "water") {
+          const waterLeft = terrain?.find(
+            (t) => t.x === x - 1 && t.y === y && t.name === "water"
+          );
+          const waterAbove = terrain?.find(
+            (t) => t.x === x && t.y === y - 1 && t.name === "water"
+          );
+          const waterRight = terrain?.find(
+            (t) => t.x === x + 1 && t.y === y && t.name === "water"
+          );
+          const waterBelow = terrain?.find(
+            (t) => t.x === x && t.y === y + 1 && t.name === "water"
           );
 
-          return (
-            <Box
-              key={`${x},${y}`}
-              gridColumn={x + 1}
-              gridRow={y + 1}
-              h={9}
-              onClick={() =>
-                activeGame ? onTileClick?.(x, y, activeGame.id) : undefined
-              }
-              position="relative"
-              w={9}
-              _hover={
-                !playerExists
-                  ? {
-                      bg: "green.500",
-                      border: "2px solid",
-                      borderColor: "green.600",
-                      cursor: "pointer",
-                    }
-                  : {}
-              }
-              _active={
-                !playerExists
-                  ? {
-                      bg: "green.600",
-                    }
-                  : {}
-              }
-            >
-              <Box
-                background={terrainColor}
-                h="100%"
-                position="absolute"
-                w="100%"
-                zIndex={0}
-              />
-              <Image position="absolute" src={sprite} />
-              {playersHere?.map((p) => p.sprite)}
-              {molochsHere?.map((m) => m.sprite)}
-            </Box>
-          );
-        })
-      )}
+          if (waterAbove || waterBelow) {
+            terrainSprite = spriteSelections[0] ?? sprite;
+          }
+          if (waterLeft && waterAbove) {
+            terrainSprite = spriteSelections[1] ?? sprite;
+          }
+          if (waterRight && waterAbove) {
+            terrainSprite = spriteSelections[2] ?? sprite;
+          }
+          if (waterRight && waterBelow) {
+            terrainSprite = spriteSelections[3] ?? sprite;
+          }
+          if (waterLeft && waterBelow) {
+            terrainSprite = spriteSelections[4] ?? sprite;
+          }
+        }
+
+        const playersHere = players?.filter((p) => p.x === x && p.y === y);
+        const molochsHere = molochSoldiers?.filter(
+          (m) => m.x === x && m.y === y
+        );
+
+        return (
+          <Box
+            background={"rgba(0,0,0,0.3)"}
+            key={`${x},${y}`}
+            gridColumn={x + 1}
+            gridRow={y + 1}
+            onClick={() =>
+              activeGame ? onTileClick?.(x, y, activeGame.id) : undefined
+            }
+            position="relative"
+            _hover={
+              !playerExists
+                ? {
+                    bg: "green.500",
+                    border: "2px solid",
+                    borderColor: "green.600",
+                    cursor: "pointer",
+                  }
+                : {}
+            }
+            _active={
+              !playerExists
+                ? {
+                    bg: "green.600",
+                  }
+                : {}
+            }
+          >
+            {playersHere?.map((p) => p.sprite)}
+            <Image
+              position="absolute"
+              src={terrainSprite}
+              zIndex={name === "water" ? 0 : 2}
+            />
+            {molochsHere?.map((m) => m.sprite)}
+          </Box>
+        );
+      })
+    );
+  }, [
+    activeGame,
+    columns,
+    molochSoldiers,
+    onTileClick,
+    playerExists,
+    players,
+    rows,
+    terrain,
+  ]);
+
+  return (
+    <Box backgroundImage={grass1} w={width * 36} h={height * 36}>
+      <Box
+        display="inline-grid"
+        gridTemplateColumns={`repeat(${width}, 36px)`}
+        gridTemplateRows={`repeat(${height}, 36px)`}
+      >
+        {entityLayers}
+      </Box>
     </Box>
   );
 };
