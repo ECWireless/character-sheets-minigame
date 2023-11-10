@@ -211,11 +211,7 @@ export const GameMap = ({
             }
           >
             {playersHere?.map((p) => p.sprite)}
-            <Image
-              position="absolute"
-              src={terrainSprite}
-              zIndex={name === "water" ? 0 : 2}
-            />
+            <Image position="absolute" src={terrainSprite} />
             {molochsHere?.map((m) => m.sprite)}
           </Box>
         );
