@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useMUD } from "../contexts/MUDContext";
 import { getComponentValueStrict } from "@latticexyz/recs";
-import { getPlayerEntity } from "./helpers";
+import { getPlayerEntity } from "../utils/helpers";
 
 export const useKeyboardMovement = (
-  playerAddress: string,
+  playerAddress: string | undefined,
   characterClass: string
 ) => {
   const {
@@ -16,6 +16,7 @@ export const useKeyboardMovement = (
 
   useEffect(() => {
     const listener = (e: KeyboardEvent) => {
+      if (!playerAddress) return;
       if (e.key === "w") {
         moveBy(playerAddress, 0, -1);
       }
@@ -45,6 +46,7 @@ export const useKeyboardMovement = (
       if (e.key === "e") {
         if (characterClass !== "warrior") return;
         const playerEntity = getPlayerEntity(playerAddress);
+        if (!playerEntity) return;
         setActionRunning(true);
         const playerPosition = getComponentValueStrict(Position, playerEntity);
         const { x, y, previousX } = playerPosition;

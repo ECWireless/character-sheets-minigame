@@ -93,7 +93,7 @@ export function createSystemCalls(
     });
 
     try {
-      const tx = await worldContract.write.logout(playerAddress);
+      const tx = await worldContract.write.logout([playerAddress]);
       await waitForTransaction(tx);
       return getComponentValue(Position, playerEntity);
     } finally {

@@ -9,8 +9,10 @@ import { ConnectWalletButton } from "../components/ConnectWalletButton";
 import { useGamesContext } from "../contexts/GamesContext";
 import { GameBoard } from "../components/GameBoard";
 import { useMUD } from "../contexts/MUDContext";
+import { useAccount } from "wagmi";
 
 export const GameView = () => {
+  const { address } = useAccount();
   const { gameId } = useParams();
   const navigate = useNavigate();
 
@@ -74,7 +76,7 @@ export const GameView = () => {
       <VStack position="absolute" right={4} top={4}>
         <Button
           onClick={() => {
-            logout();
+            logout(address ?? "");
             navigate("/");
           }}
         >

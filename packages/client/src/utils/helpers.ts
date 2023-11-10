@@ -254,7 +254,8 @@ export const getCharacterImage = (
   }
 };
 
-export const getPlayerEntity = (address: string) => {
+export const getPlayerEntity = (address: string | undefined) => {
+  if (!address) return undefined;
   return encodeEntity(
     {
       address: "address",
