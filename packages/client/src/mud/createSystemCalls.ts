@@ -182,18 +182,6 @@ export function createSystemCalls(
       return;
     }
 
-    const positionId = uuid();
-    Position.addOverride(positionId, {
-      entity: playerEntity,
-      value: { x, y },
-    });
-
-    const playerId = uuid();
-    Player.addOverride(playerId, {
-      entity: playerEntity,
-      value: { value: true },
-    });
-
     try {
       const tx = await worldContract.write.spawn([
         BigInt(100),
@@ -205,9 +193,8 @@ export function createSystemCalls(
       ]);
       await waitForTransaction(tx);
       return getComponentValue(Position, playerEntity);
-    } finally {
-      Position.removeOverride(positionId);
-      Player.removeOverride(playerId);
+    } catch (e) {
+      console.error(e);
     }
   };
 

@@ -8,7 +8,7 @@ import { GameMap } from "./GameMap";
 import { useMUD } from "../contexts/MUDContext";
 import { useKeyboardMovement } from "../hooks/useKeyboardMovement";
 import { TerrainType, terrainTypes } from "../utils/terrainTypes";
-import { useCharacter } from "../hooks/useCharacter";
+import { useCharacter, useCharacters } from "../hooks/useCharacter";
 import { getDirection, getCharacterImage } from "../utils/helpers";
 import warriorAction1 from "../assets/warrior/warrior_attack1.gif";
 import warriorAction2 from "../assets/warrior/warrior_attack2.gif";
@@ -16,11 +16,9 @@ import molochSoldierLeft from "../assets/moloch/moloch_left.gif";
 import molochSoldierRight from "../assets/moloch/moloch_right.gif";
 import molochSoldierDeadLeft from "../assets/moloch/moloch_dead_left.gif";
 import molochSoldierDeadRight from "../assets/moloch/moloch_dead_right.gif";
-import { useMemo } from "react";
 import { useAccount } from "wagmi";
-import { getPlayerEntity } from "../utils/helpers";
 
-export const GameBoard = () => {
+export const GameBoard = ({ gameAddress }: { gameAddress: string }) => {
   const {
     components: {
       CharacterSheetInfo,
@@ -33,52 +31,13 @@ export const GameBoard = () => {
   } = useMUD();
   const { address } = useAccount();
 
-  const playerEntity = useMemo(() => {
-    return getPlayerEntity(address);
-  }, [address]);
+  const { character } = useCharacter(address?.toLowerCase(), gameAddress);
+  const { characters } = useCharacters(gameAddress);
 
-  const csInfo = useComponentValue(CharacterSheetInfo, playerEntity) as {
-    playerAddress: string;
-    gameAddress: string;
-  };
-
-  const { playerAddress, gameAddress } = csInfo ?? {};
-  const { character } = useCharacter(playerAddress, gameAddress);
-  const characterClass = useMemo(
-    () => character?.classes[0]?.name.toLowerCase() ?? "villager",
-    [character]
+  const { actionRunning } = useKeyboardMovement(
+    address?.toLowerCase(),
+    character?.classes[0]?.name.toLowerCase() ?? "villager"
   );
-  const { actionRunning } = useKeyboardMovement(playerAddress, characterClass);
-
-  const molochSoldiers = useEntityQuery([
-    HasValue(MolochSoldier, { value: true }),
-    Has(Position),
-  ]).map((entity) => {
-    const position = getComponentValueStrict(Position, entity);
-    const health = getComponentValueStrict(Health, entity).value ?? 0;
-
-    const direction = position.x % 2 === 0 ? "left" : "right";
-    const molochSoldier =
-      direction === "left" ? molochSoldierLeft : molochSoldierRight;
-    const molochSoldierDead =
-      direction === "left" ? molochSoldierDeadLeft : molochSoldierDeadRight;
-
-    return {
-      entity,
-      x: position.x,
-      y: position.y,
-      sprite: (
-        <Image
-          key={entity}
-          height="100%"
-          position="absolute"
-          src={health > 0 ? molochSoldier : molochSoldierDead}
-          transform="scale(1.5) translateY(-8px)"
-          zIndex={3}
-        />
-      ),
-    };
-  });
 
   const players = useEntityQuery([
     HasValue(Player, { value: true }),
@@ -87,6 +46,16 @@ export const GameBoard = () => {
   ]).map((entity) => {
     const position = getComponentValueStrict(Position, entity);
     const direction = getDirection(position);
+    const characterSheetInfo = getComponentValueStrict(
+      CharacterSheetInfo,
+      entity
+    );
+
+    const characterByPlayer = characters?.find(
+      (c) => c.player === characterSheetInfo.playerAddress.toLowerCase()
+    );
+    const characterClass =
+      characterByPlayer?.classes[0]?.name.toLowerCase() ?? "villager";
 
     let transform = "scale(1.5)";
 
@@ -129,6 +98,36 @@ export const GameBoard = () => {
           transform={transform}
           src={src}
           zIndex={1}
+        />
+      ),
+    };
+  });
+
+  const molochSoldiers = useEntityQuery([
+    HasValue(MolochSoldier, { value: true }),
+    Has(Position),
+  ]).map((entity) => {
+    const position = getComponentValueStrict(Position, entity);
+    const health = getComponentValueStrict(Health, entity).value ?? 0;
+
+    const direction = position.x % 2 === 0 ? "left" : "right";
+    const molochSoldier =
+      direction === "left" ? molochSoldierLeft : molochSoldierRight;
+    const molochSoldierDead =
+      direction === "left" ? molochSoldierDeadLeft : molochSoldierDeadRight;
+
+    return {
+      entity,
+      x: position.x,
+      y: position.y,
+      sprite: (
+        <Image
+          key={entity}
+          height="100%"
+          position="absolute"
+          src={health > 0 ? molochSoldier : molochSoldierDead}
+          transform="scale(1.5) translateY(-8px)"
+          zIndex={3}
         />
       ),
     };

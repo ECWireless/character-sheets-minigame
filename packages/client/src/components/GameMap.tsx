@@ -1,5 +1,5 @@
-import { Box, Image, useToast } from "@chakra-ui/react";
-import { useCallback, useMemo } from "react";
+import { Box, Image, useToast, Spinner } from "@chakra-ui/react";
+import { useCallback, useState, useMemo } from "react";
 import { TypedDataDomain } from "viem";
 import { useAccount, useWalletClient } from "wagmi";
 import { Entity, getComponentValue } from "@latticexyz/recs";
@@ -66,6 +66,10 @@ export const GameMap = ({
   const { activeGame } = useGamesContext();
   const toast = useToast();
 
+  const [isSpawning, setIsSpawning] = useState<{ x: number; y: number } | null>(
+    null
+  );
+
   const playerEntity = useMemo(() => {
     return getPlayerEntity(address);
   }, [address]);
@@ -106,24 +110,39 @@ export const GameMap = ({
         });
       } else if (canSpawn) {
         if (!playerEntity) return;
-        const currentNonce =
-          getComponentValue(SpawnInfo, playerEntity)?.nonce ?? BigInt(0);
-        const message = {
-          playerAddress: address,
-          burnerAddress: decodeEntity(
-            { address: "address" },
-            burnerPlayerEntity
-          ).address,
-          nonce: currentNonce + BigInt(1),
-        };
+        setIsSpawning({ x, y });
 
-        const signature = (await walletClient.signTypedData({
-          domain,
-          types,
-          primaryType: "SpawnRequest",
-          message,
-        })) as `0x${string}`;
-        spawn(gameAddress, address, x, y, signature);
+        try {
+          const currentNonce =
+            getComponentValue(SpawnInfo, playerEntity)?.nonce ?? BigInt(0);
+          const message = {
+            playerAddress: address,
+            burnerAddress: decodeEntity(
+              { address: "address" },
+              burnerPlayerEntity
+            ).address,
+            nonce: currentNonce + BigInt(1),
+          };
+
+          const signature = (await walletClient.signTypedData({
+            domain,
+            types,
+            primaryType: "SpawnRequest",
+            message,
+          })) as `0x${string}`;
+          await spawn(gameAddress, address, x, y, signature);
+        } catch (e) {
+          console.error(e);
+          toast({
+            title: "Error spawning player",
+            status: "error",
+            position: "top",
+            duration: 5000,
+            isClosable: true,
+          });
+        } finally {
+          setIsSpawning(null);
+        }
       }
     },
     [
@@ -210,6 +229,9 @@ export const GameMap = ({
                 : {}
             }
           >
+            {isSpawning && isSpawning.x === x && isSpawning.y === y && (
+              <Spinner h="100%" w="100%" />
+            )}
             {playersHere?.map((p) => p.sprite)}
             <Image position="absolute" src={terrainSprite} />
             {molochsHere?.map((m) => m.sprite)}
@@ -220,6 +242,7 @@ export const GameMap = ({
   }, [
     activeGame,
     columns,
+    isSpawning,
     molochSoldiers,
     onTileClick,
     playerExists,
