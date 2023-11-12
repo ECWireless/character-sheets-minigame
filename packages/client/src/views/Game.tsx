@@ -85,7 +85,7 @@ export const GameView = () => {
         <ConnectWalletButton />
       </VStack>
       <Heading>{activeGame.name}</Heading>
-      <GameBoard />
+      <GameBoard gameAddress={activeGame.id} />
     </VStack>
   );
 };
