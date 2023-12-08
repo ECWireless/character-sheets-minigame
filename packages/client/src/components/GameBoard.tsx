@@ -10,8 +10,6 @@ import { useKeyboardMovement } from "../hooks/useKeyboardMovement";
 import { TerrainType, terrainTypes } from "../utils/terrainTypes";
 import { useCharacter, useCharacters } from "../hooks/useCharacter";
 import { getDirection, getCharacterImage } from "../utils/helpers";
-import warriorAction1 from "../assets/warrior/warrior_attack1.gif";
-import warriorAction2 from "../assets/warrior/warrior_attack2.gif";
 import molochSoldierLeft from "../assets/moloch/moloch_left.gif";
 import molochSoldierRight from "../assets/moloch/moloch_right.gif";
 import molochSoldierDeadLeft from "../assets/moloch/moloch_dead_left.gif";
@@ -57,33 +55,14 @@ export const GameBoard = ({ gameAddress }: { gameAddress: string }) => {
     const characterClass =
       characterByPlayer?.classes[0]?.name.toLowerCase() ?? "villager";
 
+    const src = getCharacterImage(characterClass, position, actionRunning);
     let transform = "scale(1.5)";
 
-    if (
-      (direction === "up" || direction === "down") &&
-      characterClass === "warrior"
-    ) {
-      transform = "scale(1.2)";
-    }
-
-    if (
-      (direction === "right" || direction === "left") &&
-      characterClass === "villager"
-    ) {
-      transform = "scale(1.4)";
-    }
-
-    if (actionRunning) {
+    if (actionRunning && characterByPlayer?.id === character?.id) {
       transform =
         direction === "left"
           ? "scale(1.7) translate(-5px, -4px)"
           : "scale(1.7) translate(5px, -4px)";
-    }
-
-    let src = getCharacterImage(characterClass, position);
-
-    if (actionRunning) {
-      src = direction === "right" ? warriorAction1 : warriorAction2;
     }
 
     return {

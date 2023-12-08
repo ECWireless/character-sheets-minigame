@@ -53,7 +53,11 @@ export function createSystemCalls(
     });
 
     try {
-      const tx = await worldContract.write.attack([playerAddress, x, y]);
+      const tx = await worldContract.write.attack([
+        playerAddress as Address,
+        x,
+        y,
+      ]);
       await waitForTransaction(tx);
     } finally {
       Health.removeOverride(healthId);
@@ -93,7 +97,7 @@ export function createSystemCalls(
     });
 
     try {
-      const tx = await worldContract.write.logout([playerAddress]);
+      const tx = await worldContract.write.logout([playerAddress as Address]);
       await waitForTransaction(tx);
       return getComponentValue(Position, playerEntity);
     } finally {
@@ -126,7 +130,11 @@ export function createSystemCalls(
     });
 
     try {
-      const tx = await worldContract.write.move([playerAddress, x, y]);
+      const tx = await worldContract.write.move([
+        playerAddress as Address,
+        x,
+        y,
+      ]);
       await waitForTransaction(tx);
       return getComponentValue(Position, playerEntity);
     } finally {

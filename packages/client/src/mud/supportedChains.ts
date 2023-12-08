@@ -11,10 +11,37 @@
 
  */
 
-import { MUDChain, latticeTestnet, mudFoundry } from "@latticexyz/common/chains";
+import {
+  MUDChain,
+  mudFoundry,
+  
+} from "@latticexyz/common/chains";
+
+export const redstoneTestnet = {
+  name: "Redstone Testnet",
+  id: 17001,
+  network: "redstone-holesky",
+  nativeCurrency: { decimals: 18, name: "Ether", symbol: "ETH" },
+  rpcUrls: {
+    default: {
+      http: ["https://rpc.holesky.redstone.xyz"],
+      webSocket: ["wss://rpc.holesky.redstone.xyz/ws"],
+    },
+    public: {
+      http: ["https://rpc.holesky.redstone.xyz"],
+      webSocket: ["wss://rpc.holesky.redstone.xyz/ws"],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: "Redstone Testnet",
+      url: "https://explorer.holesky.redstone.xyz",
+    },
+  },
+} as const satisfies MUDChain;
 
 /*
  * See https://mud.dev/tutorials/minimal/deploy#run-the-user-interface
  * for instructions on how to add networks.
  */
-export const supportedChains: MUDChain[] = [mudFoundry, latticeTestnet];
+export const supportedChains: MUDChain[] = [mudFoundry, redstoneTestnet];
