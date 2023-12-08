@@ -15,15 +15,28 @@ import {
   ItemRequirement,
   Metadata,
 } from "./types";
-import warriorRight from "../assets/warrior/warrior_right.gif";
-import warriorLeft from "../assets/warrior/warrior_left.gif";
-import warriorUp from "../assets/warrior/warrior_up.gif";
-import warriorDown from "../assets/warrior/warrior_down.gif";
+import monkRight from "../assets/monk/monk_walk_right.gif";
+import monkLeft from "../assets/monk/monk_walk_left.gif";
+import monkUp from "../assets/monk/monk_walk_up.gif";
+import monkDown from "../assets/monk/monk_walk_down.gif";
+import monkAttackRight from "../assets/monk/monk_attack_right.gif";
+import monkAttackLeft from "../assets/monk/monk_attack_left.gif";
+import wizardRight from "../assets/wizard/wizard_walk_right.gif";
+import wizardLeft from "../assets/wizard/wizard_walk_left.gif";
+import wizardUp from "../assets/wizard/wizard_walk_up.gif";
+import wizardDown from "../assets/wizard/wizard_walk_down.gif";
+import wizardAttackRight from "../assets/wizard/wizard_attack_right.gif";
+import wizardAttackLeft from "../assets/wizard/wizard_attack_left.gif";
+import warriorRight from "../assets/warrior/warrior_walk_right.gif";
+import warriorLeft from "../assets/warrior/warrior_walk_left.gif";
+import warriorUp from "../assets/warrior/warrior_walk_up.gif";
+import warriorDown from "../assets/warrior/warrior_walk_down.gif";
+import warriorAttackRight from "../assets/warrior/warrior_attack_right.gif";
+import warriorAttackLeft from "../assets/warrior/warrior_attack_left.gif";
 import villagerRight from "../assets/villager/villager_right.gif";
 import villagerLeft from "../assets/villager/villager_left.gif";
 import villagerUp from "../assets/villager/villager_up.gif";
 import villagerDown from "../assets/villager/villager_down.gif";
-import wizard from "../assets/wizard.svg";
 import scribe from "../assets/scribe.svg";
 
 /**
@@ -214,7 +227,8 @@ export const getDirection = (position: {
 
 export const getCharacterImage = (
   className: string,
-  position: { x: number; y: number; previousX: number; previousY: number }
+  position: { x: number; y: number; previousX: number; previousY: number },
+  actionRunning: boolean
 ) => {
   const lcName = className.toLowerCase();
 
@@ -222,6 +236,10 @@ export const getCharacterImage = (
 
   switch (lcName) {
     case "warrior":
+      if (actionRunning) {
+        return direction === "right" ? warriorAttackRight : warriorAttackLeft;
+      }
+
       switch (direction) {
         case "up":
           return warriorUp;
@@ -235,7 +253,40 @@ export const getCharacterImage = (
           return warriorDown;
       }
     case "wizard":
-      return wizard;
+      if (actionRunning) {
+        return direction === "right" ? wizardAttackRight : wizardAttackLeft;
+      }
+
+      switch (direction) {
+        case "up":
+          return wizardUp;
+        case "down":
+          return wizardDown;
+        case "left":
+          return wizardLeft;
+        case "right":
+          return wizardRight;
+        default:
+          return wizardDown;
+      }
+
+    case "monk":
+      if (actionRunning) {
+        return direction === "right" ? monkAttackRight : monkAttackLeft;
+      }
+
+      switch (direction) {
+        case "up":
+          return monkUp;
+        case "down":
+          return monkDown;
+        case "left":
+          return monkLeft;
+        case "right":
+          return monkRight;
+        default:
+          return monkDown;
+      }
     case "scribe":
       return scribe;
     default:

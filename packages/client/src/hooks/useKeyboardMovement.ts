@@ -3,6 +3,8 @@ import { useMUD } from "../contexts/MUDContext";
 import { getComponentValueStrict } from "@latticexyz/recs";
 import { getPlayerEntity } from "../utils/helpers";
 
+const classesWithAttackAbility = ["monk", "warrior", "wizard"];
+
 export const useKeyboardMovement = (
   playerAddress: string | undefined,
   characterClass: string
@@ -44,7 +46,7 @@ export const useKeyboardMovement = (
       }
 
       if (e.key === "e") {
-        if (characterClass !== "warrior") return;
+        if (!classesWithAttackAbility.includes(characterClass)) return;
         const playerEntity = getPlayerEntity(playerAddress);
         if (!playerEntity) return;
         setActionRunning(true);

@@ -15,10 +15,10 @@ contract MapSystem is System {
     (address burnerAddress,) = SpawnInfo.get(player);
     require(burnerAddress == address(_msgSender()), "not the burner address for this character");
 
-    (uint32 playerX, uint32 playerY, ,) = Position.get(player);
-    (uint32 molochSoldierX, uint32 molochSoldierY, ,) = Position.get(molochSoldier);
+    // (uint32 playerX, uint32 playerY, ,) = Position.get(player);
+    // (uint32 molochSoldierX, uint32 molochSoldierY, ,) = Position.get(molochSoldier);
     
-    require(distance(playerX, playerY, molochSoldierX, molochSoldierY) == 1, "can only attack adjacent spaces");
+    // require(distance(playerX, playerY, molochSoldierX, molochSoldierY) == 1, "can only attack adjacent spaces");
 
     uint32 molochSoldierHealth = Health.get(molochSoldier);
     require(molochSoldierHealth > 0, "moloch soldier is already dead");

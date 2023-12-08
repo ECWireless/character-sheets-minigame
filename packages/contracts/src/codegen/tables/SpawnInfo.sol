@@ -95,13 +95,6 @@ library SpawnInfo {
   }
 
   /**
-   * @notice Register the table with its config (using the specified store).
-   */
-  function register(IStore _store) internal {
-    _store.registerTable(_tableId, _fieldLayout, getKeySchema(), getValueSchema(), getKeyNames(), getFieldNames());
-  }
-
-  /**
    * @notice Get burnerAddress.
    */
   function getBurnerAddress(bytes32 key) internal view returns (address burnerAddress) {
@@ -124,17 +117,6 @@ library SpawnInfo {
   }
 
   /**
-   * @notice Get burnerAddress (using the specified store).
-   */
-  function getBurnerAddress(IStore _store, bytes32 key) internal view returns (address burnerAddress) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    bytes32 _blob = _store.getStaticField(_tableId, _keyTuple, 0, _fieldLayout);
-    return (address(bytes20(_blob)));
-  }
-
-  /**
    * @notice Set burnerAddress.
    */
   function setBurnerAddress(bytes32 key, address burnerAddress) internal {
@@ -152,16 +134,6 @@ library SpawnInfo {
     _keyTuple[0] = key;
 
     StoreCore.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((burnerAddress)), _fieldLayout);
-  }
-
-  /**
-   * @notice Set burnerAddress (using the specified store).
-   */
-  function setBurnerAddress(IStore _store, bytes32 key, address burnerAddress) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    _store.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((burnerAddress)), _fieldLayout);
   }
 
   /**
@@ -187,17 +159,6 @@ library SpawnInfo {
   }
 
   /**
-   * @notice Get nonce (using the specified store).
-   */
-  function getNonce(IStore _store, bytes32 key) internal view returns (uint256 nonce) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    bytes32 _blob = _store.getStaticField(_tableId, _keyTuple, 1, _fieldLayout);
-    return (uint256(bytes32(_blob)));
-  }
-
-  /**
    * @notice Set nonce.
    */
   function setNonce(bytes32 key, uint256 nonce) internal {
@@ -215,16 +176,6 @@ library SpawnInfo {
     _keyTuple[0] = key;
 
     StoreCore.setStaticField(_tableId, _keyTuple, 1, abi.encodePacked((nonce)), _fieldLayout);
-  }
-
-  /**
-   * @notice Set nonce (using the specified store).
-   */
-  function setNonce(IStore _store, bytes32 key, uint256 nonce) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    _store.setStaticField(_tableId, _keyTuple, 1, abi.encodePacked((nonce)), _fieldLayout);
   }
 
   /**
@@ -250,21 +201,6 @@ library SpawnInfo {
     _keyTuple[0] = key;
 
     (bytes memory _staticData, PackedCounter _encodedLengths, bytes memory _dynamicData) = StoreCore.getRecord(
-      _tableId,
-      _keyTuple,
-      _fieldLayout
-    );
-    return decode(_staticData, _encodedLengths, _dynamicData);
-  }
-
-  /**
-   * @notice Get the full data (using the specified store).
-   */
-  function get(IStore _store, bytes32 key) internal view returns (address burnerAddress, uint256 nonce) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    (bytes memory _staticData, PackedCounter _encodedLengths, bytes memory _dynamicData) = _store.getRecord(
       _tableId,
       _keyTuple,
       _fieldLayout
@@ -300,21 +236,6 @@ library SpawnInfo {
     _keyTuple[0] = key;
 
     StoreCore.setRecord(_tableId, _keyTuple, _staticData, _encodedLengths, _dynamicData, _fieldLayout);
-  }
-
-  /**
-   * @notice Set the full data using individual values (using the specified store).
-   */
-  function set(IStore _store, bytes32 key, address burnerAddress, uint256 nonce) internal {
-    bytes memory _staticData = encodeStatic(burnerAddress, nonce);
-
-    PackedCounter _encodedLengths;
-    bytes memory _dynamicData;
-
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    _store.setRecord(_tableId, _keyTuple, _staticData, _encodedLengths, _dynamicData);
   }
 
   /**
@@ -358,16 +279,6 @@ library SpawnInfo {
     _keyTuple[0] = key;
 
     StoreCore.deleteRecord(_tableId, _keyTuple, _fieldLayout);
-  }
-
-  /**
-   * @notice Delete all data for given keys (using the specified store).
-   */
-  function deleteRecord(IStore _store, bytes32 key) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    _store.deleteRecord(_tableId, _keyTuple);
   }
 
   /**

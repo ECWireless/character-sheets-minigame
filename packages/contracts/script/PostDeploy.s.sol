@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.21;
 
+import { StoreSwitch } from "@latticexyz/store/src/StoreSwitch.sol";
 import { Script } from "forge-std/Script.sol";
 import { console } from "forge-std/console.sol";
 import { IWorld } from "../src/codegen/world/IWorld.sol";
@@ -11,13 +12,14 @@ import { positionToEntityKey } from "../src/lib/positionToEntityKey.sol";
 contract PostDeploy is Script {
   function run(address worldAddress) external {
     console.log("Deployed world: ", worldAddress);
-    IWorld world = IWorld(worldAddress);
     
     // Load the private key from the `PRIVATE_KEY` environment variable (in .env)
     uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
 
     // Start broadcasting transactions from the deployer account
     vm.startBroadcast(deployerPrivateKey);
+    
+    StoreSwitch.setStoreAddress(worldAddress);
 
     TerrainType O = TerrainType.None;
     TerrainType T = TerrainType.Tree;
@@ -61,20 +63,20 @@ contract PostDeploy is Script {
 
         bytes32 entity = positionToEntityKey(x, y);
         if (terrainType == TerrainType.Boulder || terrainType == TerrainType.Tree || terrainType == TerrainType.Water) {
-          Position.set(world, entity, x, y, x, y);
-          Obstruction.set(world, entity, true);
+          Position.set(entity, x, y, x, y);
+          Obstruction.set(entity, true);
         }
 
         if (terrainType == TerrainType.MolochSoldier) {
-          MolochSoldier.set(world, entity, true);
-          Position.set(world, entity, x, y, x, y);
-          Obstruction.set(world, entity, true);
-          Health.set(world, entity, 1);
+          MolochSoldier.set(entity, true);
+          Position.set(entity, x, y, x, y);
+          Obstruction.set(entity, true);
+          Health.set(entity, 1);
         }
       }
     }
 
-    MapConfig.set(world, width, height, terrain);
+    MapConfig.set(width, height, terrain);
 
     vm.stopBroadcast();
   }
