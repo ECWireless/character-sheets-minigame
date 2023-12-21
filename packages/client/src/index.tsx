@@ -1,27 +1,28 @@
-import "@rainbow-me/rainbowkit/styles.css";
-import "./styles.css";
+import '@rainbow-me/rainbowkit/styles.css';
+import './styles.css';
 
-import ReactDOM from "react-dom/client";
-import { ChakraProvider } from "@chakra-ui/react";
-import { Global } from "@emotion/react";
-import { WagmiConfig } from "wagmi";
-import { darkTheme, RainbowKitProvider } from "@rainbow-me/rainbowkit";
-import { Provider } from "urql";
-import { App } from "./App";
-import { setup } from "./mud/setup";
-import { MUDProvider } from "./contexts/MUDContext";
-import mudConfig from "contracts/mud.config";
-import { client } from "./graphql/client";
-import { GamesProvider } from "./contexts/GamesContext";
-import { globalStyles, theme } from "./utils/theme";
-import { wagmiConfig, DEFAULT_CHAIN } from "./lib/web3";
+import { ChakraProvider } from '@chakra-ui/react';
+import { Global } from '@emotion/react';
+import { darkTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
+import mudConfig from 'contracts/mud.config';
+import ReactDOM from 'react-dom/client';
+import { Provider } from 'urql';
+import { WagmiConfig } from 'wagmi';
 
-const rootElement = document.getElementById("react-root");
-if (!rootElement) throw new Error("React root not found");
+import { App } from './App';
+import { GamesProvider } from './contexts/GamesContext';
+import { MUDProvider } from './contexts/MUDContext';
+import { client } from './graphql/client';
+import { DEFAULT_CHAIN, wagmiConfig } from './lib/web3';
+import { setup } from './mud/setup';
+import { globalStyles, theme } from './utils/theme';
+
+const rootElement = document.getElementById('react-root');
+if (!rootElement) throw new Error('React root not found');
 const root = ReactDOM.createRoot(rootElement);
 
 // TODO: figure out if we actually want this to be async or if we should render something else in the meantime
-setup().then(async (result) => {
+setup().then(async result => {
   root.render(
     <MUDProvider value={result}>
       <ChakraProvider resetCSS theme={theme}>
@@ -36,12 +37,12 @@ setup().then(async (result) => {
           </WagmiConfig>
         </Provider>
       </ChakraProvider>
-    </MUDProvider>
+    </MUDProvider>,
   );
 
   // https://vitejs.dev/guide/env-and-mode.html
   // if (import.meta.env.DEV) {
-  const { mount: mountDevTools } = await import("@latticexyz/dev-tools");
+  const { mount: mountDevTools } = await import('@latticexyz/dev-tools');
   mountDevTools({
     config: mudConfig,
     publicClient: result.network.publicClient,

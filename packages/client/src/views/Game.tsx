@@ -1,16 +1,16 @@
-import { Box, Button, Flex, Heading, VStack, Spinner } from "@chakra-ui/react";
-import { useComponentValue } from "@latticexyz/react";
-import { singletonEntity } from "@latticexyz/store-sync/recs";
-import { SyncStep } from "@latticexyz/store-sync";
-import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useMemo } from "react";
+import { Box, Button, Flex, Heading, Spinner, VStack } from '@chakra-ui/react';
+import { useComponentValue } from '@latticexyz/react';
+import { SyncStep } from '@latticexyz/store-sync';
+import { singletonEntity } from '@latticexyz/store-sync/recs';
+import React, { useEffect, useMemo } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
-import { ConnectWalletButton } from "../components/ConnectWalletButton";
-import { useGamesContext } from "../contexts/GamesContext";
-import { GameBoard } from "../components/GameBoard";
-import { useMUD } from "../contexts/MUDContext";
+import { ConnectWalletButton } from '../components/ConnectWalletButton';
+import { GameBoard } from '../components/GameBoard';
+import { useGamesContext } from '../contexts/GamesContext';
+import { useMUD } from '../contexts/MUDContext';
 
-export const GameView = () => {
+export const GameView: React.FC = () => {
   const { gameId } = useParams();
   const navigate = useNavigate();
 
@@ -26,7 +26,7 @@ export const GameView = () => {
       return null;
     }
 
-    return games.find((game) => game.id === gameId);
+    return games.find(game => game.id === gameId);
   }, [games, gameId]);
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export const GameView = () => {
     return (
       <VStack py={12} spacing={8}>
         <Heading>Game not found</Heading>
-        <Button colorScheme="blue" onClick={() => navigate("/")}>
+        <Button colorScheme="blue" onClick={() => navigate('/')}>
           Go back
         </Button>
       </VStack>
@@ -73,7 +73,7 @@ export const GameView = () => {
       <Box position="absolute" left={4} top={4}>
         <Button
           onClick={() => {
-            navigate("/");
+            navigate('/');
           }}
         >
           All games
