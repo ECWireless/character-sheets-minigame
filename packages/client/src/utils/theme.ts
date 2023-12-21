@@ -1,9 +1,9 @@
-import { extendTheme } from "@chakra-ui/react";
-import { css } from "@emotion/react";
+import { extendTheme } from '@chakra-ui/react';
+import { css } from '@emotion/react';
 
 export const globalStyles = css`
   body {
-    font-family: "Unbounded", sans-serif;
+    font-family: 'Unbounded', sans-serif;
     font-size: 1rem;
     background: #171922;
     color: #fff;
@@ -14,99 +14,99 @@ const Button = {
   baseStyle: {
     borderRadius: 0,
     _active: {
-      transform: "scale(0.98)",
+      transform: 'scale(0.98)',
       _disabled: {
-        transform: "scale(1)",
+        transform: 'scale(1)',
       },
     },
   },
   defaultProps: {
-    variant: "outline",
+    variant: 'outline',
   },
   sizes: {
     xs: {
-      fontSize: "12px",
-      h: "auto",
-      pb: "2",
-      pt: "2",
-      px: "6",
+      fontSize: '12px',
+      h: 'auto',
+      pb: '2',
+      pt: '2',
+      px: '6',
     },
     sm: {
-      fontSize: "14px",
-      h: "auto",
-      pb: "2",
-      pt: "2",
-      px: "6",
+      fontSize: '14px',
+      h: 'auto',
+      pb: '2',
+      pt: '2',
+      px: '6',
     },
     md: {
-      fontSize: "16px",
-      h: "auto",
-      lineHeight: "20px",
-      pt: "2",
-      pb: "3",
-      px: "6",
+      fontSize: '16px',
+      h: 'auto',
+      lineHeight: '20px',
+      pt: '2',
+      pb: '3',
+      px: '6',
     },
     lg: {
-      fontSize: "18px",
-      lineHeight: "22px",
-      h: "auto",
-      py: "14px",
-      px: "45px",
+      fontSize: '18px',
+      lineHeight: '22px',
+      h: 'auto',
+      py: '14px',
+      px: '45px',
     },
   },
   variants: {
     play: {
-      bg: "softyellow",
-      borderColor: "softyellow",
-      borderRadius: "0",
-      color: "dark",
-      w: "200px",
+      bg: 'softyellow',
+      borderColor: 'softyellow',
+      borderRadius: '0',
+      color: 'dark',
+      w: '200px',
       _hover: {
-        bg: "linear-gradient(45deg, #FFEBA4 0%, #DBB865 100%)",
-        animation: "shine 1.5s ease-in-out infinite",
+        bg: 'linear-gradient(45deg, #FFEBA4 0%, #DBB865 100%)',
+        animation: 'shine 1.5s ease-in-out infinite',
       },
       _active: {
-        bg: "linear-gradient(45deg, #FFEBA4 0%, #DBB865 100%)",
+        bg: 'linear-gradient(45deg, #FFEBA4 0%, #DBB865 100%)',
       },
     },
     outline: {
-      color: "white",
-      borderColor: "white",
-      borderBottom: "3px solid white",
-      borderLeft: "1px solid white",
-      borderRadius: "0",
-      borderRight: "3px solid white",
-      borderTop: "1px solid white",
+      color: 'white',
+      borderColor: 'white',
+      borderBottom: '3px solid white',
+      borderLeft: '1px solid white',
+      borderRadius: '0',
+      borderRight: '3px solid white',
+      borderTop: '1px solid white',
       _hover: {
-        borderColor: "accent",
-        color: "accent",
-        bg: "dark",
+        borderColor: 'accent',
+        color: 'accent',
+        bg: 'dark',
       },
       _active: {
-        borderColor: "accent",
-        bg: "accent",
-        color: "dark",
+        borderColor: 'accent',
+        bg: 'accent',
+        color: 'dark',
       },
     },
     solid: {
-      background: "white",
-      borderColor: "white",
-      borderRadius: "0",
-      color: "dark",
+      background: 'white',
+      borderColor: 'white',
+      borderRadius: '0',
+      color: 'dark',
       _hover: {
-        bg: "accent",
+        bg: 'accent',
       },
       _active: {
-        bg: "accent",
+        bg: 'accent',
       },
     },
     ghost: {
-      background: "transparent",
-      borderRadius: "0",
-      color: "white",
+      background: 'transparent',
+      borderRadius: '0',
+      color: 'white',
       _hover: {
-        bg: "accent",
-        color: "dark",
+        bg: 'accent',
+        color: 'dark',
       },
     },
   },
@@ -122,7 +122,7 @@ const Heading = {
     fontWeight: 400,
   },
   defaultProps: {
-    variant: "primary",
+    variant: 'primary',
   },
   variants: {
     primary: {
@@ -135,29 +135,29 @@ const Input = {
   variants: {
     outline: {
       field: {
-        background: "dark",
-        border: "2px solid",
-        borderColor: "white",
+        background: 'dark',
+        border: '2px solid',
+        borderColor: 'white',
         borderRadius: 0,
-        fontSize: "12px",
+        fontSize: '12px',
 
         _hover: {
-          background: "dark",
-          borderColor: "white",
+          background: 'dark',
+          borderColor: 'white',
         },
         _active: {
-          background: "dark",
-          borderColor: "white",
+          background: 'dark',
+          borderColor: 'white',
         },
       },
     },
     file: {
       field: {
-        cursor: "pointer",
+        cursor: 'pointer',
         p: 0,
       },
       addon: {
-        cursor: "pointer",
+        cursor: 'pointer',
       },
     },
   },
@@ -165,11 +165,11 @@ const Input = {
 
 const Link = {
   defaultProps: {
-    variant: "paragraph",
+    variant: 'paragraph',
   },
   baseStyle: {
     _hover: {
-      color: "accent",
+      color: 'accent',
     },
   },
   variants: {
@@ -185,24 +185,24 @@ const Link = {
 const Menu = {
   baseStyle: {
     list: {
-      background: "white",
-      border: "3px solid black",
+      background: 'white',
+      border: '3px solid black',
       borderRadius: 0,
-      color: "black",
+      color: 'black',
     },
     item: {
-      background: "white",
+      background: 'white',
       _hover: {
-        background: "black",
-        color: "white",
+        background: 'black',
+        color: 'white',
       },
       _active: {
-        background: "black",
-        color: "white",
+        background: 'black',
+        color: 'white',
       },
       _focus: {
-        background: "black",
-        color: "white",
+        background: 'black',
+        color: 'white',
       },
     },
   },
@@ -210,36 +210,36 @@ const Menu = {
 
 const Modal = {
   defaultProps: {
-    scrollBehavior: "inside",
+    scrollBehavior: 'inside',
   },
   baseStyle: {
     dialogContainer: {
-      overflow: "hidden",
+      overflow: 'hidden',
     },
     dialog: {
-      background: "dark",
-      border: "3px solid black",
+      background: 'dark',
+      border: '3px solid black',
       borderRadius: 0,
-      maxH: { base: "100%", md: "calc(100% - 7.5rem)" },
-      minW: { base: "100%", md: "800px" },
-      maxW: { base: "100%", md: "800px" },
+      maxH: { base: '100%', md: 'calc(100% - 7.5rem)' },
+      minW: { base: '100%', md: '800px' },
+      maxW: { base: '100%', md: '800px' },
     },
     header: {
-      borderBottom: "3px solid black",
-      textAlign: "center",
+      borderBottom: '3px solid black',
+      textAlign: 'center',
     },
     closeButton: {
       mt: 1,
-      size: "xl",
+      size: 'xl',
       _hover: {
         borderRadius: 0,
-        boxShadow: "0 0 1px 1px rgba(0, 0, 0, 0.1)",
+        boxShadow: '0 0 1px 1px rgba(0, 0, 0, 0.1)',
       },
     },
     body: {
       px: 24,
       py: 10,
-      overflow: "auto",
+      overflow: 'auto',
     },
   },
 };
@@ -247,20 +247,20 @@ const Modal = {
 const Switch = {
   baseStyle: {
     track: {
-      background: "gray.400",
-      borderRadius: "10%",
-      height: "14px",
+      background: 'gray.400',
+      borderRadius: '10%',
+      height: '14px',
 
       _checked: {
-        background: "black",
+        background: 'black',
       },
     },
     thumb: {
-      height: "100%",
-      w: "40%",
+      height: '100%',
+      w: '40%',
 
       _checked: {
-        transform: "translateX(18px)",
+        transform: 'translateX(18px)',
       },
     },
   },
@@ -271,7 +271,7 @@ const Text = {
     fontWeight: 300,
   },
   defaultProps: {
-    variant: "primary",
+    variant: 'primary',
   },
   variants: {
     primary: {
@@ -286,19 +286,19 @@ const Text = {
 const Textarea = {
   variants: {
     outline: {
-      background: "dark",
-      border: "2px solid",
-      borderColor: "white",
+      background: 'dark',
+      border: '2px solid',
+      borderColor: 'white',
       borderRadius: 0,
-      fontSize: "12px",
+      fontSize: '12px',
 
       _hover: {
-        background: "dark",
-        borderColor: "white",
+        background: 'dark',
+        borderColor: 'white',
       },
       _active: {
-        background: "dark",
-        borderColor: "white",
+        background: 'dark',
+        borderColor: 'white',
       },
     },
   },
@@ -306,25 +306,25 @@ const Textarea = {
 
 const Tooltip = {
   baseStyle: {
-    background: "black",
+    background: 'black',
     borderRadius: 0,
-    color: "white",
+    color: 'white',
     fontWeight: 300,
     p: 4,
   },
 };
 
 export const theme = extendTheme({
-  config: { initialColorMode: "light", useSystemColorMode: false },
+  config: { initialColorMode: 'light', useSystemColorMode: false },
   colors: {
-    dark: "#171922",
-    cardBG: "#11131A",
-    accent: "#a9c8eb",
-    softgreen: "#79BA87",
-    softpurple: "#9087B5",
-    softyellow: "#FFEBA4",
-    softblue: "#7B91DD",
-    softorange: "#BA9179",
+    dark: '#171922',
+    cardBG: '#11131A',
+    accent: '#a9c8eb',
+    softgreen: '#79BA87',
+    softpurple: '#9087B5',
+    softyellow: '#FFEBA4',
+    softblue: '#7B91DD',
+    softorange: '#BA9179',
     // gold: {
     //   100: '#FFFAE2',
     //   400: '#DBB865',
