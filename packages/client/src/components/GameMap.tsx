@@ -75,7 +75,6 @@ export const GameMap = ({
   }, [address]);
 
   const playerExists = useComponentValue(Player, playerEntity)?.value === true;
-  const canSpawn = useComponentValue(Player, playerEntity)?.value !== true;
 
   const rows = useMemo(
     () => new Array(width).fill(0).map((_, i) => i),
@@ -108,7 +107,7 @@ export const GameMap = ({
           duration: 5000,
           isClosable: true,
         });
-      } else if (canSpawn) {
+      } else if (!playerExists) {
         if (!playerEntity) return;
         setIsSpawning({ x, y });
 
@@ -149,8 +148,8 @@ export const GameMap = ({
       address,
       allActiveGamePlayers,
       burnerPlayerEntity,
-      canSpawn,
       playerEntity,
+      playerExists,
       spawn,
       SpawnInfo,
       toast,

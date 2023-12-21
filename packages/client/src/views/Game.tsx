@@ -1,4 +1,4 @@
-import { Button, Flex, Heading, VStack, Spinner } from "@chakra-ui/react";
+import { Box, Button, Flex, Heading, VStack, Spinner } from "@chakra-ui/react";
 import { useComponentValue } from "@latticexyz/react";
 import { singletonEntity } from "@latticexyz/store-sync/recs";
 import { SyncStep } from "@latticexyz/store-sync";
@@ -9,16 +9,13 @@ import { ConnectWalletButton } from "../components/ConnectWalletButton";
 import { useGamesContext } from "../contexts/GamesContext";
 import { GameBoard } from "../components/GameBoard";
 import { useMUD } from "../contexts/MUDContext";
-import { useAccount } from "wagmi";
 
 export const GameView = () => {
-  const { address } = useAccount();
   const { gameId } = useParams();
   const navigate = useNavigate();
 
   const {
     components: { SyncProgress },
-    systemCalls: { logout },
   } = useMUD();
   const { games, loading, setActiveGame } = useGamesContext();
 
@@ -73,17 +70,18 @@ export const GameView = () => {
 
   return (
     <VStack py={12} spacing={8}>
-      <VStack position="absolute" right={4} top={4}>
+      <Box position="absolute" left={4} top={4}>
         <Button
           onClick={() => {
-            logout(address ?? "");
             navigate("/");
           }}
         >
-          Leave game
+          All games
         </Button>
+      </Box>
+      <Box position="absolute" right={4} top={4}>
         <ConnectWalletButton />
-      </VStack>
+      </Box>
       <Heading>{activeGame.name}</Heading>
       <GameBoard gameAddress={activeGame.id} />
     </VStack>

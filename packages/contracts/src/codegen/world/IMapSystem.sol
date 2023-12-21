@@ -10,6 +10,12 @@ pragma solidity >=0.8.21;
 interface IMapSystem {
   function attack(address playerAddress, uint32 x, uint32 y) external;
 
+  function changeBurnerWallet(address playerAddress, uint256 nonce, bytes calldata signature) external;
+
+  function logout(address playerAddress) external;
+
+  function move(address playerAddress, uint32 x, uint32 y) external;
+
   function spawn(
     uint256 chainId,
     address gameAddress,
@@ -18,10 +24,6 @@ interface IMapSystem {
     uint32 y,
     bytes calldata signature
   ) external;
-
-  function logout(address playerAddress) external;
-
-  function move(address playerAddress, uint32 x, uint32 y) external;
 
   function extractVRS(bytes memory signature) external pure returns (uint8 v, bytes32 r, bytes32 s);
 }

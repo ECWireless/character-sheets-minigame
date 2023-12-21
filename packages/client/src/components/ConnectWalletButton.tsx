@@ -1,17 +1,28 @@
 import { Button, Flex } from "@chakra-ui/react";
+import { useDisconnect, useAccount } from "wagmi";
+import { useMemo } from "react";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useComponentValue } from "@latticexyz/react";
+import { useMUD } from "../contexts/MUDContext";
+import { getPlayerEntity } from "../utils/helpers";
 
 export const ConnectWalletButton: React.FC = () => {
+  const { address } = useAccount();
+  const { disconnect } = useDisconnect();
+  const {
+    components: { Player },
+    systemCalls: { logout },
+  } = useMUD();
+
+  const playerEntity = useMemo(() => {
+    return getPlayerEntity(address);
+  }, [address]);
+
+  const playerExists = useComponentValue(Player, playerEntity)?.value === true;
+
   return (
     <ConnectButton.Custom>
-      {({
-        account,
-        chain,
-        openAccountModal,
-        openChainModal,
-        openConnectModal,
-        mounted,
-      }) => {
+      {({ account, chain, openChainModal, openConnectModal, mounted }) => {
         const connected = mounted && account && chain;
 
         return (
@@ -63,12 +74,17 @@ export const ConnectWalletButton: React.FC = () => {
 
               return (
                 <Button
-                  onClick={openAccountModal}
+                  onClick={() => {
+                    if (playerExists) {
+                      logout(address ?? "");
+                    }
+                    (disconnect as () => void)();
+                  }}
                   type="button"
                   variant="solid"
                   w="100%"
                 >
-                  {account.displayName}
+                  Logout ({account.displayName})
                 </Button>
               );
             })()}
