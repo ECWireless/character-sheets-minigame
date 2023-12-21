@@ -13,13 +13,6 @@ export default mudConfig({
         playerAddress: "address",
       },
     },
-    // Game: {
-    //   dataStruct: false,
-    //   valueSchema: {
-    //     chainId: "uint256",
-    //     gameAddress: "address",
-    //   },
-    // },
     Health: "uint32",
     MapConfig: {
       keySchema: {},

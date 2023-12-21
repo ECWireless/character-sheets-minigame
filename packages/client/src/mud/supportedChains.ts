@@ -11,11 +11,7 @@
 
  */
 
-import {
-  MUDChain,
-  mudFoundry,
-  
-} from "@latticexyz/common/chains";
+import { MUDChain, mudFoundry } from "@latticexyz/common/chains";
 
 export const redstoneTestnet = {
   name: "Redstone Testnet",
@@ -38,6 +34,7 @@ export const redstoneTestnet = {
       url: "https://explorer.holesky.redstone.xyz",
     },
   },
+  faucetUrl: "https://redstone-holesky-faucet-g6e2uilmrq-uc.a.run.app/trpc",
 } as const satisfies MUDChain;
 
 /*
