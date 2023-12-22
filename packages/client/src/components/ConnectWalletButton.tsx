@@ -1,10 +1,11 @@
-import { Button, Flex } from "@chakra-ui/react";
-import { useDisconnect, useAccount } from "wagmi";
-import { useMemo } from "react";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useComponentValue } from "@latticexyz/react";
-import { useMUD } from "../contexts/MUDContext";
-import { getPlayerEntity } from "../utils/helpers";
+import { Button, Flex } from '@chakra-ui/react';
+import { useComponentValue } from '@latticexyz/react';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { useMemo } from 'react';
+import { useAccount, useDisconnect } from 'wagmi';
+
+import { useMUD } from '../contexts/MUDContext';
+import { getPlayerEntity } from '../utils/helpers';
 
 export const ConnectWalletButton: React.FC = () => {
   const { address } = useAccount();
@@ -33,15 +34,15 @@ export const ConnectWalletButton: React.FC = () => {
             w="100%"
             _hover={{
               p: {
-                borderBottom: "2px solid black",
+                borderBottom: '2px solid black',
               },
             }}
             {...(!mounted && {
-              "aria-hidden": true,
+              'aria-hidden': true,
               style: {
                 opacity: 0,
-                pointerEvents: "none",
-                userSelect: "none",
+                pointerEvents: 'none',
+                userSelect: 'none',
               },
             })}
           >
@@ -76,7 +77,7 @@ export const ConnectWalletButton: React.FC = () => {
                 <Button
                   onClick={() => {
                     if (playerExists) {
-                      logout(address ?? "");
+                      logout(address ?? '');
                     }
                     (disconnect as () => void)();
                   }}
