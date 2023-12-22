@@ -12,14 +12,14 @@
  * See https://mud.dev/tutorials/minimal/deploy#wallet-managed-address
  * for how to use the user's own address instead.
  */
-import { getBurnerPrivateKey } from "@latticexyz/common";
-
+import { getBurnerPrivateKey } from '@latticexyz/common';
+import { MUDChain } from '@latticexyz/common/chains';
 /*
  * Import the addresses of the World, possibly on multiple chains,
  * from packages/contracts/worlds.json. When the contracts package
  * deploys a new `World`, it updates this file.
  */
-import worlds from "contracts/worlds.json";
+import worlds from 'contracts/worlds.json';
 
 /*
  * The supported chains.
@@ -34,9 +34,16 @@ import worlds from "contracts/worlds.json";
  * See https://mud.dev/tutorials/minimal/deploy#run-the-user-interface
  * for instructions on how to add networks.
  */
-import { supportedChains } from "./supportedChains";
+import { supportedChains } from './supportedChains';
 
-export async function getNetworkConfig() {
+export async function getNetworkConfig(): Promise<{
+  privateKey: `0x${string}`;
+  chainId: number;
+  chain: MUDChain;
+  faucetServiceUrl: string | undefined;
+  worldAddress: string;
+  initialBlockNumber: number | bigint;
+}> {
   const params = new URLSearchParams(window.location.search);
 
   /*
@@ -48,16 +55,16 @@ export async function getNetworkConfig() {
    * 4. The default, 31337 (anvil)
    */
   const chainId = Number(
-    params.get("chainId") ||
-      params.get("chainid") ||
+    params.get('chainId') ||
+      params.get('chainid') ||
       import.meta.env.VITE_CHAIN_ID ||
-      31337
+      31337,
   );
 
   /*
    * Find the chain (unless it isn't in the list of supported chains).
    */
-  const chainIndex = supportedChains.findIndex((c) => c.id === chainId);
+  const chainIndex = supportedChains.findIndex(c => c.id === chainId);
   const chain = supportedChains[chainIndex];
   if (!chain) {
     throw new Error(`Chain ${chainId} not found`);
@@ -69,10 +76,10 @@ export async function getNetworkConfig() {
    * provide it as worldAddress in the query string.
    */
   const world = worlds[chain.id.toString()];
-  const worldAddress = params.get("worldAddress") || world?.address;
+  const worldAddress = params.get('worldAddress') || world?.address;
   if (!worldAddress) {
     throw new Error(
-      `No world address found for chain ${chainId}. Did you run \`mud deploy\`?`
+      `No world address found for chain ${chainId}. Did you run \`mud deploy\`?`,
     );
   }
 
@@ -83,15 +90,15 @@ export async function getNetworkConfig() {
    * on the URL (as initialBlockNumber) or in the worlds.json
    * file. If neither has it, it starts at the first block, zero.
    */
-  const initialBlockNumber = params.has("initialBlockNumber")
-    ? Number(params.get("initialBlockNumber"))
+  const initialBlockNumber = params.has('initialBlockNumber')
+    ? Number(params.get('initialBlockNumber'))
     : world?.blockNumber ?? 0n;
 
   return {
     privateKey: getBurnerPrivateKey(),
     chainId,
     chain,
-    faucetServiceUrl: params.get("faucet") ?? chain.faucetUrl,
+    faucetServiceUrl: params.get('faucet') ?? chain.faucetUrl,
     worldAddress,
     initialBlockNumber,
   };

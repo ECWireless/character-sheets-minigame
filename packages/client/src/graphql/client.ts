@@ -1,7 +1,7 @@
-import { createClient, fetchExchange } from "urql";
+import { createClient, fetchExchange } from 'urql';
 
-import { DEFAULT_CHAIN } from "../lib/web3";
-import { SUBGRAPH_URLS } from "../utils/constants";
+import { DEFAULT_CHAIN } from '../lib/web3';
+import { SUBGRAPH_URLS } from '../utils/constants';
 
 const SUBGRAPH_URL = SUBGRAPH_URLS[DEFAULT_CHAIN.id];
 
@@ -10,8 +10,8 @@ if (!SUBGRAPH_URL) {
 }
 
 export const SUBGRAPH_NAME = SUBGRAPH_URL.replace(
-  "https://api.thegraph.com/subgraphs/name/",
-  ""
+  'https://api.thegraph.com/subgraphs/name/',
+  '',
 );
 
 export const client = createClient({

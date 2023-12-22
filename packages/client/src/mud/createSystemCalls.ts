@@ -3,16 +3,18 @@
  * for changes in the World state (using the System contracts).
  */
 
-import { Has, HasValue, getComponentValue, runQuery } from "@latticexyz/recs";
-import { singletonEntity } from "@latticexyz/store-sync/recs";
-import { uuid } from "@latticexyz/utils";
-import { Address } from "viem";
-import { ClientComponents } from "./createClientComponents";
-import { SetupNetworkResult } from "./setupNetwork";
-import { getPlayerEntity } from "../utils/helpers";
+import { getComponentValue, Has, HasValue, runQuery } from '@latticexyz/recs';
+import { singletonEntity } from '@latticexyz/store-sync/recs';
+import { uuid } from '@latticexyz/utils';
+import { Address } from 'viem';
+
+import { getPlayerEntity } from '../utils/helpers';
+import { ClientComponents } from './createClientComponents';
+import { SetupNetworkResult } from './setupNetwork';
 
 export type SystemCalls = ReturnType<typeof createSystemCalls>;
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function createSystemCalls(
   { worldContract, waitForTransaction }: SetupNetworkResult,
   {
@@ -22,12 +24,12 @@ export function createSystemCalls(
     Obstruction,
     Player,
     Position,
-  }: ClientComponents
+  }: ClientComponents,
 ) {
   const attack = async (playerAddress: string, x: number, y: number) => {
     const playerEntity = getPlayerEntity(playerAddress);
     if (!playerEntity) {
-      throw new Error("No player entity");
+      throw new Error('No player entity');
     }
 
     const molochSoldierEntities = runQuery([
@@ -36,13 +38,15 @@ export function createSystemCalls(
     ]);
     const molochSoldierEntity = Array.from(molochSoldierEntities)[0];
     if (!molochSoldierEntity) {
-      console.warn("No moloch soldier to attack");
+      // eslint-disable-next-line no-console
+      console.warn('No moloch soldier to attack');
       return;
     }
 
     const molochHealth = getComponentValue(Health, molochSoldierEntity);
     if (molochHealth?.value === 0) {
-      console.warn("Moloch soldier already dead");
+      // eslint-disable-next-line no-console
+      console.warn('Moloch soldier already dead');
       return;
     }
 
@@ -64,17 +68,6 @@ export function createSystemCalls(
     }
   };
 
-  const wrapPosition = (x: number, y: number) => {
-    const mapConfig = getComponentValue(MapConfig, singletonEntity);
-    if (!mapConfig) {
-      throw new Error("mapConfig no yet loaded or initialized");
-    }
-    return [
-      (x + mapConfig.width) % mapConfig.width,
-      (y + mapConfig.height) % mapConfig.height,
-    ];
-  };
-
   const isObstructed = (x: number, y: number) => {
     return runQuery([Has(Obstruction), HasValue(Position, { x, y })]).size > 0;
   };
@@ -82,12 +75,12 @@ export function createSystemCalls(
   const logout = async (playerAddress: string) => {
     const playerEntity = getPlayerEntity(playerAddress);
     if (!playerEntity) {
-      throw new Error("No player entity");
+      throw new Error('No player entity');
     }
 
     const canLogout = getComponentValue(Player, playerEntity)?.value === true;
     if (!canLogout) {
-      throw new Error("Not spawned");
+      throw new Error('Not spawned');
     }
 
     const playerId = uuid();
@@ -105,21 +98,48 @@ export function createSystemCalls(
     }
   };
 
+  const moveBy = async (
+    playerAddress: string,
+    deltaX: number,
+    deltaY: number,
+  ) => {
+    const playerEntity = getPlayerEntity(playerAddress);
+    if (!playerEntity) {
+      throw new Error('No player entity');
+    }
+
+    const playerPosition = getComponentValue(Position, playerEntity);
+    if (!playerPosition) {
+      // eslint-disable-next-line no-console
+      console.warn('Cannot moveBy without a player position. Not yet spawned?');
+      return;
+    }
+
+    await moveTo(
+      playerAddress,
+      playerPosition.x + deltaX,
+      playerPosition.y + deltaY,
+      playerPosition.x,
+      playerPosition.y,
+    );
+  };
+
   const moveTo = async (
     playerAddress: string,
     inputX: number,
     inputY: number,
     previousX: number,
-    previousY: number
+    previousY: number,
   ) => {
     const playerEntity = getPlayerEntity(playerAddress);
     if (!playerEntity) {
-      throw new Error("No player entity");
+      throw new Error('No player entity');
     }
 
     const [x, y] = wrapPosition(inputX, inputY);
     if (isObstructed(x, y)) {
-      console.warn("cannot move to obstructed space");
+      // eslint-disable-next-line no-console
+      console.warn('cannot move to obstructed space');
       return;
     }
 
@@ -136,35 +156,35 @@ export function createSystemCalls(
         y,
       ]);
       await waitForTransaction(tx);
-      return getComponentValue(Position, playerEntity);
     } finally {
       Position.removeOverride(positionId);
     }
   };
 
-  const moveBy = async (
+  const updateBurnerWallet = async (
     playerAddress: string,
-    deltaX: number,
-    deltaY: number
+    signature: `0x${string}`,
   ) => {
     const playerEntity = getPlayerEntity(playerAddress);
     if (!playerEntity) {
-      throw new Error("No player entity");
+      throw new Error('No player entity');
     }
 
-    const playerPosition = getComponentValue(Position, playerEntity);
-    if (!playerPosition) {
-      console.warn("Cannot moveBy without a player position. Not yet spawned?");
-      return;
+    const canChangeBurnerWallet =
+      getComponentValue(Player, playerEntity)?.value === true;
+    if (!canChangeBurnerWallet) {
+      throw new Error('Not spawned');
     }
 
-    await moveTo(
-      playerAddress,
-      playerPosition.x + deltaX,
-      playerPosition.y + deltaY,
-      playerPosition.x,
-      playerPosition.y
-    );
+    try {
+      const tx = await worldContract.write.updateBurnerWallet([
+        playerAddress.toLowerCase() as Address,
+        signature,
+      ]);
+      await waitForTransaction(tx);
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   const spawn = async (
@@ -172,21 +192,22 @@ export function createSystemCalls(
     playerAddress: string,
     inputX: number,
     inputY: number,
-    signature: `0x${string}`
+    signature: `0x${string}`,
   ) => {
     const playerEntity = getPlayerEntity(playerAddress);
     if (!playerEntity) {
-      throw new Error("No player entity");
+      throw new Error('No player entity');
     }
 
     const canSpawn = getComponentValue(Player, playerEntity)?.value !== true;
     if (!canSpawn) {
-      throw new Error("already spawned");
+      throw new Error('already spawned');
     }
 
     const [x, y] = wrapPosition(inputX, inputY);
     if (isObstructed(x, y)) {
-      console.warn("cannot spawn on obstructed space");
+      // eslint-disable-next-line no-console
+      console.warn('cannot spawn on obstructed space');
       return;
     }
 
@@ -200,10 +221,20 @@ export function createSystemCalls(
         signature,
       ]);
       await waitForTransaction(tx);
-      return getComponentValue(Position, playerEntity);
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const wrapPosition = (x: number, y: number) => {
+    const mapConfig = getComponentValue(MapConfig, singletonEntity);
+    if (!mapConfig) {
+      throw new Error('mapConfig no yet loaded or initialized');
+    }
+    return [
+      (x + mapConfig.width) % mapConfig.width,
+      (y + mapConfig.height) % mapConfig.height,
+    ];
   };
 
   return {
@@ -211,6 +242,7 @@ export function createSystemCalls(
     logout,
     moveTo,
     moveBy,
+    updateBurnerWallet,
     spawn,
   };
 }

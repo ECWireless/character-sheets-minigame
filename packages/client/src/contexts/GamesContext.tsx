@@ -4,12 +4,12 @@ import React, {
   useContext,
   useEffect,
   useState,
-} from "react";
-import { CombinedError } from "urql";
+} from 'react';
+import { CombinedError } from 'urql';
 
-import { useGetGamesQuery } from "../graphql/autogen/types";
-import { formatGameMeta } from "../utils/helpers";
-import { GameMeta } from "../utils/types";
+import { useGetGamesQuery } from '../graphql/autogen/types';
+import { formatGameMeta } from '../utils/helpers';
+import { GameMeta } from '../utils/types';
 
 type GamesContextType = {
   activeGame: GameMeta | null;
@@ -40,7 +40,7 @@ export const GamesProvider: React.FC<{ children: JSX.Element }> = ({
   const [isRefetching, setIsRefetching] = useState(false);
 
   const [{ data, fetching, error }, reload] = useGetGamesQuery({
-    requestPolicy: "cache-and-network",
+    requestPolicy: 'cache-and-network',
     variables: {
       limit: 100,
       skip: 0,
@@ -51,13 +51,13 @@ export const GamesProvider: React.FC<{ children: JSX.Element }> = ({
     (game: GameMeta | null) => {
       setActiveGame(game);
     },
-    [setActiveGame]
+    [setActiveGame],
   );
 
   const formatGames = useCallback(async () => {
     setIsFormatting(true);
     const formattedGames = await Promise.all(
-      data?.games.map((g) => formatGameMeta(g)) ?? []
+      data?.games.map(g => formatGameMeta(g)) ?? [],
     );
     setGames(formattedGames);
     setIsFormatting(false);
