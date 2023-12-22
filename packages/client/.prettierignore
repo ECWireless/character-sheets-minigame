@@ -1,3 +1,5 @@
 node_modules
 pnpm-workspace.yaml
 pnpm-lock.yaml
+dist
+graphql/autogen
