@@ -1,8 +1,8 @@
-import { gnosis } from "viem/chains";
+import { gnosis } from 'viem/chains';
+import { Chain, configureChains } from 'wagmi';
 // import { infuraProvider } from "wagmi/providers/infura";
-import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
-import { Chain, configureChains } from "wagmi";
-import { publicProvider } from "wagmi/providers/public";
+import { jsonRpcProvider } from 'wagmi/providers/jsonRpc';
+import { publicProvider } from 'wagmi/providers/public';
 
 export const DEFAULT_CHAIN = gnosis;
 export const PROJECT_ID = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID;
@@ -10,7 +10,7 @@ export const INFURA_KEY = import.meta.env.VITE_INFURA_KEY;
 
 if (!PROJECT_ID) {
   throw new Error(
-    `Invalid/Missing environment variable: "VITE_WALLET_CONNECT_PROJECT_ID"`
+    `Invalid/Missing environment variable: "VITE_WALLET_CONNECT_PROJECT_ID"`,
   );
 }
 
@@ -28,5 +28,5 @@ export const { chains, publicClient, webSocketPublicClient } = configureChains(
       }),
     }),
     publicProvider(),
-  ]
+  ],
 );

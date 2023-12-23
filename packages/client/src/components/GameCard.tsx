@@ -7,14 +7,14 @@ import {
   Link,
   Text,
   VStack,
-} from "@chakra-ui/react";
-import React from "react";
+} from '@chakra-ui/react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
-import { GameTotals } from "../components/GameTotals";
-import { EXPLORER_URLS } from "../utils/constants";
-import { shortenAddress, shortenText } from "../utils/helpers";
-import { GameMeta } from "../utils/types";
-import { useNavigate } from "react-router-dom";
+import { GameTotals } from '../components/GameTotals';
+import { EXPLORER_URLS } from '../utils/constants';
+import { shortenAddress, shortenText } from '../utils/helpers';
+import { GameMeta } from '../utils/types';
 
 type GameCardProps = GameMeta & {
   chainId: number;
@@ -69,7 +69,7 @@ export const GameCard: React.FC<GameCardProps> = ({
             isExternal
             fontWeight={300}
             mb={3}
-            textDecoration={"underline"}
+            textDecoration={'underline'}
           >
             {shortenAddress(id)}
           </Link>

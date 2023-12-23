@@ -1,14 +1,17 @@
-import { useEffect, useState } from "react";
-import { useMUD } from "../contexts/MUDContext";
-import { getComponentValueStrict } from "@latticexyz/recs";
-import { getPlayerEntity } from "../utils/helpers";
+import { getComponentValueStrict } from '@latticexyz/recs';
+import { useEffect, useState } from 'react';
 
-const classesWithAttackAbility = ["monk", "warrior", "wizard"];
+import { useMUD } from '../contexts/MUDContext';
+import { getPlayerEntity } from '../utils/helpers';
+
+const classesWithAttackAbility = ['monk', 'warrior', 'wizard'];
 
 export const useKeyboardMovement = (
   playerAddress: string | undefined,
-  characterClass: string
-) => {
+  characterClass: string,
+): {
+  actionRunning: boolean;
+} => {
   const {
     components: { Position },
     systemCalls: { attack, moveBy },
@@ -19,33 +22,33 @@ export const useKeyboardMovement = (
   useEffect(() => {
     const listener = (e: KeyboardEvent) => {
       if (!playerAddress) return;
-      if (e.key === "w") {
+      if (e.key === 'w') {
         moveBy(playerAddress, 0, -1);
       }
-      if (e.key === "s") {
+      if (e.key === 's') {
         moveBy(playerAddress, 0, 1);
       }
-      if (e.key === "a") {
+      if (e.key === 'a') {
         moveBy(playerAddress, -1, 0);
       }
-      if (e.key === "d") {
+      if (e.key === 'd') {
         moveBy(playerAddress, 1, 0);
       }
 
-      if (e.key === "ArrowUp") {
+      if (e.key === 'ArrowUp') {
         moveBy(playerAddress, 0, -1);
       }
-      if (e.key === "ArrowDown") {
+      if (e.key === 'ArrowDown') {
         moveBy(playerAddress, 0, 1);
       }
-      if (e.key === "ArrowLeft") {
+      if (e.key === 'ArrowLeft') {
         moveBy(playerAddress, -1, 0);
       }
-      if (e.key === "ArrowRight") {
+      if (e.key === 'ArrowRight') {
         moveBy(playerAddress, 1, 0);
       }
 
-      if (e.key === "e") {
+      if (e.key === 'e') {
         if (!classesWithAttackAbility.includes(characterClass)) return;
         const playerEntity = getPlayerEntity(playerAddress);
         if (!playerEntity) return;
@@ -60,8 +63,8 @@ export const useKeyboardMovement = (
       }
     };
 
-    window.addEventListener("keydown", listener);
-    return () => window.removeEventListener("keydown", listener);
+    window.addEventListener('keydown', listener);
+    return () => window.removeEventListener('keydown', listener);
   }, [attack, characterClass, moveBy, playerAddress, Position]);
 
   useEffect(() => {

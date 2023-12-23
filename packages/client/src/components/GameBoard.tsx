@@ -1,22 +1,26 @@
-import { useComponentValue, useEntityQuery } from "@latticexyz/react";
-import { Image } from "@chakra-ui/react";
-import { hexToArray } from "@latticexyz/utils";
-import { singletonEntity } from "@latticexyz/store-sync/recs";
-import { Has, HasValue, getComponentValueStrict } from "@latticexyz/recs";
+import { Image } from '@chakra-ui/react';
+import { useComponentValue, useEntityQuery } from '@latticexyz/react';
+import { getComponentValueStrict, Has, HasValue } from '@latticexyz/recs';
+import { singletonEntity } from '@latticexyz/store-sync/recs';
+import { hexToArray } from '@latticexyz/utils';
+import { useAccount } from 'wagmi';
 
-import { GameMap } from "./GameMap";
-import { useMUD } from "../contexts/MUDContext";
-import { useKeyboardMovement } from "../hooks/useKeyboardMovement";
-import { TerrainType, terrainTypes } from "../utils/terrainTypes";
-import { useCharacter, useCharacters } from "../hooks/useCharacter";
-import { getDirection, getCharacterImage } from "../utils/helpers";
-import molochSoldierLeft from "../assets/moloch/moloch_left.gif";
-import molochSoldierRight from "../assets/moloch/moloch_right.gif";
-import molochSoldierDeadLeft from "../assets/moloch/moloch_dead_left.gif";
-import molochSoldierDeadRight from "../assets/moloch/moloch_dead_right.gif";
-import { useAccount } from "wagmi";
+import molochSoldierDeadLeft from '../assets/moloch/moloch_dead_left.gif';
+import molochSoldierDeadRight from '../assets/moloch/moloch_dead_right.gif';
+import molochSoldierLeft from '../assets/moloch/moloch_left.gif';
+import molochSoldierRight from '../assets/moloch/moloch_right.gif';
+import { useMUD } from '../contexts/MUDContext';
+import { useCharacter, useCharacters } from '../hooks/useCharacter';
+import { useKeyboardMovement } from '../hooks/useKeyboardMovement';
+import { getCharacterImage, getDirection } from '../utils/helpers';
+import { TerrainType, terrainTypes } from '../utils/terrainTypes';
+import { GameMap } from './GameMap';
 
-export const GameBoard = ({ gameAddress }: { gameAddress: string }) => {
+export const GameBoard = ({
+  gameAddress,
+}: {
+  gameAddress: string;
+}): JSX.Element => {
   const {
     components: {
       CharacterSheetInfo,
@@ -34,35 +38,35 @@ export const GameBoard = ({ gameAddress }: { gameAddress: string }) => {
 
   const { actionRunning } = useKeyboardMovement(
     address?.toLowerCase(),
-    character?.classes[0]?.name.toLowerCase() ?? "villager"
+    character?.classes[0]?.name.toLowerCase() ?? 'villager',
   );
 
   const players = useEntityQuery([
     HasValue(Player, { value: true }),
     Has(Position),
     Has(CharacterSheetInfo),
-  ]).map((entity) => {
+  ]).map(entity => {
     const position = getComponentValueStrict(Position, entity);
     const direction = getDirection(position);
     const characterSheetInfo = getComponentValueStrict(
       CharacterSheetInfo,
-      entity
+      entity,
     );
 
     const characterByPlayer = characters?.find(
-      (c) => c.player === characterSheetInfo.playerAddress.toLowerCase()
+      c => c.player === characterSheetInfo.playerAddress.toLowerCase(),
     );
     const characterClass =
-      characterByPlayer?.classes[0]?.name.toLowerCase() ?? "villager";
+      characterByPlayer?.classes[0]?.name.toLowerCase() ?? 'villager';
 
     const src = getCharacterImage(characterClass, position, actionRunning);
-    let transform = "scale(1.5)";
+    let transform = 'scale(1.5)';
 
     if (actionRunning && characterByPlayer?.id === character?.id) {
       transform =
-        direction === "left"
-          ? "scale(1.7) translate(-5px, -4px)"
-          : "scale(1.7) translate(5px, -4px)";
+        direction === 'left'
+          ? 'scale(1.7) translate(-5px, -4px)'
+          : 'scale(1.7) translate(5px, -4px)';
     }
 
     return {
@@ -71,6 +75,7 @@ export const GameBoard = ({ gameAddress }: { gameAddress: string }) => {
       y: position.y,
       sprite: (
         <Image
+          alt={characterClass}
           key={entity}
           height="100%"
           position="absolute"
@@ -85,15 +90,15 @@ export const GameBoard = ({ gameAddress }: { gameAddress: string }) => {
   const molochSoldiers = useEntityQuery([
     HasValue(MolochSoldier, { value: true }),
     Has(Position),
-  ]).map((entity) => {
+  ]).map(entity => {
     const position = getComponentValueStrict(Position, entity);
     const health = getComponentValueStrict(Health, entity).value ?? 0;
 
-    const direction = position.x % 2 === 0 ? "left" : "right";
+    const direction = position.x % 2 === 0 ? 'left' : 'right';
     const molochSoldier =
-      direction === "left" ? molochSoldierLeft : molochSoldierRight;
+      direction === 'left' ? molochSoldierLeft : molochSoldierRight;
     const molochSoldierDead =
-      direction === "left" ? molochSoldierDeadLeft : molochSoldierDeadRight;
+      direction === 'left' ? molochSoldierDeadLeft : molochSoldierDeadRight;
 
     return {
       entity,
@@ -101,6 +106,7 @@ export const GameBoard = ({ gameAddress }: { gameAddress: string }) => {
       y: position.y,
       sprite: (
         <Image
+          alt="moloch soldier"
           key={entity}
           height="100%"
           position="absolute"
@@ -115,7 +121,7 @@ export const GameBoard = ({ gameAddress }: { gameAddress: string }) => {
   const mapConfig = useComponentValue(MapConfig, singletonEntity);
   if (mapConfig == null) {
     throw new Error(
-      "map config not set or not ready, only use this hook after loading state === LIVE"
+      'map config not set or not ready, only use this hook after loading state === LIVE',
     );
   }
 
@@ -125,9 +131,9 @@ export const GameBoard = ({ gameAddress }: { gameAddress: string }) => {
       value in TerrainType
         ? terrainTypes[value as TerrainType]
         : {
-            color: "green.400",
-            name: "grass",
-            sprite: "",
+            color: 'green.400',
+            name: 'grass',
+            sprite: '',
             spriteSelections: [],
           };
     return {

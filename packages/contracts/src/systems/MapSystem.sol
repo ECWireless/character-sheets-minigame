@@ -26,36 +26,9 @@ contract MapSystem is System {
     Health.set(molochSoldier, molochSoldierHealth - 1);
   }
 
-  function spawn(uint256 chainId, address gameAddress, address playerAddress, uint32 x, uint32 y, bytes calldata signature) public {
-    bytes32 player = addressToEntityKey(playerAddress);
-    require(!Player.get(player), "already spawned");
-
-    (, uint256 nonce) = SpawnInfo.get(player);
-    uint256 newSpawnNonce = nonce + 1;
-
-    require(verifyEIP712Signature(playerAddress, signature, playerAddress, address(_msgSender()), newSpawnNonce), "invalid signature");
-
-    // Constrain position to map size, wrapping around if necessary
-    (uint32 width, uint32 height, ) = MapConfig.get();
-    x = (x + width) % width;
-    y = (y + height) % height;
-
-    bytes32 position = positionToEntityKey(x, y);
-    require(!Obstruction.get(position), "this space is obstructed");
- 
-    Player.set(player, true);
-    Position.set(player, x, y, x, y);
-    Movable.set(player, true);
-    SpawnInfo.set(player, address(_msgSender()), newSpawnNonce);
-    CharacterSheetInfo.set(player, chainId, gameAddress, playerAddress);
-  }
-
   function logout(address playerAddress) public {
     bytes32 player = addressToEntityKey(playerAddress);
     require(Player.get(player), "not logged in");
-
-    (address burnerAddress,) = SpawnInfo.get(player);
-    require(burnerAddress == address(_msgSender()), "not the burner address for this character");
 
     Player.set(player, false);
     Movable.set(player, false);
@@ -80,6 +53,42 @@ contract MapSystem is System {
     require(!Obstruction.get(position), "this space is obstructed");
 
     Position.set(player, x, y, previousX, previousY);
+  }
+
+  function updateBurnerWallet (address playerAddress, bytes calldata signature) public {
+    bytes32 player = addressToEntityKey(playerAddress);
+    require(Player.get(player), "not spawned");
+
+    (, uint256 nonce) = SpawnInfo.get(player);
+    uint256 newSpawnNonce = nonce + 1;
+    
+    require(verifyEIP712Signature(playerAddress, signature, playerAddress, address(_msgSender()), newSpawnNonce), "invalid signature");
+
+    SpawnInfo.set(player, address(_msgSender()), nonce);
+  }
+
+  function spawn(uint256 chainId, address gameAddress, address playerAddress, uint32 x, uint32 y, bytes calldata signature) public {
+    bytes32 player = addressToEntityKey(playerAddress);
+    require(!Player.get(player), "already spawned");
+
+    (, uint256 nonce) = SpawnInfo.get(player);
+    uint256 newSpawnNonce = nonce + 1;
+
+    require(verifyEIP712Signature(playerAddress, signature, playerAddress, address(_msgSender()), newSpawnNonce), "invalid signature");
+
+    // Constrain position to map size, wrapping around if necessary
+    (uint32 width, uint32 height, ) = MapConfig.get();
+    x = (x + width) % width;
+    y = (y + height) % height;
+
+    bytes32 position = positionToEntityKey(x, y);
+    require(!Obstruction.get(position), "this space is obstructed");
+ 
+    Player.set(player, true);
+    Position.set(player, x, y, x, y);
+    Movable.set(player, true);
+    SpawnInfo.set(player, address(_msgSender()), newSpawnNonce);
+    CharacterSheetInfo.set(player, chainId, gameAddress, playerAddress);
   }
 
   function distance(uint32 fromX, uint32 fromY, uint32 toX, uint32 toY) internal pure returns (uint32) {

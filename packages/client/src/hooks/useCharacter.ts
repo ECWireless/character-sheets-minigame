@@ -1,16 +1,16 @@
-import { useCallback, useEffect, useState } from "react";
-import { CombinedError } from "urql";
-import { Character } from "../utils/types";
-import { formatCharacter } from "../utils/helpers";
+import { useCallback, useEffect, useState } from 'react';
+import { CombinedError } from 'urql';
 
 import {
   useGetCharactersByGameAddressQuery,
   useGetCharactersByPlayerAddressQuery,
-} from "../graphql/autogen/types";
+} from '../graphql/autogen/types';
+import { formatCharacter } from '../utils/helpers';
+import { Character } from '../utils/types';
 
 export const useCharacter = (
   playerAddress: string | undefined,
-  gameAddress: string | undefined
+  gameAddress: string | undefined,
 ): {
   character: Character | null;
   loading: boolean;
@@ -24,7 +24,7 @@ export const useCharacter = (
     useGetCharactersByPlayerAddressQuery({
       variables: {
         playerAddress: playerAddress?.toLowerCase(),
-        gameAddress: gameAddress?.toLowerCase() ?? "",
+        gameAddress: gameAddress?.toLowerCase() ?? '',
         limit: 100,
         skip: 0,
       },
@@ -57,7 +57,7 @@ export const useCharacter = (
 };
 
 export const useCharacters = (
-  gameAddress: string | undefined
+  gameAddress: string | undefined,
 ): {
   characters: Character[] | null;
   loading: boolean;
@@ -70,7 +70,7 @@ export const useCharacters = (
   const [{ data, fetching, error }, reload] =
     useGetCharactersByGameAddressQuery({
       variables: {
-        gameAddress: gameAddress?.toLowerCase() ?? "",
+        gameAddress: gameAddress?.toLowerCase() ?? '',
         limit: 100,
         skip: 0,
       },
@@ -80,7 +80,7 @@ export const useCharacters = (
     if (!data?.characters[0]) return;
     setIsFormatting(true);
     const formattedCharacters = await Promise.all(
-      data.characters.map((c) => formatCharacter(c))
+      data.characters.map(c => formatCharacter(c)),
     );
     setCharacters(formattedCharacters);
     setIsFormatting(false);

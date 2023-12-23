@@ -4,30 +4,13 @@
  * This line imports the functions we need from it.
  */
 import {
-  createPublicClient,
-  fallback,
-  webSocket,
-  http,
-  createWalletClient,
-  Hex,
-  parseEther,
-  ClientConfig,
-} from "viem";
-import { createClient as createFaucetClient } from "@latticexyz/faucet";
-import { encodeEntity, syncToRecs } from "@latticexyz/store-sync/recs";
-
-import { getNetworkConfig } from "./getNetworkConfig";
-import { world } from "./world";
-import IWorldAbi from "contracts/out/IWorld.sol/IWorld.abi.json";
-import {
+  ContractWrite,
   createBurnerAccount,
   getContract,
   transportObserver,
-  ContractWrite,
-} from "@latticexyz/common";
-
-import { Subject, share } from "rxjs";
-
+} from '@latticexyz/common';
+import { createClient as createFaucetClient } from '@latticexyz/faucet';
+import { encodeEntity, syncToRecs } from '@latticexyz/store-sync/recs';
 /*
  * Import our MUD config, which includes strong types for
  * our tables and other config options. We use this to generate
@@ -36,10 +19,26 @@ import { Subject, share } from "rxjs";
  * See https://mud.dev/tutorials/walkthrough/minimal-onchain#mudconfigts
  * for the source of this information.
  */
-import mudConfig from "contracts/mud.config";
+import mudConfig from 'contracts/mud.config';
+import IWorldAbi from 'contracts/out/IWorld.sol/IWorld.abi.json';
+import { share, Subject } from 'rxjs';
+import {
+  ClientConfig,
+  createPublicClient,
+  createWalletClient,
+  fallback,
+  Hex,
+  http,
+  parseEther,
+  webSocket,
+} from 'viem';
+
+import { getNetworkConfig } from './getNetworkConfig';
+import { world } from './world';
 
 export type SetupNetworkResult = Awaited<ReturnType<typeof setupNetwork>>;
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export async function setupNetwork() {
   const networkConfig = await getNetworkConfig();
 
@@ -79,7 +78,7 @@ export async function setupNetwork() {
     abi: IWorldAbi,
     publicClient,
     walletClient: burnerWalletClient,
-    onWrite: (write) => write$.next(write),
+    onWrite: write => write$.next(write),
   });
 
   /*
@@ -104,7 +103,8 @@ export async function setupNetwork() {
    */
   if (networkConfig.faucetServiceUrl) {
     const address = burnerAccount.address;
-    console.info("[Dev Faucet]: Player address -> ", address);
+    // eslint-disable-next-line no-console
+    console.info('[Dev Faucet]: Player address -> ', address);
 
     const faucetClient = createFaucetClient({
       url: networkConfig.faucetServiceUrl,
@@ -112,10 +112,12 @@ export async function setupNetwork() {
 
     const requestDrip = async () => {
       const balance = await publicClient.getBalance({ address });
+      // eslint-disable-next-line no-console
       console.info(`[Dev Faucet]: Player balance -> ${balance}`);
-      const lowBalance = balance < parseEther("0.00001");
+      const lowBalance = balance < parseEther('0.00001');
       if (lowBalance) {
-        console.info("[Dev Faucet]: Balance is low, dripping funds to player");
+        // eslint-disable-next-line no-console
+        console.info('[Dev Faucet]: Balance is low, dripping funds to player');
 
         await faucetClient.drip.mutate({
           address,
@@ -132,8 +134,8 @@ export async function setupNetwork() {
     world,
     components,
     playerEntity: encodeEntity(
-      { address: "address" },
-      { address: burnerWalletClient.account.address }
+      { address: 'address' },
+      { address: burnerWalletClient.account.address },
     ),
     publicClient,
     walletClient: burnerWalletClient,

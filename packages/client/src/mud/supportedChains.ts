@@ -11,34 +11,37 @@
 
  */
 
-import { MUDChain, mudFoundry } from "@latticexyz/common/chains";
+import { MUDChain, mudFoundry } from '@latticexyz/common/chains';
 
 export const redstoneTestnet = {
-  name: "Redstone Testnet",
+  name: 'Redstone Testnet',
   id: 17001,
-  network: "redstone-holesky",
-  nativeCurrency: { decimals: 18, name: "Ether", symbol: "ETH" },
+  network: 'redstone-holesky',
+  nativeCurrency: { decimals: 18, name: 'Ether', symbol: 'ETH' },
   rpcUrls: {
     default: {
-      http: ["https://rpc.holesky.redstone.xyz"],
-      webSocket: ["wss://rpc.holesky.redstone.xyz/ws"],
+      http: ['https://rpc.holesky.redstone.xyz'],
+      webSocket: ['wss://rpc.holesky.redstone.xyz/ws'],
     },
     public: {
-      http: ["https://rpc.holesky.redstone.xyz"],
-      webSocket: ["wss://rpc.holesky.redstone.xyz/ws"],
+      http: ['https://rpc.holesky.redstone.xyz'],
+      webSocket: ['wss://rpc.holesky.redstone.xyz/ws'],
     },
   },
   blockExplorers: {
     default: {
-      name: "Redstone Testnet",
-      url: "https://explorer.holesky.redstone.xyz",
+      name: 'Redstone Testnet',
+      url: 'https://explorer.holesky.redstone.xyz',
     },
   },
-  faucetUrl: "https://redstone-holesky-faucet-g6e2uilmrq-uc.a.run.app/trpc",
+  faucetUrl: 'https://redstone-holesky-faucet-g6e2uilmrq-uc.a.run.app/trpc',
 } as const satisfies MUDChain;
 
 /*
  * See https://mud.dev/tutorials/minimal/deploy#run-the-user-interface
  * for instructions on how to add networks.
  */
-export const supportedChains: MUDChain[] = [mudFoundry, redstoneTestnet];
+export const supportedChains: MUDChain[] = [
+  { ...mudFoundry, faucetUrl: 'http://localhost:3002/trpc' },
+  redstoneTestnet,
+];

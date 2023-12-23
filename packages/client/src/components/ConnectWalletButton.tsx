@@ -1,17 +1,29 @@
-import { Button, Flex } from "@chakra-ui/react";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { Button, Flex } from '@chakra-ui/react';
+import { useComponentValue } from '@latticexyz/react';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { useMemo } from 'react';
+import { useAccount, useDisconnect } from 'wagmi';
+
+import { useMUD } from '../contexts/MUDContext';
+import { getPlayerEntity } from '../utils/helpers';
 
 export const ConnectWalletButton: React.FC = () => {
+  const { address } = useAccount();
+  const { disconnect } = useDisconnect();
+  const {
+    components: { Player },
+    systemCalls: { logout },
+  } = useMUD();
+
+  const playerEntity = useMemo(() => {
+    return getPlayerEntity(address);
+  }, [address]);
+
+  const playerExists = useComponentValue(Player, playerEntity)?.value === true;
+
   return (
     <ConnectButton.Custom>
-      {({
-        account,
-        chain,
-        openAccountModal,
-        openChainModal,
-        openConnectModal,
-        mounted,
-      }) => {
+      {({ account, chain, openChainModal, openConnectModal, mounted }) => {
         const connected = mounted && account && chain;
 
         return (
@@ -22,15 +34,15 @@ export const ConnectWalletButton: React.FC = () => {
             w="100%"
             _hover={{
               p: {
-                borderBottom: "2px solid black",
+                borderBottom: '2px solid black',
               },
             }}
             {...(!mounted && {
-              "aria-hidden": true,
+              'aria-hidden': true,
               style: {
                 opacity: 0,
-                pointerEvents: "none",
-                userSelect: "none",
+                pointerEvents: 'none',
+                userSelect: 'none',
               },
             })}
           >
@@ -63,12 +75,17 @@ export const ConnectWalletButton: React.FC = () => {
 
               return (
                 <Button
-                  onClick={openAccountModal}
+                  onClick={() => {
+                    if (playerExists) {
+                      logout(address ?? '');
+                    }
+                    (disconnect as () => void)();
+                  }}
                   type="button"
                   variant="solid"
                   w="100%"
                 >
-                  {account.displayName}
+                  Logout ({account.displayName})
                 </Button>
               );
             })()}

@@ -1,13 +1,13 @@
-import { HStack, Image, Text, VStack } from "@chakra-ui/react";
-import React from "react";
+import { HStack, Image, Text, VStack } from '@chakra-ui/react';
+import React from 'react';
 
-import xpBoxLeftSvg from "../assets/xp-box-left.svg";
-import xpSvg from "../assets/xp.svg";
-import usersSvg from "../assets/users.svg";
-import itemsSvg from "../assets/items.svg";
-import { GameMeta } from "../utils/types";
+import itemsSvg from '../assets/items.svg';
+import usersSvg from '../assets/users.svg';
+import xpSvg from '../assets/xp.svg';
+import xpBoxLeftSvg from '../assets/xp-box-left.svg';
+import { GameMeta } from '../utils/types';
 
-type GameTotalsProps = Pick<GameMeta, "experience" | "characters" | "items">;
+type GameTotalsProps = Pick<GameMeta, 'experience' | 'characters' | 'items'>;
 
 export const GameTotals: React.FC<GameTotalsProps> = ({
   experience,
