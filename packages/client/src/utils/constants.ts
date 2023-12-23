@@ -16,17 +16,9 @@ export const SIGNATURE_DETAILS = {
   } as TypedDataDomain,
   types: {
     SpawnRequest: [
-      { name: 'chainId', type: 'uint256' },
-      { name: 'gameAddress', type: 'address' },
       { name: 'playerAddress', type: 'address' },
-      { name: 'x', type: 'uint32' },
-      { name: 'y', type: 'uint32' },
-      { name: 'signature', type: 'bytes' },
-    ],
-    UpdateBurnerWalletRequest: [
-      { name: 'chainId', type: 'uint256' },
-      { name: 'playerAddress', type: 'address' },
-      { name: 'signature', type: 'bytes' },
+      { name: 'burnerAddress', type: 'address' },
+      { name: 'nonce', type: 'uint256' },
     ],
   },
 };
