@@ -3,26 +3,13 @@ import { useComponentValue } from '@latticexyz/react';
 import { Entity, getComponentValue } from '@latticexyz/recs';
 import { decodeEntity } from '@latticexyz/store-sync/recs';
 import { useCallback, useMemo, useState } from 'react';
-import { TypedDataDomain } from 'viem';
 import { useAccount, useWalletClient } from 'wagmi';
 
 import grass1 from '../assets/map/grass1.svg';
 import { useGamesContext } from '../contexts/GamesContext';
 import { useMUD } from '../contexts/MUDContext';
+import { SIGNATURE_DETAILS } from '../utils/constants';
 import { getPlayerEntity } from '../utils/helpers';
-
-const domain = {
-  name: 'CharacterSheets - Minigame',
-  chainId: 100,
-} as TypedDataDomain;
-
-const types = {
-  SpawnRequest: [
-    { name: 'playerAddress', type: 'address' },
-    { name: 'burnerAddress', type: 'address' },
-    { name: 'nonce', type: 'uint256' },
-  ],
-};
 
 type GameMapProps = {
   height: number;
@@ -124,8 +111,8 @@ export const GameMap = ({
           };
 
           const signature = (await walletClient.signTypedData({
-            domain,
-            types,
+            domain: SIGNATURE_DETAILS.domain,
+            types: SIGNATURE_DETAILS.types,
             primaryType: 'SpawnRequest',
             message,
           })) as `0x${string}`;
@@ -230,7 +217,9 @@ export const GameMap = ({
               <Spinner h="100%" w="100%" />
             )}
             {playersHere?.map(p => p.sprite)}
-            <Image alt={name} position="absolute" src={terrainSprite} />
+            {name !== 'grass' && (
+              <Image alt={name} position="absolute" src={terrainSprite} />
+            )}
             {molochsHere?.map(m => m.sprite)}
           </Box>
         );

@@ -10,11 +10,11 @@ pragma solidity >=0.8.21;
 interface IMapSystem {
   function attack(address playerAddress, uint32 x, uint32 y) external;
 
-  function changeBurnerWallet(address playerAddress, uint256 nonce, bytes calldata signature) external;
-
   function logout(address playerAddress) external;
 
   function move(address playerAddress, uint32 x, uint32 y) external;
+
+  function updateBurnerWallet(address playerAddress, bytes calldata signature) external;
 
   function spawn(
     uint256 chainId,
