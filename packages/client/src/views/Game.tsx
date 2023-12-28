@@ -3,8 +3,10 @@ import {
   Button,
   Flex,
   Heading,
+  HStack,
   Spinner,
   Text,
+  useDisclosure,
   useToast,
   VStack,
 } from '@chakra-ui/react';
@@ -19,20 +21,26 @@ import { decodeEntity, singletonEntity } from '@latticexyz/store-sync/recs';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getAddress } from 'viem';
-import { useWalletClient } from 'wagmi';
+import { useAccount, useWalletClient } from 'wagmi';
 
 import { Alert } from '../components/Alert';
 import { ConnectWalletButton } from '../components/ConnectWalletButton';
 import { GameBoard } from '../components/GameBoard';
+import { RaidPartyModal } from '../components/Modals/RaidPartyModal';
+import { RulesModal } from '../components/Modals/RulesModal';
 import { useGamesContext } from '../contexts/GamesContext';
 import { useMUD } from '../contexts/MUDContext';
 import { SIGNATURE_DETAILS } from '../utils/constants';
 
 export const GameView: React.FC = () => {
   const { data: walletClient } = useWalletClient();
+  const { isConnected } = useAccount();
   const { gameId } = useParams();
   const toast = useToast();
   const navigate = useNavigate();
+
+  const raidPartyModalControls = useDisclosure();
+  const rulesModalControls = useDisclosure();
 
   const {
     components: { CharacterSheetInfo, SpawnInfo, SyncProgress },
@@ -210,9 +218,17 @@ export const GameView: React.FC = () => {
       </Box>
       <Box position="fixed" right={4} top={4}>
         <ConnectWalletButton />
+        {isConnected && (
+          <HStack mt={2}>
+            <Button onClick={raidPartyModalControls.onOpen}>Raid Party</Button>
+            <Button onClick={rulesModalControls.onOpen}>Rules</Button>
+          </HStack>
+        )}
       </Box>
       <Heading>{activeGame.name}</Heading>
       <GameBoard gameAddress={activeGame.id} />
+      <RaidPartyModal {...raidPartyModalControls} />
+      <RulesModal {...rulesModalControls} />
     </VStack>
   );
 };
