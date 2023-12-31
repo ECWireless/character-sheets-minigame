@@ -9,18 +9,14 @@ import molochSoldierDeadLeft from '../assets/moloch/moloch_dead_left.gif';
 import molochSoldierDeadRight from '../assets/moloch/moloch_dead_right.gif';
 import molochSoldierLeft from '../assets/moloch/moloch_left.gif';
 import molochSoldierRight from '../assets/moloch/moloch_right.gif';
+import { useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
-import { useCharacter, useCharacters } from '../hooks/useCharacter';
 import { useKeyboardMovement } from '../hooks/useKeyboardMovement';
 import { getCharacterImage, getDirection } from '../utils/helpers';
 import { TerrainType, terrainTypes } from '../utils/terrainTypes';
 import { GameMap } from './GameMap';
 
-export const GameBoard = ({
-  gameAddress,
-}: {
-  gameAddress: string;
-}): JSX.Element => {
+export const GameBoard: React.FC = () => {
   const {
     components: {
       CharacterSheetInfo,
@@ -32,9 +28,7 @@ export const GameBoard = ({
     },
   } = useMUD();
   const { address } = useAccount();
-
-  const { character } = useCharacter(address?.toLowerCase(), gameAddress);
-  const { characters } = useCharacters(gameAddress);
+  const { character, game } = useGame();
 
   const { actionRunning } = useKeyboardMovement(
     address?.toLowerCase(),
@@ -53,7 +47,7 @@ export const GameBoard = ({
       entity,
     );
 
-    const characterByPlayer = characters?.find(
+    const characterByPlayer = game?.characters?.find(
       c => c.player === characterSheetInfo.playerAddress.toLowerCase(),
     );
     const characterClass =

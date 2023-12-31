@@ -12,7 +12,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { GameTotals } from '../components/GameTotals';
-import { EXPLORER_URLS } from '../utils/constants';
+import { CHAIN_ID_TO_LABEL, EXPLORER_URLS } from '../lib/web3';
 import { shortenAddress, shortenText } from '../utils/helpers';
 import { GameMeta } from '../utils/types';
 
@@ -74,7 +74,10 @@ export const GameCard: React.FC<GameCardProps> = ({
             {shortenAddress(id)}
           </Link>
         </VStack>
-        <Button onClick={() => navigate(`/${id}`)} variant="play">
+        <Button
+          onClick={() => navigate(`/${CHAIN_ID_TO_LABEL[chainId]}/${id}`)}
+          variant="play"
+        >
           play
         </Button>
       </VStack>
