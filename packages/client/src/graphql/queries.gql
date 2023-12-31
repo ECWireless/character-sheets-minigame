@@ -1,16 +1,44 @@
+query GetGlobal {
+  globals {
+    ...GlobalInfo
+  }
+}
+
 query GetGames($limit: Int, $skip: Int) {
   games(first: $limit, skip: $skip, orderBy: startedAt, orderDirection: desc) {
     ...GameMetaInfo
   }
 }
 
-query GetCharactersByGameAddress(
-  $gameAddress: String!
-  $limit: Int
-  $skip: Int
-) {
-  characters(where: { game: $gameAddress }, first: $limit, skip: $skip) {
+query GetGame($gameId: ID!) {
+  game(id: $gameId) {
+    ...FullGameInfo
+  }
+}
+
+query GetGameWithMasters($gameId: ID!) {
+  game(id: $gameId) {
+    masters {
+      address
+    }
+  }
+}
+
+query GetCharacterInfoById($characterId: ID!) {
+  character(id: $characterId) {
     ...CharacterInfo
+  }
+}
+
+query GetCharacterMetaById($characterId: ID!) {
+  character(id: $characterId) {
+    ...CharacterMetaInfo
+  }
+}
+
+query GetCharacterMetaByURI($characterURI: String!) {
+  characters(where: { uri: $characterURI }) {
+    ...CharacterMetaInfo
   }
 }
 
@@ -25,6 +53,16 @@ query GetCharactersByPlayerAddress(
     first: $limit
     skip: $skip
   ) {
+    ...CharacterInfo
+  }
+}
+
+query GetCharactersByGameAddress(
+  $gameAddress: String!
+  $limit: Int
+  $skip: Int
+) {
+  characters(where: { game: $gameAddress }, first: $limit, skip: $skip) {
     ...CharacterInfo
   }
 }
