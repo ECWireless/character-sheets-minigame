@@ -5,6 +5,7 @@ export default mudConfig({
     TerrainType: ["None", "Tree", "Boulder", "Water", "MolochSoldier"],
   },
   tables: {
+    AvatarClass: "uint256",
     CharacterSheetInfo: {
       dataStruct: false,
       valueSchema: {
