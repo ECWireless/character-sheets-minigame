@@ -67,6 +67,11 @@ contract MapSystem is System {
     SpawnInfo.set(player, address(_msgSender()), nonce);
   }
 
+  function removeAvatarClass(address playerAddress) public {
+    bytes32 player = addressToEntityKey(playerAddress);
+    AvatarClass.deleteRecord(player);
+  }
+
   function setAvatarClass(address playerAddress,  uint256 classId) public {
     bytes32 player = addressToEntityKey(playerAddress);
     AvatarClass.set(player, classId);

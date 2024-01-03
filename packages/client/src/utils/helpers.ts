@@ -7,7 +7,6 @@ import monkDown from '../assets/monk/monk_walk_down.gif';
 import monkLeft from '../assets/monk/monk_walk_left.gif';
 import monkRight from '../assets/monk/monk_walk_right.gif';
 import monkUp from '../assets/monk/monk_walk_up.gif';
-import scribe from '../assets/scribe.svg';
 import villagerDown from '../assets/villager/villager_down.gif';
 import villagerLeft from '../assets/villager/villager_left.gif';
 import villagerRight from '../assets/villager/villager_right.gif';
@@ -327,6 +326,7 @@ export const getDirection = (position: {
 
 export const getCharacterImage = (
   className: string,
+  classDefaultSrc: string,
   position: { x: number; y: number; previousX: number; previousY: number },
   actionRunning: boolean,
 ): string => {
@@ -387,9 +387,7 @@ export const getCharacterImage = (
         default:
           return monkDown;
       }
-    case 'scribe':
-      return scribe;
-    default:
+    case 'villager':
       switch (direction) {
         case 'up':
           return villagerUp;
@@ -402,6 +400,8 @@ export const getCharacterImage = (
         default:
           return villagerDown;
       }
+    default:
+      return classDefaultSrc;
   }
 };
 

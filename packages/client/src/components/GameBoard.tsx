@@ -11,6 +11,7 @@ import molochSoldierLeft from '../assets/moloch/moloch_left.gif';
 import molochSoldierRight from '../assets/moloch/moloch_right.gif';
 import { useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
+import { useRaidParty } from '../contexts/RaidPartyContext';
 import { useKeyboardMovement } from '../hooks/useKeyboardMovement';
 import { getCharacterImage, getDirection } from '../utils/helpers';
 import { TerrainType, terrainTypes } from '../utils/terrainTypes';
@@ -29,10 +30,13 @@ export const GameBoard: React.FC = () => {
   } = useMUD();
   const { address } = useAccount();
   const { character, game } = useGame();
+  const { avatarClassId } = useRaidParty();
 
   const { actionRunning } = useKeyboardMovement(
     address?.toLowerCase(),
-    character?.classes[0]?.name.toLowerCase() ?? 'villager',
+    character?.classes
+      .find(c => c.classId === avatarClassId)
+      ?.name?.toLowerCase() ?? 'villager',
   );
 
   const players = useEntityQuery([
@@ -50,10 +54,24 @@ export const GameBoard: React.FC = () => {
     const characterByPlayer = game?.characters?.find(
       c => c.player === characterSheetInfo.playerAddress.toLowerCase(),
     );
-    const characterClass =
-      characterByPlayer?.classes[0]?.name.toLowerCase() ?? 'villager';
 
-    const src = getCharacterImage(characterClass, position, actionRunning);
+    let avatarClassName = 'villager';
+    let avatarClassSrc = '';
+
+    if (avatarClassId) {
+      const avatarClass = characterByPlayer?.classes.find(
+        c => c.classId === avatarClassId,
+      );
+      avatarClassName = avatarClass?.name.toLowerCase() ?? 'villager';
+      avatarClassSrc = avatarClass?.image ?? '';
+    }
+
+    const src = getCharacterImage(
+      avatarClassName,
+      avatarClassSrc,
+      position,
+      actionRunning,
+    );
     let transform = 'scale(1.5)';
 
     if (actionRunning && characterByPlayer?.id === character?.id) {
@@ -69,7 +87,7 @@ export const GameBoard: React.FC = () => {
       y: position.y,
       sprite: (
         <Image
-          alt={characterClass}
+          alt={avatarClassName}
           key={entity}
           height="100%"
           position="absolute"

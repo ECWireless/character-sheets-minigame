@@ -30,6 +30,7 @@ import { RaidPartyModal } from '../components/Modals/RaidPartyModal';
 import { RulesModal } from '../components/Modals/RulesModal';
 import { GameProvider, useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
+import { RaidPartyProvider } from '../contexts/RaidPartyContext';
 import { getChainIdFromLabel, SIGNATURE_DETAILS } from '../lib/web3';
 
 export const GameView: React.FC = () => {
@@ -55,7 +56,9 @@ export const GameView: React.FC = () => {
 
   return (
     <GameProvider chainId={chainId} gameId={gameId.toString()} game={null}>
-      <GameViewInner />
+      <RaidPartyProvider>
+        <GameViewInner />
+      </RaidPartyProvider>
     </GameProvider>
   );
 };
