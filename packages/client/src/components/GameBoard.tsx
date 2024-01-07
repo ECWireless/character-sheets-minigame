@@ -13,7 +13,7 @@ import { useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
 import { useRaidParty } from '../contexts/RaidPartyContext';
 import { useKeyboardMovement } from '../hooks/useKeyboardMovement';
-import { getCharacterImage, getDirection } from '../utils/helpers';
+import { getCharacterImage } from '../utils/helpers';
 import { TerrainType, terrainTypes } from '../utils/terrainTypes';
 import { GameMap } from './GameMap';
 
@@ -45,7 +45,6 @@ export const GameBoard: React.FC = () => {
     Has(CharacterSheetInfo),
   ]).map(entity => {
     const position = getComponentValueStrict(Position, entity);
-    const direction = getDirection(position);
     const characterSheetInfo = getComponentValueStrict(
       CharacterSheetInfo,
       entity,
@@ -72,14 +71,7 @@ export const GameBoard: React.FC = () => {
       position,
       actionRunning,
     );
-    let transform = 'scale(1.5)';
-
-    if (actionRunning && characterByPlayer?.id === character?.id) {
-      transform =
-        direction === 'left'
-          ? 'scale(1.7) translate(-5px, -4px)'
-          : 'scale(1.7) translate(5px, -4px)';
-    }
+    const transform = 'scale(1.5)';
 
     return {
       entity,
@@ -90,6 +82,7 @@ export const GameBoard: React.FC = () => {
           alt={avatarClassName}
           key={entity}
           height="100%"
+          objectFit="contain"
           position="absolute"
           transform={transform}
           src={src}

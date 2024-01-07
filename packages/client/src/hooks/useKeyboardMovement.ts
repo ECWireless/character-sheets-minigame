@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useMUD } from '../contexts/MUDContext';
 import { getPlayerEntity } from '../utils/helpers';
 
-const classesWithAttackAbility = ['monk', 'warrior', 'wizard'];
+const classesWithAttackAbility = ['monk', 'paladin', 'warrior', 'wizard'];
 
 export const useKeyboardMovement = (
   playerAddress: string | undefined,

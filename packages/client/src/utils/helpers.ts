@@ -1,12 +1,20 @@
 import { Entity } from '@latticexyz/recs';
 import { encodeEntity } from '@latticexyz/store-sync/recs';
 
+import archerAttackLeft from '../assets/archer/archer_attack_left.gif';
+import archerAttackRight from '../assets/archer/archer_attack_right.gif';
+import archerLeft from '../assets/archer/archer_walk_left.gif';
+import archerRight from '../assets/archer/archer_walk_right.gif';
 import monkAttackLeft from '../assets/monk/monk_attack_left.gif';
 import monkAttackRight from '../assets/monk/monk_attack_right.gif';
 import monkDown from '../assets/monk/monk_walk_down.gif';
 import monkLeft from '../assets/monk/monk_walk_left.gif';
 import monkRight from '../assets/monk/monk_walk_right.gif';
 import monkUp from '../assets/monk/monk_walk_up.gif';
+import paladinAttackLeft from '../assets/paladin/paladin_attack_left.gif';
+import paladinAttackRight from '../assets/paladin/paladin_attack_right.gif';
+import paladinLeft from '../assets/paladin/paladin_walk_left.gif';
+import paladinRight from '../assets/paladin/paladin_walk_right.gif';
 import villagerDown from '../assets/villager/villager_down.gif';
 import villagerLeft from '../assets/villager/villager_left.gif';
 import villagerRight from '../assets/villager/villager_right.gif';
@@ -352,6 +360,7 @@ export const getCharacterImage = (
         default:
           return warriorDown;
       }
+
     case 'wizard':
       if (actionRunning) {
         return direction === 'right' ? wizardAttackRight : wizardAttackLeft;
@@ -387,6 +396,43 @@ export const getCharacterImage = (
         default:
           return monkDown;
       }
+
+    case 'archer':
+      if (actionRunning) {
+        return direction === 'right' ? archerAttackRight : archerAttackLeft;
+      }
+
+      switch (direction) {
+        case 'up':
+          return archerRight;
+        case 'down':
+          return archerLeft;
+        case 'left':
+          return archerLeft;
+        case 'right':
+          return archerRight;
+        default:
+          return archerRight;
+      }
+
+    case 'paladin':
+      if (actionRunning) {
+        return direction === 'right' ? paladinAttackRight : paladinAttackLeft;
+      }
+
+      switch (direction) {
+        case 'up':
+          return paladinRight;
+        case 'down':
+          return paladinLeft;
+        case 'left':
+          return paladinLeft;
+        case 'right':
+          return paladinRight;
+        default:
+          return paladinRight;
+      }
+
     case 'villager':
       switch (direction) {
         case 'up':
