@@ -19,7 +19,8 @@ import { XPDisplaySmall } from './XPDisplay';
 
 export const CharacterCardSmall: React.FC<{
   character: Character;
-}> = ({ character }) => {
+  isSelected?: boolean;
+}> = ({ character, isSelected }) => {
   const { classes, experience, heldItems, image, jailed, name } = character;
 
   const itemTotal = useMemo(() => {
@@ -31,7 +32,8 @@ export const CharacterCardSmall: React.FC<{
   return (
     <VStack spacing={3} w="100%">
       <Box
-        border="1px solid white"
+        border="2px solid"
+        borderColor={isSelected ? 'rgba(219, 211, 139, 0.75)' : 'white'}
         overflow="hidden"
         p={3}
         transition="transform 0.3s"

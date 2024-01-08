@@ -43,6 +43,12 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
   const toast = useToast();
 
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedCard, setSelectedCard] = useState(0);
+
+  const partyCharacters = useMemo(() => {
+    if (!character) return [];
+    return [character, character, character];
+  }, [character]);
 
   const { getRootProps, getRadioProps, setValue, value } = useRadioGroup({
     name: 'avatar class',
@@ -169,17 +175,20 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
               Save
             </Button>
           </HStack>
-          <Text>Your cards:</Text>
+          <Text>Your cards (max of 3):</Text>
           <HStack mt={4} spacing={6}>
-            <Box w="100%">
-              <CharacterCardSmall character={character} />
-            </Box>
-            <Box w="100%">
-              <CharacterCardSmall character={character} />
-            </Box>
-            <Box w="100%">
-              <CharacterCardSmall character={character} />
-            </Box>
+            {partyCharacters.map((character, i) => (
+              <Box
+                key={`${character.id}-${i}`}
+                onClick={() => setSelectedCard(i)}
+                w="100%"
+              >
+                <CharacterCardSmall
+                  character={character}
+                  isSelected={i === selectedCard}
+                />
+              </Box>
+            ))}
           </HStack>
         </ModalBody>
       </ModalContent>
