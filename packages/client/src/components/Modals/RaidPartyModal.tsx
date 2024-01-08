@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   HStack,
   Modal,
@@ -17,6 +18,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
 
 import villagerImage from '../../assets/villager/villager.png';
+import { CharacterCardSmall } from '../../components/CharacterCard';
 import { ClassTag } from '../../components/ClassTag';
 import { RadioOption } from '../../components/RadioOption';
 import { useGame } from '../../contexts/GameContext';
@@ -140,7 +142,7 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
           <ModalCloseButton size="lg" />
         </ModalHeader>
         <ModalBody>
-          <Text>Select a class-based avatar</Text>
+          <Text>Select a class-based avatar:</Text>
           <Wrap mt={2} spacing={2} {...getRootProps()}>
             {options.map(value => {
               const radio = getRadioProps({ value });
@@ -162,9 +164,22 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
               loadingText="Saving..."
               isDisabled={!hasChanged}
               onClick={onSetAvatarClass}
+              size="xs"
             >
               Save
             </Button>
+          </HStack>
+          <Text>Your cards:</Text>
+          <HStack mt={4} spacing={6}>
+            <Box w="100%">
+              <CharacterCardSmall character={character} />
+            </Box>
+            <Box w="100%">
+              <CharacterCardSmall character={character} />
+            </Box>
+            <Box w="100%">
+              <CharacterCardSmall character={character} />
+            </Box>
           </HStack>
         </ModalBody>
       </ModalContent>
