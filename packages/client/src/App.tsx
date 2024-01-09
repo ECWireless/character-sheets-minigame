@@ -14,7 +14,7 @@ const router = createBrowserRouter([
     element: <LobbyView />,
   },
   {
-    path: '/:gameId',
+    path: '/:chainLabel/:gameId',
     element: <GameView />,
   },
 ]);

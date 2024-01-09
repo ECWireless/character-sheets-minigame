@@ -9,18 +9,15 @@ import molochSoldierDeadLeft from '../assets/moloch/moloch_dead_left.gif';
 import molochSoldierDeadRight from '../assets/moloch/moloch_dead_right.gif';
 import molochSoldierLeft from '../assets/moloch/moloch_left.gif';
 import molochSoldierRight from '../assets/moloch/moloch_right.gif';
+import { useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
-import { useCharacter, useCharacters } from '../hooks/useCharacter';
+import { useRaidParty } from '../contexts/RaidPartyContext';
 import { useKeyboardMovement } from '../hooks/useKeyboardMovement';
-import { getCharacterImage, getDirection } from '../utils/helpers';
+import { getCharacterImage } from '../utils/helpers';
 import { TerrainType, terrainTypes } from '../utils/terrainTypes';
 import { GameMap } from './GameMap';
 
-export const GameBoard = ({
-  gameAddress,
-}: {
-  gameAddress: string;
-}): JSX.Element => {
+export const GameBoard: React.FC = () => {
   const {
     components: {
       CharacterSheetInfo,
@@ -32,13 +29,14 @@ export const GameBoard = ({
     },
   } = useMUD();
   const { address } = useAccount();
-
-  const { character } = useCharacter(address?.toLowerCase(), gameAddress);
-  const { characters } = useCharacters(gameAddress);
+  const { character, game } = useGame();
+  const { avatarClassId } = useRaidParty();
 
   const { actionRunning } = useKeyboardMovement(
     address?.toLowerCase(),
-    character?.classes[0]?.name.toLowerCase() ?? 'villager',
+    character?.classes
+      .find(c => c.classId === avatarClassId)
+      ?.name?.toLowerCase() ?? 'villager',
   );
 
   const players = useEntityQuery([
@@ -47,27 +45,33 @@ export const GameBoard = ({
     Has(CharacterSheetInfo),
   ]).map(entity => {
     const position = getComponentValueStrict(Position, entity);
-    const direction = getDirection(position);
     const characterSheetInfo = getComponentValueStrict(
       CharacterSheetInfo,
       entity,
     );
 
-    const characterByPlayer = characters?.find(
+    const characterByPlayer = game?.characters?.find(
       c => c.player === characterSheetInfo.playerAddress.toLowerCase(),
     );
-    const characterClass =
-      characterByPlayer?.classes[0]?.name.toLowerCase() ?? 'villager';
 
-    const src = getCharacterImage(characterClass, position, actionRunning);
-    let transform = 'scale(1.5)';
+    let avatarClassName = 'villager';
+    let avatarClassSrc = '';
 
-    if (actionRunning && characterByPlayer?.id === character?.id) {
-      transform =
-        direction === 'left'
-          ? 'scale(1.7) translate(-5px, -4px)'
-          : 'scale(1.7) translate(5px, -4px)';
+    if (avatarClassId) {
+      const avatarClass = characterByPlayer?.classes.find(
+        c => c.classId === avatarClassId,
+      );
+      avatarClassName = avatarClass?.name.toLowerCase() ?? 'villager';
+      avatarClassSrc = avatarClass?.image ?? '';
     }
+
+    const src = getCharacterImage(
+      avatarClassName,
+      avatarClassSrc,
+      position,
+      actionRunning,
+    );
+    const transform = 'scale(1.5)';
 
     return {
       entity,
@@ -75,9 +79,10 @@ export const GameBoard = ({
       y: position.y,
       sprite: (
         <Image
-          alt={characterClass}
+          alt={avatarClassName}
           key={entity}
           height="100%"
+          objectFit="contain"
           position="absolute"
           transform={transform}
           src={src}

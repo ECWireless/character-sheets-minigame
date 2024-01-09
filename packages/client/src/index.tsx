@@ -6,13 +6,11 @@ import { Global } from '@emotion/react';
 import { darkTheme, RainbowKitProvider } from '@rainbow-me/rainbowkit';
 import mudConfig from 'contracts/mud.config';
 import ReactDOM from 'react-dom/client';
-import { Provider } from 'urql';
 import { WagmiConfig } from 'wagmi';
 
 import { App } from './App';
 import { GamesProvider } from './contexts/GamesContext';
 import { MUDProvider } from './contexts/MUDContext';
-import { client } from './graphql/client';
 import { DEFAULT_CHAIN, wagmiConfig } from './lib/web3';
 import { setup } from './mud/setup';
 import { globalStyles, theme } from './utils/theme';
@@ -27,15 +25,13 @@ setup().then(async result => {
     <MUDProvider value={result}>
       <ChakraProvider resetCSS theme={theme}>
         <Global styles={globalStyles} />
-        <Provider value={client}>
-          <WagmiConfig config={wagmiConfig}>
-            <RainbowKitProvider chains={[DEFAULT_CHAIN]} theme={darkTheme()}>
-              <GamesProvider>
-                <App />
-              </GamesProvider>
-            </RainbowKitProvider>
-          </WagmiConfig>
-        </Provider>
+        <WagmiConfig config={wagmiConfig}>
+          <RainbowKitProvider chains={[DEFAULT_CHAIN]} theme={darkTheme()}>
+            <GamesProvider>
+              <App />
+            </GamesProvider>
+          </RainbowKitProvider>
+        </WagmiConfig>
       </ChakraProvider>
     </MUDProvider>,
   );

@@ -16,6 +16,10 @@ interface IMapSystem {
 
   function updateBurnerWallet(address playerAddress, bytes calldata signature) external;
 
+  function removeAvatarClass(address playerAddress) external;
+
+  function setAvatarClass(address playerAddress, uint256 classId) external;
+
   function spawn(
     uint256 chainId,
     address gameAddress,

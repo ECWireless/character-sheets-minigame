@@ -3,7 +3,7 @@ pragma solidity >=0.8.0;
 import { System } from "@latticexyz/world/src/System.sol";
 import { addressToEntityKey } from "../lib/addressToEntityKey.sol";
 import { positionToEntityKey } from "../lib/positionToEntityKey.sol";
-import { CharacterSheetInfo, Health, MapConfig, MolochSoldier, Movable, Obstruction, Player, Position, SpawnInfo } from "../codegen/index.sol";
+import { AvatarClass, CharacterSheetInfo, Health, MapConfig, MolochSoldier, Movable, Obstruction, Player, Position, SpawnInfo } from "../codegen/index.sol";
 
 contract MapSystem is System {
   function attack(address playerAddress, uint32 x, uint32 y) public {
@@ -65,6 +65,16 @@ contract MapSystem is System {
     require(verifyEIP712Signature(playerAddress, signature, playerAddress, address(_msgSender()), newSpawnNonce), "invalid signature");
 
     SpawnInfo.set(player, address(_msgSender()), nonce);
+  }
+
+  function removeAvatarClass(address playerAddress) public {
+    bytes32 player = addressToEntityKey(playerAddress);
+    AvatarClass.deleteRecord(player);
+  }
+
+  function setAvatarClass(address playerAddress,  uint256 classId) public {
+    bytes32 player = addressToEntityKey(playerAddress);
+    AvatarClass.set(player, classId);
   }
 
   function spawn(uint256 chainId, address gameAddress, address playerAddress, uint32 x, uint32 y, bytes calldata signature) public {

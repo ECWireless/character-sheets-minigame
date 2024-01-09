@@ -3,8 +3,10 @@ import {
   Button,
   Flex,
   Heading,
+  HStack,
   Spinner,
   Text,
+  useDisclosure,
   useToast,
   VStack,
 } from '@chakra-ui/react';
@@ -16,37 +18,74 @@ import {
 } from '@latticexyz/recs';
 import { SyncStep } from '@latticexyz/store-sync';
 import { decodeEntity, singletonEntity } from '@latticexyz/store-sync/recs';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getAddress } from 'viem';
-import { useWalletClient } from 'wagmi';
+import { getAddress, isAddress } from 'viem';
+import { useAccount, useWalletClient } from 'wagmi';
 
 import { Alert } from '../components/Alert';
 import { ConnectWalletButton } from '../components/ConnectWalletButton';
 import { GameBoard } from '../components/GameBoard';
-import { useGamesContext } from '../contexts/GamesContext';
+import { RaidPartyModal } from '../components/Modals/RaidPartyModal';
+import { RulesModal } from '../components/Modals/RulesModal';
+import { GameProvider, useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
-import { SIGNATURE_DETAILS } from '../utils/constants';
+import { RaidPartyProvider } from '../contexts/RaidPartyContext';
+import { getChainIdFromLabel, SIGNATURE_DETAILS } from '../lib/web3';
 
 export const GameView: React.FC = () => {
+  const { gameId, chainLabel } = useParams();
+  const navigate = useNavigate();
+
+  const chainId = getChainIdFromLabel(chainLabel as string);
+
+  useEffect(() => {
+    if (
+      !gameId ||
+      typeof gameId !== 'string' ||
+      !isAddress(gameId) ||
+      !chainId
+    ) {
+      navigate('/');
+    }
+  }, [chainId, gameId, navigate]);
+
+  if (!gameId || !chainId) {
+    return <></>;
+  }
+
+  return (
+    <GameProvider chainId={chainId} gameId={gameId.toString()} game={null}>
+      <RaidPartyProvider>
+        <GameViewInner />
+      </RaidPartyProvider>
+    </GameProvider>
+  );
+};
+
+export const GameViewInner: React.FC = () => {
   const { data: walletClient } = useWalletClient();
-  const { gameId } = useParams();
+  const { isConnected } = useAccount();
   const toast = useToast();
   const navigate = useNavigate();
+
+  const { game, loading } = useGame();
+
+  const raidPartyModalControls = useDisclosure();
+  const rulesModalControls = useDisclosure();
 
   const {
     components: { CharacterSheetInfo, SpawnInfo, SyncProgress },
     network: { playerEntity },
     systemCalls: { updateBurnerWallet },
   } = useMUD();
-  const { games, loading, setActiveGame } = useGamesContext();
 
   const [updateCounter, setUpdateCounter] = useState(0);
 
   const syncProgress = useComponentValue(SyncProgress, singletonEntity);
   const otherLoggedInAccounts = useEntityQuery([
     HasValue(CharacterSheetInfo, {
-      gameAddress: gameId ? getAddress(gameId) : '',
+      gameAddress: game?.id ? getAddress(game.id) : '',
       playerAddress: walletClient?.account.address
         ? getAddress(walletClient.account.address)
         : '',
@@ -137,20 +176,6 @@ export const GameView: React.FC = () => {
     walletClient,
   ]);
 
-  const activeGame = useMemo(() => {
-    if (!games) {
-      return null;
-    }
-
-    return games.find(game => game.id === gameId);
-  }, [games, gameId]);
-
-  useEffect(() => {
-    if (activeGame) {
-      setActiveGame(activeGame);
-    }
-  }, [activeGame, setActiveGame]);
-
   if (loading) {
     return (
       <VStack py={12} spacing={8}>
@@ -160,7 +185,7 @@ export const GameView: React.FC = () => {
     );
   }
 
-  if (!activeGame) {
+  if (!game) {
     return (
       <VStack py={12} spacing={8}>
         <Heading>Game not found</Heading>
@@ -210,9 +235,17 @@ export const GameView: React.FC = () => {
       </Box>
       <Box position="fixed" right={4} top={4}>
         <ConnectWalletButton />
+        {isConnected && (
+          <HStack mt={2}>
+            <Button onClick={raidPartyModalControls.onOpen}>Raid Party</Button>
+            <Button onClick={rulesModalControls.onOpen}>Rules</Button>
+          </HStack>
+        )}
       </Box>
-      <Heading>{activeGame.name}</Heading>
-      <GameBoard gameAddress={activeGame.id} />
+      <Heading>{game.name}</Heading>
+      <GameBoard />
+      <RaidPartyModal {...raidPartyModalControls} />
+      <RulesModal {...rulesModalControls} />
     </VStack>
   );
 };

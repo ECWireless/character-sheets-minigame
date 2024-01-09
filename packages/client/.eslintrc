@@ -39,13 +39,5 @@
         "allow": ["error"]
       }
     ]
-  },
-  "overrides": [
-    {
-      "files": ["./pages/api/**/*.ts"],
-      "rules": {
-        "@typescript-eslint/explicit-module-boundary-types": "off"
-      }
-    }
-  ]
+  }
 }

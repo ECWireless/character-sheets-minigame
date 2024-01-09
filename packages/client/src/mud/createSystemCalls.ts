@@ -187,6 +187,32 @@ export function createSystemCalls(
     }
   };
 
+  const removeAvatarClass = async (playerAddress: string) => {
+    try {
+      const tx = await worldContract.write.removeAvatarClass([
+        playerAddress.toLowerCase() as Address,
+      ]);
+      await waitForTransaction(tx);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const setAvatarClass = async (
+    playerAddress: string,
+    avatarClassId: string,
+  ) => {
+    try {
+      const tx = await worldContract.write.setAvatarClass([
+        playerAddress.toLowerCase() as Address,
+        avatarClassId,
+      ]);
+      await waitForTransaction(tx);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const spawn = async (
     gameAddress: string,
     playerAddress: string,
@@ -243,6 +269,8 @@ export function createSystemCalls(
     moveTo,
     moveBy,
     updateBurnerWallet,
+    removeAvatarClass,
+    setAvatarClass,
     spawn,
   };
 }

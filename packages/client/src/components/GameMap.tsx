@@ -6,9 +6,9 @@ import { useCallback, useMemo, useState } from 'react';
 import { useAccount, useWalletClient } from 'wagmi';
 
 import grass1 from '../assets/map/grass1.svg';
-import { useGamesContext } from '../contexts/GamesContext';
+import { useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
-import { SIGNATURE_DETAILS } from '../utils/constants';
+import { SIGNATURE_DETAILS } from '../lib/web3';
 import { getPlayerEntity } from '../utils/helpers';
 
 type GameMapProps = {
@@ -50,7 +50,7 @@ export const GameMap = ({
     network: { playerEntity: burnerPlayerEntity },
     systemCalls: { spawn },
   } = useMUD();
-  const { activeGame } = useGamesContext();
+  const { game } = useGame();
   const toast = useToast();
 
   const [isSpawning, setIsSpawning] = useState<{ x: number; y: number } | null>(
@@ -72,9 +72,10 @@ export const GameMap = ({
     [height],
   );
 
-  const allActiveGamePlayers = useMemo(() => {
-    return activeGame?.players.map(p => p) ?? [];
-  }, [activeGame]);
+  const gamePlayers = useMemo(() => {
+    const characters = game?.characters.map(c => c) ?? [];
+    return characters.map(c => c.player.toLowerCase());
+  }, [game]);
 
   const onTileClick = useCallback(
     async (x: number, y: number, gameAddress: string) => {
@@ -86,7 +87,7 @@ export const GameMap = ({
           duration: 5000,
           isClosable: true,
         });
-      } else if (!allActiveGamePlayers.includes(address.toLowerCase())) {
+      } else if (!gamePlayers.includes(address.toLowerCase())) {
         toast({
           title: "You aren't a part of this game!",
           status: 'warning',
@@ -133,8 +134,8 @@ export const GameMap = ({
     },
     [
       address,
-      allActiveGamePlayers,
       burnerPlayerEntity,
+      gamePlayers,
       playerEntity,
       playerExists,
       spawn,
@@ -191,9 +192,7 @@ export const GameMap = ({
             key={`${x},${y}`}
             gridColumn={x + 1}
             gridRow={y + 1}
-            onClick={() =>
-              activeGame ? onTileClick?.(x, y, activeGame.id) : undefined
-            }
+            onClick={() => (game ? onTileClick?.(x, y, game.id) : undefined)}
             position="relative"
             _hover={
               !playerExists
@@ -226,8 +225,8 @@ export const GameMap = ({
       }),
     );
   }, [
-    activeGame,
     columns,
+    game,
     isSpawning,
     molochSoldiers,
     onTileClick,
