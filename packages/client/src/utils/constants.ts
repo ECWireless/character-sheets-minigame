@@ -119,3 +119,37 @@ export const WEARABLE_STATS: { [key: string]: { [key: string]: number } } = {
     specialDefense: 2,
   },
 };
+
+enum POWER_TYPE {
+  ATTACK = 'attack',
+  SPECIAL_ATTACK = 'special attack',
+}
+
+export const WEAPON_STATS: {
+  [key: string]: { [key: string]: number | string };
+} = {
+  // Sword of Undhur
+  1: {
+    power: 3,
+    type: POWER_TYPE.ATTACK,
+    color: 'red',
+  },
+  // Hunter's Dagger
+  4: {
+    power: 1,
+    type: POWER_TYPE.ATTACK,
+    color: 'red',
+  },
+  // The Ghoul Slayer
+  6: {
+    power: 4,
+    type: POWER_TYPE.ATTACK,
+    color: 'red',
+  },
+  // Wooden Staff
+  7: {
+    power: 3,
+    type: POWER_TYPE.SPECIAL_ATTACK,
+    color: 'blue',
+  },
+};

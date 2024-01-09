@@ -25,7 +25,12 @@ import { RadioOption } from '../../components/RadioOption';
 import { useGame } from '../../contexts/GameContext';
 import { useMUD } from '../../contexts/MUDContext';
 import { useRaidParty } from '../../contexts/RaidPartyContext';
-import { CLASS_STATS, WEARABLE_STATS } from '../../utils/constants';
+import {
+  CLASS_STATS,
+  WEAPON_STATS,
+  WEARABLE_STATS,
+} from '../../utils/constants';
+import { EquippableTraitType } from '../../utils/types';
 
 type RaidPartyModalProps = {
   isOpen: boolean;
@@ -57,31 +62,49 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
     defaultValue: '-1',
   });
 
-  const wearableBonuses = useMemo(() => {
+  const equippedWeapons = useMemo(() => {
     if (!character) return null;
-
     const { equippedItems } = character;
-    return equippedItems.reduce(
-      (acc, item) => {
-        const { itemId } = item;
-        const numberId = Number(itemId);
-        const wearable = WEARABLE_STATS[numberId];
-        if (!wearable) return acc;
-
-        acc.attack += wearable.attack;
-        acc.defense += wearable.defense;
-        acc.specialAttack += wearable.specialAttack;
-        acc.specialDefense += wearable.specialDefense;
-        return acc;
-      },
-      {
-        attack: 0,
-        defense: 0,
-        specialAttack: 0,
-        specialDefense: 0,
-      },
+    return equippedItems.filter(
+      item =>
+        item.attributes.find(
+          a =>
+            a.value === EquippableTraitType.EQUIPPED_ITEM_1 ||
+            a.value === EquippableTraitType.EQUIPPED_ITEM_2,
+        ) !== undefined,
     );
   }, [character]);
+
+  const equippedWearable = useMemo(() => {
+    if (!character) return null;
+    const { equippedItems } = character;
+    return (
+      equippedItems.find(
+        item =>
+          item.attributes.find(
+            a => a.value === EquippableTraitType.EQUIPPED_WEARABLE,
+          ) !== undefined,
+      ) ?? null
+    );
+  }, [character]);
+
+  const wearableBonuses = useMemo(() => {
+    if (!equippedWearable) return null;
+
+    const { itemId } = equippedWearable;
+    const numberId = Number(itemId);
+    const wearable = WEARABLE_STATS[numberId];
+    if (!wearable) {
+      return { attack: 0, defense: 0, specialAttack: 0, specialDefense: 0 };
+    } else {
+      return {
+        attack: wearable.attack,
+        defense: wearable.defense,
+        specialAttack: wearable.specialAttack,
+        specialDefense: wearable.specialDefense,
+      };
+    }
+  }, [equippedWearable]);
 
   const characterStats = useMemo(() => {
     if (!character) return null;
@@ -251,7 +274,7 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
                 (choose a non-villager class to see stats)
               </Text>
             )}
-            <HStack justify="space-around" w="100%">
+            <HStack justify="space-around" mt={2} w="100%">
               <VStack align="flex-start">
                 <Text fontSize="xs">Health:</Text>
                 <Text color="rgba(219, 211, 139, 0.75)" fontWeight={500}>
@@ -283,11 +306,11 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
                 </Text>
               </VStack>
             </HStack>
-            {wearableBonuses && (
+            {equippedWearable && wearableBonuses && (
               <VStack align="flex-start" alignSelf="flex-start" ml={4} mt={4}>
                 <Text fontSize="sm" textAlign="left">
-                  Because of your equipped wearable, your stats have been
-                  modified by:
+                  Because of your equipped {equippedWearable.name}, your stats
+                  have been modified by:
                 </Text>
                 {wearableBonuses.attack > 0 && (
                   <Text fontSize="xs">+{wearableBonuses.attack} Attack</Text>
@@ -306,6 +329,51 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
                   </Text>
                 )}
               </VStack>
+            )}
+          </VStack>
+          <VStack border="2px solid rgba(219, 211, 139, 0.75)" mt={4} p={4}>
+            <Text>Moves</Text>
+            {value === '-1' && (
+              <Text color="orange">
+                (choose a non-villager class to see moves)
+              </Text>
+            )}
+            {equippedWeapons && (
+              <HStack justify="center" mt={2} spacing={4}>
+                {equippedWeapons.map(e => {
+                  return (
+                    <VStack
+                      align="flex-start"
+                      border="2px solid white"
+                      key={e.id}
+                      p={4}
+                    >
+                      <Text fontSize="sm" textAlign="left">
+                        {e.name}
+                      </Text>
+                      <Text fontSize="xs">
+                        Type:{' '}
+                        <Text
+                          as="span"
+                          color={String(WEAPON_STATS[e.itemId].color)}
+                        >
+                          {WEAPON_STATS[e.itemId].type}
+                        </Text>
+                      </Text>
+                      <Text fontSize="xs">
+                        Power:{' '}
+                        <Text
+                          as="span"
+                          color="rgba(219, 211, 139, 0.75)"
+                          fontWeight={500}
+                        >
+                          {WEAPON_STATS[e.itemId].power}
+                        </Text>
+                      </Text>
+                    </VStack>
+                  );
+                })}
+              </HStack>
             )}
           </VStack>
         </ModalBody>
