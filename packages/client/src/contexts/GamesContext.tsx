@@ -2,6 +2,7 @@ import { createContext, useContext, useMemo } from 'react';
 import { useAccount } from 'wagmi';
 
 import { useGames } from '../hooks/useGames';
+import { RAIDGUILD_GAME_ADDRESS } from '../utils/constants';
 import { GameMeta } from '../utils/types';
 
 type GamesContextType = {
@@ -43,8 +44,8 @@ export const GamesProvider: React.FC<React.PropsWithChildren> = ({
   return (
     <GamesContext.Provider
       value={{
-        allGames,
-        myGames,
+        allGames: allGames?.filter(g => g.id === RAIDGUILD_GAME_ADDRESS) ?? [],
+        myGames: myGames?.filter(g => g.id === RAIDGUILD_GAME_ADDRESS) ?? [],
         loading,
         error,
         reload,

@@ -11,7 +11,7 @@ import { WagmiConfig } from 'wagmi';
 import { App } from './App';
 import { GamesProvider } from './contexts/GamesContext';
 import { MUDProvider } from './contexts/MUDContext';
-import { DEFAULT_CHAIN, wagmiConfig } from './lib/web3';
+import { SUPPORTED_CHAINS, wagmiConfig } from './lib/web3';
 import { setup } from './mud/setup';
 import { globalStyles, theme } from './utils/theme';
 
@@ -26,7 +26,7 @@ setup().then(async result => {
       <ChakraProvider resetCSS theme={theme}>
         <Global styles={globalStyles} />
         <WagmiConfig config={wagmiConfig}>
-          <RainbowKitProvider chains={[DEFAULT_CHAIN]} theme={darkTheme()}>
+          <RainbowKitProvider chains={SUPPORTED_CHAINS} theme={darkTheme()}>
             <GamesProvider>
               <App />
             </GamesProvider>
