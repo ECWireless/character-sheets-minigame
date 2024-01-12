@@ -2,6 +2,10 @@ export const ENVIRONMENT = (import.meta.env.VITE_ENVIRONMENT || 'dev') as
   | 'main'
   | 'dev';
 
+export const RAIDGUILD_GAME_ADDRESS = String(
+  import.meta.env.VITE_RAIDGUILD_GAME_ADDRESS,
+).toLowerCase();
+
 export const CLASS_STATS: { [key: number]: { [key: string]: number } } = {
   // Warrior
   0: {

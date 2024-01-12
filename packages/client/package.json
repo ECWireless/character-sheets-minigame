@@ -8,10 +8,11 @@
     "build": "vite build",
     "dev": "wait-port localhost:8545 && vite",
     "preview": "vite preview",
-    "generate": "graphql-codegen --config=codegen.yml",
     "test": "tsc --noEmit",
     "format": "prettier --write \"{*,**/*}.{ts,tsx,js,jsx,json,yml,yaml,md}\"",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "generate": "graphql-codegen --config=codegen.yml",
+    "prepare": "yarn generate"
   },
   "dependencies": {
     "@chakra-ui/react": "^2.8.1",

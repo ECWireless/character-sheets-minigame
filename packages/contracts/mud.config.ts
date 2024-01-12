@@ -41,6 +41,7 @@ export default mudConfig({
       dataStruct: false,
       valueSchema: {
         burnerAddress: "address",
+        chainId: "uint256",
         nonce: "uint256",
       },
     },
