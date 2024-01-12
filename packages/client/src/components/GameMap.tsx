@@ -8,7 +8,7 @@ import { useAccount, useWalletClient } from 'wagmi';
 import grass1 from '../assets/map/grass1.svg';
 import { useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
-import { SIGNATURE_DETAILS } from '../lib/web3';
+import { getSignatureDetails } from '../lib/web3';
 import { getPlayerEntity } from '../utils/helpers';
 
 type GameMapProps = {
@@ -110,14 +110,15 @@ export const GameMap = ({
             ).address,
             nonce: currentNonce + BigInt(1),
           };
-
+          const chainId = walletClient.chain.id;
+          const signatureDetails = getSignatureDetails(chainId);
           const signature = (await walletClient.signTypedData({
-            domain: SIGNATURE_DETAILS.domain,
-            types: SIGNATURE_DETAILS.types,
+            domain: signatureDetails.domain,
+            types: signatureDetails.types,
             primaryType: 'SpawnRequest',
             message,
           })) as `0x${string}`;
-          await spawn(gameAddress, address, x, y, signature);
+          await spawn(chainId, gameAddress, address, x, y, signature);
         } catch (e) {
           console.error(e);
           toast({

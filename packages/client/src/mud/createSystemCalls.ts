@@ -214,6 +214,7 @@ export function createSystemCalls(
   };
 
   const spawn = async (
+    chainId: number,
     gameAddress: string,
     playerAddress: string,
     inputX: number,
@@ -239,7 +240,7 @@ export function createSystemCalls(
 
     try {
       const tx = await worldContract.write.spawn([
-        BigInt(100),
+        BigInt(chainId),
         gameAddress.toLowerCase() as Address,
         playerAddress.toLowerCase() as Address,
         x,

@@ -28,6 +28,4 @@ interface IMapSystem {
     uint32 y,
     bytes calldata signature
   ) external;
-
-  function extractVRS(bytes memory signature) external pure returns (uint8 v, bytes32 r, bytes32 s);
 }

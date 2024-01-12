@@ -31,7 +31,7 @@ import { RulesModal } from '../components/Modals/RulesModal';
 import { GameProvider, useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
 import { RaidPartyProvider } from '../contexts/RaidPartyContext';
-import { getChainIdFromLabel, SIGNATURE_DETAILS } from '../lib/web3';
+import { getChainIdFromLabel, getSignatureDetails } from '../lib/web3';
 
 export const GameView: React.FC = () => {
   const { gameId, chainLabel } = useParams();
@@ -140,9 +140,10 @@ export const GameViewInner: React.FC = () => {
         nonce: currentNonce + BigInt(1),
       };
 
+      const signatureDetails = getSignatureDetails(walletClient.chain.id);
       const signature = (await walletClient.signTypedData({
-        domain: SIGNATURE_DETAILS.domain,
-        types: SIGNATURE_DETAILS.types,
+        domain: signatureDetails.domain,
+        types: signatureDetails.types,
         primaryType: 'SpawnRequest',
         message,
       })) as `0x${string}`;
