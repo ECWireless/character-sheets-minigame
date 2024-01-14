@@ -36,7 +36,8 @@ export const GameBoard: React.FC = () => {
   } = useMUD();
   const { address } = useAccount();
   const { character, game } = useGame();
-  const { avatarClassId: myAvatarClassId } = useRaidParty();
+  const { avatarClassId: myAvatarClassId, onOpenRaidPartyModal } =
+    useRaidParty();
 
   const { actionRunning } = useKeyboardMovement(
     address?.toLowerCase(),
@@ -95,6 +96,11 @@ export const GameBoard: React.FC = () => {
             key={entity}
             height="100%"
             objectFit="contain"
+            onClick={() =>
+              characterByPlayer
+                ? onOpenRaidPartyModal(characterByPlayer)
+                : undefined
+            }
             position="absolute"
             transform={transform}
             src={src}

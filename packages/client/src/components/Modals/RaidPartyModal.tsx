@@ -22,7 +22,6 @@ import villagerImage from '../../assets/villager/villager.png';
 import { CharacterCardSmall } from '../../components/CharacterCard';
 import { ClassTag } from '../../components/ClassTag';
 import { RadioOption } from '../../components/RadioOption';
-import { useGame } from '../../contexts/GameContext';
 import { useMUD } from '../../contexts/MUDContext';
 import { useRaidParty } from '../../contexts/RaidPartyContext';
 import {
@@ -32,30 +31,27 @@ import {
 } from '../../utils/constants';
 import { EquippableTraitType } from '../../utils/types';
 
-type RaidPartyModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
-};
-
-export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
-  isOpen,
-  onClose,
-}) => {
+export const RaidPartyModal: React.FC = () => {
   const { address } = useAccount();
-  const { character } = useGame();
   const {
     systemCalls: { removeAvatarClass, setAvatarClass },
   } = useMUD();
-  const { avatarClassId } = useRaidParty();
+  const {
+    avatarClassId,
+    isMyCharacterSelected,
+    isRaidPartyModalOpen: isOpen,
+    onCloseRaidPartyModal: onClose,
+    selectedCharacter,
+  } = useRaidParty();
   const toast = useToast();
 
   const [isSaving, setIsSaving] = useState(false);
   const [selectedCard, setSelectedCard] = useState(0);
 
   const partyCharacters = useMemo(() => {
-    if (!character) return [];
-    return [character, character, character];
-  }, [character]);
+    if (!selectedCharacter) return [];
+    return [selectedCharacter, selectedCharacter, selectedCharacter];
+  }, [selectedCharacter]);
 
   const { getRootProps, getRadioProps, setValue, value } = useRadioGroup({
     name: 'avatar class',
@@ -63,8 +59,8 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
   });
 
   const equippedWeapons = useMemo(() => {
-    if (!character) return null;
-    const { equippedItems } = character;
+    if (!selectedCharacter) return null;
+    const { equippedItems } = selectedCharacter;
     return equippedItems.filter(
       item =>
         item.attributes.find(
@@ -73,11 +69,11 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
             a.value === EquippableTraitType.EQUIPPED_ITEM_2,
         ) !== undefined,
     );
-  }, [character]);
+  }, [selectedCharacter]);
 
   const equippedWearable = useMemo(() => {
-    if (!character) return null;
-    const { equippedItems } = character;
+    if (!selectedCharacter) return null;
+    const { equippedItems } = selectedCharacter;
     return (
       equippedItems.find(
         item =>
@@ -86,7 +82,7 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
           ) !== undefined,
       ) ?? null
     );
-  }, [character]);
+  }, [selectedCharacter]);
 
   const wearableBonuses = useMemo(() => {
     if (!equippedWearable) return null;
@@ -107,7 +103,7 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
   }, [equippedWearable]);
 
   const characterStats = useMemo(() => {
-    if (!character) return null;
+    if (!selectedCharacter) return null;
 
     if (value === '-1') {
       return {
@@ -130,9 +126,9 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
       specialAttack: specialAttack + (wearableBonuses?.specialAttack ?? 0),
       specialDefense: specialDefense + (wearableBonuses?.specialDefense ?? 0),
     };
-  }, [character, value, wearableBonuses]);
+  }, [selectedCharacter, value, wearableBonuses]);
 
-  const { classes } = character ?? {};
+  const { classes } = selectedCharacter ?? {};
   const classesWithVillager = useMemo(() => {
     if (!classes) return [];
     const villagerClass = {
@@ -170,7 +166,7 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
   }, [avatarClassId, value]);
 
   const onSetAvatarClass = useCallback(async () => {
-    if (!(address && character && classes)) return;
+    if (!(address && selectedCharacter && classes)) return;
     setIsSaving(true);
 
     try {
@@ -203,16 +199,16 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
     }
   }, [
     address,
-    character,
     classes,
     onClose,
     removeAvatarClass,
+    selectedCharacter,
     setAvatarClass,
     toast,
     value,
   ]);
 
-  if (!(address && character && classes)) return null;
+  if (!(address && selectedCharacter && classes)) return null;
 
   return (
     <Modal closeOnEsc closeOnOverlayClick isOpen={isOpen} onClose={onClose}>
@@ -225,34 +221,43 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
           <ModalCloseButton size="lg" />
         </ModalHeader>
         <ModalBody>
-          <Text>Select a class-based avatar:</Text>
-          <Wrap mt={2} spacing={2} {...getRootProps()}>
-            {options.map(value => {
-              const radio = getRadioProps({ value });
-              const _class = classesWithVillager.find(c => c.classId === value);
-              if (!_class) return null;
+          {isMyCharacterSelected && (
+            <>
+              <Text>Select a class-based avatar:</Text>
+              <Wrap mt={2} spacing={2} {...getRootProps()}>
+                {options.map(value => {
+                  const radio = getRadioProps({ value });
+                  const _class = classesWithVillager.find(
+                    c => c.classId === value,
+                  );
+                  if (!_class) return null;
 
-              return (
-                <WrapItem key={_class.classId + _class.name}>
-                  <RadioOption {...radio}>
-                    <ClassTag {..._class} size="md" />
-                  </RadioOption>
-                </WrapItem>
-              );
-            })}
-          </Wrap>
-          <HStack justifyContent="flex-end" mt={4}>
-            <Button
-              isLoading={isSaving}
-              loadingText="Saving..."
-              isDisabled={!hasChanged}
-              onClick={onSetAvatarClass}
-              size="xs"
-            >
-              Save
-            </Button>
-          </HStack>
-          <Text>Your party&apos;s character cards (max of 3):</Text>
+                  return (
+                    <WrapItem key={_class.classId + _class.name}>
+                      <RadioOption {...radio}>
+                        <ClassTag {..._class} size="md" />
+                      </RadioOption>
+                    </WrapItem>
+                  );
+                })}
+              </Wrap>
+              <HStack justifyContent="flex-end" mt={4}>
+                <Button
+                  isLoading={isSaving}
+                  loadingText="Saving..."
+                  isDisabled={!hasChanged}
+                  onClick={onSetAvatarClass}
+                  size="xs"
+                >
+                  Save
+                </Button>
+              </HStack>
+            </>
+          )}
+          <Text>
+            {isMyCharacterSelected ? 'Your' : `${selectedCharacter.name}'s`}{' '}
+            character cards (max of 3):
+          </Text>
           <HStack mt={4} spacing={6}>
             {partyCharacters.map((character, i) => (
               <Box
