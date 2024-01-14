@@ -4,7 +4,7 @@ import { System } from "@latticexyz/world/src/System.sol";
 import { addressToEntityKey } from "../lib/addressToEntityKey.sol";
 import { positionToEntityKey } from "../lib/positionToEntityKey.sol";
 import { verifyEIP712Signature } from "../lib/signature.sol";
-import { AvatarClass, CharacterSheetInfo, Health, MapConfig, MolochSoldier, Movable, Obstruction, Player, Position, SpawnInfo } from "../codegen/index.sol";
+import { AvatarClass, CharacterSheetInfo, Health, MapConfig, MolochSoldier, Movable, Obstruction, Player, Position, SpawnInfo, TradeInfo } from "../codegen/index.sol";
 
 contract MapSystem is System {
   function attack(address playerAddress, uint32 x, uint32 y) public {
@@ -25,6 +25,26 @@ contract MapSystem is System {
     require(molochSoldierHealth > 0, "moloch soldier is already dead");
 
     Health.set(molochSoldier, molochSoldierHealth - 1);
+  }
+
+  function distance(uint32 fromX, uint32 fromY, uint32 toX, uint32 toY) internal pure returns (uint32) {
+    uint32 deltaX = fromX > toX ? fromX - toX : toX - fromX;
+    uint32 deltaY = fromY > toY ? fromY - toY : toY - fromY;
+    return deltaX + deltaY;
+  }
+
+  function initiateTrade(address initiatedBy, address initiatedWith) public {
+    bytes32 player = addressToEntityKey(initiatedBy);
+    require(Player.get(player), "not a player");
+
+    (address burnerAddress,,) = SpawnInfo.get(player);
+    require(burnerAddress == address(_msgSender()), "not the burner address for this character");
+
+    bytes32 initiatedWithPlayer = addressToEntityKey(initiatedWith);
+    require(Player.get(initiatedWithPlayer), "initiatedWith is not a player");
+
+    TradeInfo.set(player, true, initiatedBy, initiatedWith, "", "");
+    TradeInfo.set(initiatedWithPlayer, true, initiatedBy, initiatedWith, "", "");
   }
 
   function logout(address playerAddress) public {
@@ -54,18 +74,6 @@ contract MapSystem is System {
     require(!Obstruction.get(position), "this space is obstructed");
 
     Position.set(player, x, y, previousX, previousY);
-  }
-
-  function updateBurnerWallet (address playerAddress, bytes calldata signature) public {
-    bytes32 player = addressToEntityKey(playerAddress);
-    require(Player.get(player), "not spawned");
-
-    (,uint256 chainId,uint256 nonce) = SpawnInfo.get(player);
-    uint256 newSpawnNonce = nonce + 1;
-    
-    require(verifyEIP712Signature(playerAddress, signature, playerAddress, address(_msgSender()), newSpawnNonce, chainId), "invalid signature");
-
-    SpawnInfo.set(player, address(_msgSender()), chainId, nonce);
   }
 
   function removeAvatarClass(address playerAddress) public {
@@ -102,9 +110,15 @@ contract MapSystem is System {
     CharacterSheetInfo.set(player, chainId, gameAddress, playerAddress);
   }
 
-  function distance(uint32 fromX, uint32 fromY, uint32 toX, uint32 toY) internal pure returns (uint32) {
-    uint32 deltaX = fromX > toX ? fromX - toX : toX - fromX;
-    uint32 deltaY = fromY > toY ? fromY - toY : toY - fromY;
-    return deltaX + deltaY;
+  function updateBurnerWallet (address playerAddress, bytes calldata signature) public {
+    bytes32 player = addressToEntityKey(playerAddress);
+    require(Player.get(player), "not spawned");
+
+    (,uint256 chainId,uint256 nonce) = SpawnInfo.get(player);
+    uint256 newSpawnNonce = nonce + 1;
+    
+    require(verifyEIP712Signature(playerAddress, signature, playerAddress, address(_msgSender()), newSpawnNonce, chainId), "invalid signature");
+
+    SpawnInfo.set(player, address(_msgSender()), chainId, nonce);
   }
 }

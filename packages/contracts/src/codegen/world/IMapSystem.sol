@@ -10,11 +10,11 @@ pragma solidity >=0.8.21;
 interface IMapSystem {
   function attack(address playerAddress, uint32 x, uint32 y) external;
 
+  function initiateTrade(address initiatedWith) external;
+
   function logout(address playerAddress) external;
 
   function move(address playerAddress, uint32 x, uint32 y) external;
-
-  function updateBurnerWallet(address playerAddress, bytes calldata signature) external;
 
   function removeAvatarClass(address playerAddress) external;
 
@@ -28,4 +28,6 @@ interface IMapSystem {
     uint32 y,
     bytes calldata signature
   ) external;
+
+  function updateBurnerWallet(address playerAddress, bytes calldata signature) external;
 }
