@@ -65,7 +65,7 @@ export const GameView: React.FC = () => {
 
 export const GameViewInner: React.FC = () => {
   const { data: walletClient } = useWalletClient();
-  const { isConnected } = useAccount();
+  const { address, isConnected } = useAccount();
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -177,6 +177,26 @@ export const GameViewInner: React.FC = () => {
     walletClient,
   ]);
 
+  const gamePlayers = useMemo(() => {
+    const characters = game?.characters.map(c => c) ?? [];
+    return characters.map(c => c.player.toLowerCase());
+  }, [game]);
+
+  const onOpenRaidPartyModal = useCallback(() => {
+    if (!(address && gamePlayers.includes(address.toLowerCase()))) {
+      toast({
+        title: "You aren't a part of this game!",
+        status: 'warning',
+        position: 'top',
+        duration: 5000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    raidPartyModalControls.onOpen();
+  }, [address, gamePlayers, raidPartyModalControls, toast]);
+
   if (loading) {
     return (
       <VStack py={12} spacing={8}>
@@ -238,7 +258,7 @@ export const GameViewInner: React.FC = () => {
         <ConnectWalletButton />
         {isConnected && (
           <HStack mt={2}>
-            <Button onClick={raidPartyModalControls.onOpen}>Raid Party</Button>
+            <Button onClick={onOpenRaidPartyModal}>Raid Party</Button>
             <Button onClick={rulesModalControls.onOpen}>Rules</Button>
           </HStack>
         )}
