@@ -13,3 +13,4 @@ import { Obstruction, ObstructionTableId } from "./tables/Obstruction.sol";
 import { Player, PlayerTableId } from "./tables/Player.sol";
 import { Position, PositionTableId } from "./tables/Position.sol";
 import { SpawnInfo, SpawnInfoTableId } from "./tables/SpawnInfo.sol";
+import { TradeInfo, TradeInfoTableId } from "./tables/TradeInfo.sol";

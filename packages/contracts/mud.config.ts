@@ -45,5 +45,15 @@ export default mudConfig({
         nonce: "uint256",
       },
     },
+    TradeInfo: {
+      dataStruct: false,
+      valueSchema: {
+        active: "bool",
+        initiatedBy: "address",
+        initiatedWith: "address",
+        primarySignature: "bytes",
+        secondarySignature: "bytes",
+      },
+    },
   },
 });
