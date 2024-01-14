@@ -20,6 +20,7 @@ import { GameMap } from './GameMap';
 export const GameBoard: React.FC = () => {
   const {
     components: {
+      AvatarClass,
       CharacterSheetInfo,
       Health,
       MapConfig,
@@ -30,12 +31,12 @@ export const GameBoard: React.FC = () => {
   } = useMUD();
   const { address } = useAccount();
   const { character, game } = useGame();
-  const { avatarClassId } = useRaidParty();
+  const { avatarClassId: myAvatarClassId } = useRaidParty();
 
   const { actionRunning } = useKeyboardMovement(
     address?.toLowerCase(),
     character?.classes
-      .find(c => c.classId === avatarClassId)
+      .find(c => c.classId === myAvatarClassId)
       ?.name?.toLowerCase() ?? 'villager',
   );
 
@@ -49,6 +50,7 @@ export const GameBoard: React.FC = () => {
       CharacterSheetInfo,
       entity,
     );
+    const avatarClassId = getComponentValueStrict(AvatarClass, entity);
 
     const characterByPlayer = game?.characters?.find(
       c => c.player === characterSheetInfo.playerAddress.toLowerCase(),
@@ -59,7 +61,7 @@ export const GameBoard: React.FC = () => {
 
     if (avatarClassId) {
       const avatarClass = characterByPlayer?.classes.find(
-        c => c.classId === avatarClassId,
+        c => c.classId === avatarClassId?.value.toString(),
       );
       avatarClassName = avatarClass?.name.toLowerCase() ?? 'villager';
       avatarClassSrc = avatarClass?.image ?? '';

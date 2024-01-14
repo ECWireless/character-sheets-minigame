@@ -202,7 +202,7 @@ export const GameViewInner: React.FC = () => {
   }
 
   if (syncProgress.step !== SyncStep.LIVE) {
-    const formattedPercentage = syncProgress.percentage * 100;
+    const formattedPercentage = syncProgress.percentage;
     return (
       <Flex alignItems="center" h="100vh" justifyContent="center">
         {syncProgress.message} {Math.round(formattedPercentage)}%
