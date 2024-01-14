@@ -88,12 +88,12 @@ export const GameBoard: React.FC = () => {
       sprite: (
         <Tooltip
           aria-label={characterByPlayer?.name}
+          key={entity}
           label={characterByPlayer?.name}
           placement="top"
         >
           <Image
             alt={avatarClassName}
-            key={entity}
             height="100%"
             objectFit="contain"
             onClick={() =>
@@ -131,12 +131,12 @@ export const GameBoard: React.FC = () => {
       sprite: (
         <Tooltip
           aria-label="moloch soldier"
+          key={entity}
           label="Moloch Soldier"
           placement="top"
         >
           <Image
             alt="moloch soldier"
-            key={entity}
             height="100%"
             position="absolute"
             src={health > 0 ? molochSoldier : molochSoldierDead}

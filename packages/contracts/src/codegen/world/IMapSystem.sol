@@ -10,7 +10,7 @@ pragma solidity >=0.8.21;
 interface IMapSystem {
   function attack(address playerAddress, uint32 x, uint32 y) external;
 
-  function initiateTrade(address initiatedWith) external;
+  function initiateTrade(address initiatedBy, address initiatedWith) external;
 
   function logout(address playerAddress) external;
 

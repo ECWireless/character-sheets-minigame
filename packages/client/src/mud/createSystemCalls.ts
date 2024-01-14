@@ -24,6 +24,7 @@ export function createSystemCalls(
     Obstruction,
     Player,
     Position,
+    TradeInfo,
   }: ClientComponents,
 ) {
   const attack = async (playerAddress: string, x: number, y: number) => {
@@ -65,6 +66,51 @@ export function createSystemCalls(
       await waitForTransaction(tx);
     } finally {
       Health.removeOverride(healthId);
+    }
+  };
+
+  const initiateTrade = async (initiatedBy: string, initiatedWith: string) => {
+    const playerEntity = getPlayerEntity(initiatedBy);
+    if (!playerEntity) {
+      throw new Error('No player entity');
+    }
+
+    const initiatedWithEntity = getPlayerEntity(initiatedWith);
+    if (!initiatedWithEntity) {
+      throw new Error('No initiatedWith player entity');
+    }
+
+    const tradeInfos = runQuery([
+      Has(TradeInfo),
+      HasValue(TradeInfo, { active: true }),
+    ]);
+    const tradeInfo = Array.from(tradeInfos)[0];
+    if (tradeInfo) {
+      // eslint-disable-next-line no-console
+      console.warn('Trade already active');
+      return;
+    }
+
+    const tradeInfoId = uuid();
+    TradeInfo.addOverride(tradeInfoId, {
+      entity: playerEntity,
+      value: {
+        active: true,
+        initiatedBy: initiatedBy.toLowerCase() as Address,
+        initiatedWith: initiatedWith.toLowerCase() as Address,
+        primarySignature: '',
+        secondarySignature: '',
+      },
+    });
+
+    try {
+      const tx = await worldContract.write.initiateTrade([
+        initiatedBy.toLowerCase() as Address,
+        initiatedWith.toLowerCase() as Address,
+      ]);
+      await waitForTransaction(tx);
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -266,6 +312,7 @@ export function createSystemCalls(
 
   return {
     attack,
+    initiateTrade,
     logout,
     moveTo,
     moveBy,

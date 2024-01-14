@@ -15,6 +15,8 @@ import {
   Wrap,
   WrapItem,
 } from '@chakra-ui/react';
+import { useEntityQuery } from '@latticexyz/react';
+import { Has, HasValue } from '@latticexyz/recs';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
 
@@ -34,6 +36,7 @@ import { EquippableTraitType } from '../../utils/types';
 export const RaidPartyModal: React.FC = () => {
   const { address } = useAccount();
   const {
+    components: { CharacterSheetInfo, TradeInfo },
     systemCalls: { removeAvatarClass, setAvatarClass },
   } = useMUD();
   const {
@@ -208,6 +211,16 @@ export const RaidPartyModal: React.FC = () => {
     value,
   ]);
 
+  const isTradeActive =
+    useEntityQuery([
+      HasValue(TradeInfo, { active: true }),
+      Has(CharacterSheetInfo),
+    ]).length > 0;
+
+  const onOpenTradeModal = useCallback(() => {
+    onClose();
+  }, [onClose]);
+
   if (!(address && selectedCharacter && classes)) return null;
 
   return (
@@ -253,6 +266,19 @@ export const RaidPartyModal: React.FC = () => {
                 </Button>
               </HStack>
             </>
+          )}
+          {!isMyCharacterSelected && (
+            <VStack mb={8} spacing={4}>
+              {isTradeActive && (
+                <Text align="center" color="red" fontSize="sm">
+                  You already have an active trade. Initiating a new one will
+                  cancel the active one.
+                </Text>
+              )}
+              <Button onClick={onOpenTradeModal} size="sm">
+                Trade Cards
+              </Button>
+            </VStack>
           )}
           <Text>
             {isMyCharacterSelected ? 'Your' : `${selectedCharacter.name}'s`}{' '}
