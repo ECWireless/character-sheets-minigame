@@ -1,6 +1,11 @@
-import { Image } from '@chakra-ui/react';
+import { Image, Tooltip } from '@chakra-ui/react';
 import { useComponentValue, useEntityQuery } from '@latticexyz/react';
-import { getComponentValueStrict, Has, HasValue } from '@latticexyz/recs';
+import {
+  getComponentValue,
+  getComponentValueStrict,
+  Has,
+  HasValue,
+} from '@latticexyz/recs';
 import { singletonEntity } from '@latticexyz/store-sync/recs';
 import { hexToArray } from '@latticexyz/utils';
 import { useAccount } from 'wagmi';
@@ -50,7 +55,7 @@ export const GameBoard: React.FC = () => {
       CharacterSheetInfo,
       entity,
     );
-    const avatarClassId = getComponentValueStrict(AvatarClass, entity);
+    const avatarClassId = getComponentValue(AvatarClass, entity);
 
     const characterByPlayer = game?.characters?.find(
       c => c.player === characterSheetInfo.playerAddress.toLowerCase(),
@@ -80,16 +85,22 @@ export const GameBoard: React.FC = () => {
       x: position.x,
       y: position.y,
       sprite: (
-        <Image
-          alt={avatarClassName}
-          key={entity}
-          height="100%"
-          objectFit="contain"
-          position="absolute"
-          transform={transform}
-          src={src}
-          zIndex={1}
-        />
+        <Tooltip
+          aria-label={characterByPlayer?.name}
+          label={characterByPlayer?.name}
+          placement="top"
+        >
+          <Image
+            alt={avatarClassName}
+            key={entity}
+            height="100%"
+            objectFit="contain"
+            position="absolute"
+            transform={transform}
+            src={src}
+            zIndex={1}
+          />
+        </Tooltip>
       ),
     };
   });
@@ -112,15 +123,21 @@ export const GameBoard: React.FC = () => {
       x: position.x,
       y: position.y,
       sprite: (
-        <Image
-          alt="moloch soldier"
-          key={entity}
-          height="100%"
-          position="absolute"
-          src={health > 0 ? molochSoldier : molochSoldierDead}
-          transform="scale(1.5) translateY(-8px)"
-          zIndex={3}
-        />
+        <Tooltip
+          aria-label="moloch soldier"
+          label="Moloch Soldier"
+          placement="top"
+        >
+          <Image
+            alt="moloch soldier"
+            key={entity}
+            height="100%"
+            position="absolute"
+            src={health > 0 ? molochSoldier : molochSoldierDead}
+            transform="scale(1.5) translateY(-8px)"
+            zIndex={3}
+          />
+        </Tooltip>
       ),
     };
   });
