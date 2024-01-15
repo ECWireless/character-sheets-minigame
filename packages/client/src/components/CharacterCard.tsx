@@ -20,7 +20,8 @@ import { XPDisplaySmall } from './XPDisplay';
 export const CharacterCardSmall: React.FC<{
   character: Character;
   isSelected?: boolean;
-}> = ({ character, isSelected }) => {
+  selectedClassId?: string;
+}> = ({ character, isSelected, selectedClassId }) => {
   const { classes, experience, heldItems, image, jailed, name } = character;
 
   const itemTotal = useMemo(() => {
@@ -33,7 +34,7 @@ export const CharacterCardSmall: React.FC<{
     <VStack spacing={3} w="100%">
       <Box
         border="2px solid"
-        borderColor={isSelected ? 'rgba(219, 211, 139, 0.75)' : 'white'}
+        borderColor={isSelected ? 'white' : 'rgba(219, 211, 139, 0.75)'}
         overflow="hidden"
         p={3}
         transition="transform 0.3s"
@@ -86,7 +87,16 @@ export const CharacterCardSmall: React.FC<{
           <HStack justify="space-between" w="full">
             <Wrap spacing={2}>
               {classes.map(classEntity => (
-                <WrapItem key={classEntity.classId + classEntity.name}>
+                <WrapItem
+                  key={classEntity.classId + classEntity.name}
+                  border="2px solid"
+                  borderColor={
+                    selectedClassId === classEntity.classId
+                      ? 'white'
+                      : 'transparent'
+                  }
+                  borderRadius="50%"
+                >
                   <ClassTag {...classEntity} size="xs" />
                 </WrapItem>
               ))}

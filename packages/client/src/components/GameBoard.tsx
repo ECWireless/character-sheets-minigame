@@ -36,8 +36,7 @@ export const GameBoard: React.FC = () => {
   } = useMUD();
   const { address } = useAccount();
   const { character, game } = useGame();
-  const { avatarClassId: myAvatarClassId, onOpenRaidPartyModal } =
-    useRaidParty();
+  const { myAvatarClassId, onOpenRaidPartyModal } = useRaidParty();
 
   const { actionRunning } = useKeyboardMovement(
     address?.toLowerCase(),

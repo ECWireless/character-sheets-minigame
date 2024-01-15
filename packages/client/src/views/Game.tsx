@@ -28,6 +28,7 @@ import { ConnectWalletButton } from '../components/ConnectWalletButton';
 import { GameBoard } from '../components/GameBoard';
 import { RaidPartyModal } from '../components/Modals/RaidPartyModal';
 import { RulesModal } from '../components/Modals/RulesModal';
+import { TradeTableModal } from '../components/Modals/TradeTableModal';
 import { GameProvider, useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
 import { RaidPartyProvider, useRaidParty } from '../contexts/RaidPartyContext';
@@ -248,6 +249,7 @@ export const GameViewInner: React.FC = () => {
       <Heading>{game.name}</Heading>
       <GameBoard />
       <RaidPartyModal />
+      <TradeTableModal />
       <RulesModal {...rulesModalControls} />
     </VStack>
   );

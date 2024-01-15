@@ -15,21 +15,29 @@ import { getPlayerEntity } from '../utils/helpers';
 import { Character } from '../utils/types';
 
 type RaidPartyContextType = {
-  avatarClassId: string;
   isMyCharacterSelected: boolean;
   isRaidPartyModalOpen: boolean;
+  isTradeTableModalOpen: boolean;
+  myAvatarClassId: string;
   onCloseRaidPartyModal: () => void;
+  onCloseTradeTableModal: () => void;
   onOpenRaidPartyModal: (character: Character | null) => void;
+  onOpenTradeTableModal: () => void;
   selectedCharacter: Character | null;
+  selectedCharacterAvatarClassId: string;
 };
 
 const RaidPartyContext = createContext<RaidPartyContextType>({
-  avatarClassId: '-1',
   isMyCharacterSelected: false,
   isRaidPartyModalOpen: false,
+  isTradeTableModalOpen: false,
+  myAvatarClassId: '-1',
   onCloseRaidPartyModal: () => {},
+  onCloseTradeTableModal: () => {},
   onOpenRaidPartyModal: () => {},
+  onOpenTradeTableModal: () => {},
   selectedCharacter: null,
+  selectedCharacterAvatarClassId: '-1',
 });
 
 export const useRaidParty = (): RaidPartyContextType =>
@@ -45,6 +53,9 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
   const { character, game } = useGame();
   const toast = useToast();
 
+  const raidPartyModalControls = useDisclosure();
+  const tradeTableModalControls = useDisclosure();
+
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(
     null,
   );
@@ -53,8 +64,6 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
     const characters = game?.characters.map(c => c) ?? [];
     return characters.map(c => c.player.toLowerCase());
   }, [game]);
-
-  const raidPartyModalControls = useDisclosure();
 
   const onOpenRaidPartyModal = useCallback(
     (_character: Character | null) => {
@@ -87,19 +96,36 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
   const playerEntity = useMemo(() => {
     return getPlayerEntity(address);
   }, [address]);
+  const selectedCharacterEntity = useMemo(() => {
+    return getPlayerEntity(selectedCharacter?.player);
+  }, [selectedCharacter]);
 
-  const avatarClassId =
+  const myAvatarClassId =
     useComponentValue(AvatarClass, playerEntity)?.value?.toString() ?? '-1';
+  const selectedCharacterAvatarClassId =
+    useComponentValue(
+      AvatarClass,
+      selectedCharacterEntity,
+    )?.value?.toString() ?? '-1';
+
+  const onOpenTradeTableModal = useCallback(() => {
+    raidPartyModalControls.onClose();
+    tradeTableModalControls.onOpen();
+  }, [raidPartyModalControls, tradeTableModalControls]);
 
   return (
     <RaidPartyContext.Provider
       value={{
-        avatarClassId,
         isMyCharacterSelected,
         isRaidPartyModalOpen: raidPartyModalControls.isOpen,
+        isTradeTableModalOpen: tradeTableModalControls.isOpen,
+        myAvatarClassId,
         onCloseRaidPartyModal: raidPartyModalControls.onClose,
+        onCloseTradeTableModal: tradeTableModalControls.onClose,
         onOpenRaidPartyModal,
+        onOpenTradeTableModal,
         selectedCharacter,
+        selectedCharacterAvatarClassId,
       }}
     >
       {children}
