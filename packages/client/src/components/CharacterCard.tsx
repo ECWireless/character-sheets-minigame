@@ -20,8 +20,9 @@ import { XPDisplaySmall } from './XPDisplay';
 export const CharacterCardSmall: React.FC<{
   character: Character;
   isSelected?: boolean;
+  locked?: boolean;
   selectedClassId?: string;
-}> = ({ character, isSelected, selectedClassId }) => {
+}> = ({ character, isSelected, locked, selectedClassId }) => {
   const { classes, experience, heldItems, image, jailed, name } = character;
 
   const itemTotal = useMemo(() => {
@@ -38,10 +39,16 @@ export const CharacterCardSmall: React.FC<{
         overflow="hidden"
         p={3}
         transition="transform 0.3s"
-        _hover={{
-          cursor: 'pointer',
-          transform: 'rotateY(15deg)',
-        }}
+        _hover={
+          locked
+            ? {
+                cursor: 'not-allowed',
+              }
+            : {
+                cursor: 'pointer',
+                transform: 'rotateY(15deg)',
+              }
+        }
         w="100%"
         h="100%"
       >
@@ -50,7 +57,7 @@ export const CharacterCardSmall: React.FC<{
             <Image
               alt="character avatar"
               borderRadius="lg"
-              filter={jailed ? 'grayscale(100%)' : 'none'}
+              filter={jailed || locked ? 'grayscale(100%)' : 'none'}
               h="100%"
               objectFit="cover"
               src={image}
