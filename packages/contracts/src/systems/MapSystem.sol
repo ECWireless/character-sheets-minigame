@@ -4,7 +4,20 @@ import { System } from "@latticexyz/world/src/System.sol";
 import { addressToEntityKey } from "../lib/addressToEntityKey.sol";
 import { positionToEntityKey } from "../lib/positionToEntityKey.sol";
 import { verifyEIP712Signature } from "../lib/signature.sol";
-import { AvatarClass, CharacterSheetInfo, Health, MapConfig, MolochSoldier, Movable, Obstruction, Player, Position, SpawnInfo, TradeInfo } from "../codegen/index.sol";
+import {
+  AvatarClass,
+  CharacterSheetInfo,
+  Health,
+  MapConfig,
+  MolochSoldier,
+  Movable,
+  Obstruction,
+  PartyInfo,
+  Player,
+  Position,
+  SpawnInfo,
+  TradeInfo
+} from "../codegen/index.sol";
 
 contract MapSystem is System {
   function attack(address playerAddress, uint32 x, uint32 y) public {
@@ -108,6 +121,7 @@ contract MapSystem is System {
     Movable.set(player, true);
     SpawnInfo.set(player, address(_msgSender()), chainId, nonce);
     CharacterSheetInfo.set(player, chainId, gameAddress, playerAddress);
+    PartyInfo.set(player, playerAddress, playerAddress, playerAddress);
   }
 
   function updateBurnerWallet (address playerAddress, bytes calldata signature) public {

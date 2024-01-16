@@ -1,5 +1,6 @@
 import { useDisclosure, useToast } from '@chakra-ui/react';
 import { useComponentValue } from '@latticexyz/react';
+import { getComponentValue } from '@latticexyz/recs';
 import {
   createContext,
   useCallback,
@@ -19,12 +20,14 @@ type RaidPartyContextType = {
   isRaidPartyModalOpen: boolean;
   isTradeTableModalOpen: boolean;
   myAvatarClassId: string;
+  myPartyCharacters: [Character, Character, Character] | null;
   onCloseRaidPartyModal: () => void;
   onCloseTradeTableModal: () => void;
   onOpenRaidPartyModal: (character: Character | null) => void;
   onOpenTradeTableModal: () => void;
   selectedCharacter: Character | null;
   selectedCharacterAvatarClassId: string;
+  selectedCharacterPartyCharacters: [Character, Character, Character] | null;
 };
 
 const RaidPartyContext = createContext<RaidPartyContextType>({
@@ -32,12 +35,14 @@ const RaidPartyContext = createContext<RaidPartyContextType>({
   isRaidPartyModalOpen: false,
   isTradeTableModalOpen: false,
   myAvatarClassId: '-1',
+  myPartyCharacters: null,
   onCloseRaidPartyModal: () => {},
   onCloseTradeTableModal: () => {},
   onOpenRaidPartyModal: () => {},
   onOpenTradeTableModal: () => {},
   selectedCharacter: null,
   selectedCharacterAvatarClassId: '-1',
+  selectedCharacterPartyCharacters: null,
 });
 
 export const useRaidParty = (): RaidPartyContextType =>
@@ -48,7 +53,7 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
 }) => {
   const { address } = useAccount();
   const {
-    components: { AvatarClass },
+    components: { AvatarClass, PartyInfo },
   } = useMUD();
   const { character, game } = useGame();
   const toast = useToast();
@@ -108,6 +113,60 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
       selectedCharacterEntity,
     )?.value?.toString() ?? '-1';
 
+  const myPartyCharacters = useMemo(() => {
+    if (!(character && playerEntity)) return null;
+
+    const partyInfo = getComponentValue(PartyInfo, playerEntity);
+    if (!partyInfo) return null;
+
+    const allGameCharacters = game?.characters.map(c => c) ?? [];
+    const slotOneCharacter = allGameCharacters.find(
+      c => c.player === partyInfo.slotOne,
+    );
+    const slotTwoCharacter = allGameCharacters.find(
+      c => c.player === partyInfo.slotTwo,
+    );
+    const slotThreeCharacter = allGameCharacters.find(
+      c => c.player === partyInfo.slotThree,
+    );
+
+    const party = [];
+    if (slotOneCharacter) party.push(slotOneCharacter);
+    if (slotTwoCharacter) party.push(slotTwoCharacter);
+    if (slotThreeCharacter) party.push(slotThreeCharacter);
+
+    if (party.length !== 3) return null;
+
+    return party as [Character, Character, Character];
+  }, [character, game, PartyInfo, playerEntity]);
+
+  const selectedCharacterPartyCharacters = useMemo(() => {
+    if (!(selectedCharacter && selectedCharacterEntity)) return null;
+
+    const partyInfo = getComponentValue(PartyInfo, selectedCharacterEntity);
+    if (!partyInfo) return null;
+
+    const allGameCharacters = game?.characters.map(c => c) ?? [];
+    const slotOneCharacter = allGameCharacters.find(
+      c => c.player === partyInfo.slotOne,
+    );
+    const slotTwoCharacter = allGameCharacters.find(
+      c => c.player === partyInfo.slotTwo,
+    );
+    const slotThreeCharacter = allGameCharacters.find(
+      c => c.player === partyInfo.slotThree,
+    );
+
+    const party = [];
+    if (slotOneCharacter) party.push(slotOneCharacter);
+    if (slotTwoCharacter) party.push(slotTwoCharacter);
+    if (slotThreeCharacter) party.push(slotThreeCharacter);
+
+    if (party.length !== 3) return null;
+
+    return party as [Character, Character, Character];
+  }, [game, PartyInfo, selectedCharacter, selectedCharacterEntity]);
+
   const onOpenTradeTableModal = useCallback(() => {
     raidPartyModalControls.onClose();
     tradeTableModalControls.onOpen();
@@ -120,12 +179,14 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
         isRaidPartyModalOpen: raidPartyModalControls.isOpen,
         isTradeTableModalOpen: tradeTableModalControls.isOpen,
         myAvatarClassId,
+        myPartyCharacters,
         onCloseRaidPartyModal: raidPartyModalControls.onClose,
         onCloseTradeTableModal: tradeTableModalControls.onClose,
         onOpenRaidPartyModal,
         onOpenTradeTableModal,
         selectedCharacter,
         selectedCharacterAvatarClassId,
+        selectedCharacterPartyCharacters,
       }}
     >
       {children}

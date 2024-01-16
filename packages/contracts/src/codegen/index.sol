@@ -10,6 +10,7 @@ import { MapConfig, MapConfigTableId } from "./tables/MapConfig.sol";
 import { MolochSoldier, MolochSoldierTableId } from "./tables/MolochSoldier.sol";
 import { Movable, MovableTableId } from "./tables/Movable.sol";
 import { Obstruction, ObstructionTableId } from "./tables/Obstruction.sol";
+import { PartyInfo, PartyInfoTableId } from "./tables/PartyInfo.sol";
 import { Player, PlayerTableId } from "./tables/Player.sol";
 import { Position, PositionTableId } from "./tables/Position.sol";
 import { SpawnInfo, SpawnInfoTableId } from "./tables/SpawnInfo.sol";

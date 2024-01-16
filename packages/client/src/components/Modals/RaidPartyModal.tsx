@@ -44,8 +44,19 @@ export const RaidPartyModal: React.FC = () => {
     onOpenTradeTableModal: onOpenTradeModal,
     selectedCharacter,
     selectedCharacterAvatarClassId: otherAvatarClassId,
+    selectedCharacterPartyCharacters: potentialPartyCharacters,
   } = useRaidParty();
   const toast = useToast();
+
+  const partyCharacters = useMemo(() => {
+    if (!selectedCharacter) {
+      return [];
+    } else if (!potentialPartyCharacters) {
+      return [selectedCharacter, selectedCharacter, selectedCharacter];
+    } else {
+      return potentialPartyCharacters;
+    }
+  }, [potentialPartyCharacters, selectedCharacter]);
 
   const [isSaving, setIsSaving] = useState(false);
   const [selectedCard, setSelectedCard] = useState(0);
@@ -54,11 +65,6 @@ export const RaidPartyModal: React.FC = () => {
     name: 'avatar class',
     defaultValue: '-1',
   });
-
-  const partyCharacters = useMemo(() => {
-    if (!selectedCharacter) return [];
-    return [selectedCharacter, selectedCharacter, selectedCharacter];
-  }, [selectedCharacter]);
 
   const equippedWeapons = useMemo(() => {
     if (!selectedCharacter) return null;

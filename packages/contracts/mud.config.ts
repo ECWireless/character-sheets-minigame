@@ -27,6 +27,14 @@ export default mudConfig({
     MolochSoldier: "bool",
     Movable: "bool",
     Obstruction: "bool",
+    PartyInfo: {
+      dataStruct: false,
+      valueSchema: {
+        slotOne: "address",
+        slotTwo: "address",
+        slotThree: "address",
+      },
+    },
     Player: "bool",
     Position: {
       dataStruct: false,

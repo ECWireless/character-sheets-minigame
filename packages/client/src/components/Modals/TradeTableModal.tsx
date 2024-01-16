@@ -33,9 +33,11 @@ export const TradeTableModal: React.FC = () => {
   const {
     isTradeTableModalOpen: isOpen,
     myAvatarClassId,
+    myPartyCharacters,
     onCloseTradeTableModal: onClose,
-    selectedCharacterAvatarClassId: otherAvatarClassId,
     selectedCharacter,
+    selectedCharacterAvatarClassId: otherAvatarClassId,
+    selectedCharacterPartyCharacters: otherPartyCharacters,
   } = useRaidParty();
 
   const [mySelectedCard, setMySelectedCard] = useState(1);
@@ -84,14 +86,14 @@ export const TradeTableModal: React.FC = () => {
     if (!(character && selectedCharacter)) return null;
 
     return {
-      [character.id]: [character, character, character],
-      [selectedCharacter.id]: [
+      [character.id]: myPartyCharacters ?? [character, character, character],
+      [selectedCharacter.id]: otherPartyCharacters ?? [
         selectedCharacter,
         selectedCharacter,
         selectedCharacter,
       ],
     };
-  }, [character, selectedCharacter]);
+  }, [character, myPartyCharacters, otherPartyCharacters, selectedCharacter]);
 
   const getEquippedWeapons = useCallback((_character: Character) => {
     const { equippedItems } = _character;
