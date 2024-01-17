@@ -61,8 +61,6 @@ export default mudConfig({
         initiatedWith: "address",
         offeredCardPlayer: "address",
         requestedCardPlayer: "address",
-        primarySignature: "bytes",
-        secondarySignature: "bytes",
       },
     },
   },

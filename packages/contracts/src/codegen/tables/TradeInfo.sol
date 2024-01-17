@@ -26,7 +26,7 @@ ResourceId constant _tableId = ResourceId.wrap(
 ResourceId constant TradeInfoTableId = _tableId;
 
 FieldLayout constant _fieldLayout = FieldLayout.wrap(
-  0x0051050201141414140000000000000000000000000000000000000000000000
+  0x0051050001141414140000000000000000000000000000000000000000000000
 );
 
 library TradeInfo {
@@ -54,14 +54,12 @@ library TradeInfo {
    * @return _valueSchema The value schema for the table.
    */
   function getValueSchema() internal pure returns (Schema) {
-    SchemaType[] memory _valueSchema = new SchemaType[](7);
+    SchemaType[] memory _valueSchema = new SchemaType[](5);
     _valueSchema[0] = SchemaType.BOOL;
     _valueSchema[1] = SchemaType.ADDRESS;
     _valueSchema[2] = SchemaType.ADDRESS;
     _valueSchema[3] = SchemaType.ADDRESS;
     _valueSchema[4] = SchemaType.ADDRESS;
-    _valueSchema[5] = SchemaType.BYTES;
-    _valueSchema[6] = SchemaType.BYTES;
 
     return SchemaLib.encode(_valueSchema);
   }
@@ -80,14 +78,12 @@ library TradeInfo {
    * @return fieldNames An array of strings with the names of value fields.
    */
   function getFieldNames() internal pure returns (string[] memory fieldNames) {
-    fieldNames = new string[](7);
+    fieldNames = new string[](5);
     fieldNames[0] = "active";
     fieldNames[1] = "initiatedBy";
     fieldNames[2] = "initiatedWith";
     fieldNames[3] = "offeredCardPlayer";
     fieldNames[4] = "requestedCardPlayer";
-    fieldNames[5] = "primarySignature";
-    fieldNames[6] = "secondarySignature";
   }
 
   /**
@@ -315,330 +311,6 @@ library TradeInfo {
   }
 
   /**
-   * @notice Get primarySignature.
-   */
-  function getPrimarySignature(bytes32 key) internal view returns (bytes memory primarySignature) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    bytes memory _blob = StoreSwitch.getDynamicField(_tableId, _keyTuple, 0);
-    return (bytes(_blob));
-  }
-
-  /**
-   * @notice Get primarySignature.
-   */
-  function _getPrimarySignature(bytes32 key) internal view returns (bytes memory primarySignature) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    bytes memory _blob = StoreCore.getDynamicField(_tableId, _keyTuple, 0);
-    return (bytes(_blob));
-  }
-
-  /**
-   * @notice Set primarySignature.
-   */
-  function setPrimarySignature(bytes32 key, bytes memory primarySignature) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    StoreSwitch.setDynamicField(_tableId, _keyTuple, 0, bytes((primarySignature)));
-  }
-
-  /**
-   * @notice Set primarySignature.
-   */
-  function _setPrimarySignature(bytes32 key, bytes memory primarySignature) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    StoreCore.setDynamicField(_tableId, _keyTuple, 0, bytes((primarySignature)));
-  }
-
-  /**
-   * @notice Get the length of primarySignature.
-   */
-  function lengthPrimarySignature(bytes32 key) internal view returns (uint256) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    uint256 _byteLength = StoreSwitch.getDynamicFieldLength(_tableId, _keyTuple, 0);
-    unchecked {
-      return _byteLength / 1;
-    }
-  }
-
-  /**
-   * @notice Get the length of primarySignature.
-   */
-  function _lengthPrimarySignature(bytes32 key) internal view returns (uint256) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    uint256 _byteLength = StoreCore.getDynamicFieldLength(_tableId, _keyTuple, 0);
-    unchecked {
-      return _byteLength / 1;
-    }
-  }
-
-  /**
-   * @notice Get an item of primarySignature.
-   * @dev Reverts with Store_IndexOutOfBounds if `_index` is out of bounds for the array.
-   */
-  function getItemPrimarySignature(bytes32 key, uint256 _index) internal view returns (bytes memory) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    unchecked {
-      bytes memory _blob = StoreSwitch.getDynamicFieldSlice(_tableId, _keyTuple, 0, _index * 1, (_index + 1) * 1);
-      return (bytes(_blob));
-    }
-  }
-
-  /**
-   * @notice Get an item of primarySignature.
-   * @dev Reverts with Store_IndexOutOfBounds if `_index` is out of bounds for the array.
-   */
-  function _getItemPrimarySignature(bytes32 key, uint256 _index) internal view returns (bytes memory) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    unchecked {
-      bytes memory _blob = StoreCore.getDynamicFieldSlice(_tableId, _keyTuple, 0, _index * 1, (_index + 1) * 1);
-      return (bytes(_blob));
-    }
-  }
-
-  /**
-   * @notice Push a slice to primarySignature.
-   */
-  function pushPrimarySignature(bytes32 key, bytes memory _slice) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    StoreSwitch.pushToDynamicField(_tableId, _keyTuple, 0, bytes((_slice)));
-  }
-
-  /**
-   * @notice Push a slice to primarySignature.
-   */
-  function _pushPrimarySignature(bytes32 key, bytes memory _slice) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    StoreCore.pushToDynamicField(_tableId, _keyTuple, 0, bytes((_slice)));
-  }
-
-  /**
-   * @notice Pop a slice from primarySignature.
-   */
-  function popPrimarySignature(bytes32 key) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    StoreSwitch.popFromDynamicField(_tableId, _keyTuple, 0, 1);
-  }
-
-  /**
-   * @notice Pop a slice from primarySignature.
-   */
-  function _popPrimarySignature(bytes32 key) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    StoreCore.popFromDynamicField(_tableId, _keyTuple, 0, 1);
-  }
-
-  /**
-   * @notice Update a slice of primarySignature at `_index`.
-   */
-  function updatePrimarySignature(bytes32 key, uint256 _index, bytes memory _slice) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    unchecked {
-      bytes memory _encoded = bytes((_slice));
-      StoreSwitch.spliceDynamicData(_tableId, _keyTuple, 0, uint40(_index * 1), uint40(_encoded.length), _encoded);
-    }
-  }
-
-  /**
-   * @notice Update a slice of primarySignature at `_index`.
-   */
-  function _updatePrimarySignature(bytes32 key, uint256 _index, bytes memory _slice) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    unchecked {
-      bytes memory _encoded = bytes((_slice));
-      StoreCore.spliceDynamicData(_tableId, _keyTuple, 0, uint40(_index * 1), uint40(_encoded.length), _encoded);
-    }
-  }
-
-  /**
-   * @notice Get secondarySignature.
-   */
-  function getSecondarySignature(bytes32 key) internal view returns (bytes memory secondarySignature) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    bytes memory _blob = StoreSwitch.getDynamicField(_tableId, _keyTuple, 1);
-    return (bytes(_blob));
-  }
-
-  /**
-   * @notice Get secondarySignature.
-   */
-  function _getSecondarySignature(bytes32 key) internal view returns (bytes memory secondarySignature) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    bytes memory _blob = StoreCore.getDynamicField(_tableId, _keyTuple, 1);
-    return (bytes(_blob));
-  }
-
-  /**
-   * @notice Set secondarySignature.
-   */
-  function setSecondarySignature(bytes32 key, bytes memory secondarySignature) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    StoreSwitch.setDynamicField(_tableId, _keyTuple, 1, bytes((secondarySignature)));
-  }
-
-  /**
-   * @notice Set secondarySignature.
-   */
-  function _setSecondarySignature(bytes32 key, bytes memory secondarySignature) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    StoreCore.setDynamicField(_tableId, _keyTuple, 1, bytes((secondarySignature)));
-  }
-
-  /**
-   * @notice Get the length of secondarySignature.
-   */
-  function lengthSecondarySignature(bytes32 key) internal view returns (uint256) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    uint256 _byteLength = StoreSwitch.getDynamicFieldLength(_tableId, _keyTuple, 1);
-    unchecked {
-      return _byteLength / 1;
-    }
-  }
-
-  /**
-   * @notice Get the length of secondarySignature.
-   */
-  function _lengthSecondarySignature(bytes32 key) internal view returns (uint256) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    uint256 _byteLength = StoreCore.getDynamicFieldLength(_tableId, _keyTuple, 1);
-    unchecked {
-      return _byteLength / 1;
-    }
-  }
-
-  /**
-   * @notice Get an item of secondarySignature.
-   * @dev Reverts with Store_IndexOutOfBounds if `_index` is out of bounds for the array.
-   */
-  function getItemSecondarySignature(bytes32 key, uint256 _index) internal view returns (bytes memory) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    unchecked {
-      bytes memory _blob = StoreSwitch.getDynamicFieldSlice(_tableId, _keyTuple, 1, _index * 1, (_index + 1) * 1);
-      return (bytes(_blob));
-    }
-  }
-
-  /**
-   * @notice Get an item of secondarySignature.
-   * @dev Reverts with Store_IndexOutOfBounds if `_index` is out of bounds for the array.
-   */
-  function _getItemSecondarySignature(bytes32 key, uint256 _index) internal view returns (bytes memory) {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    unchecked {
-      bytes memory _blob = StoreCore.getDynamicFieldSlice(_tableId, _keyTuple, 1, _index * 1, (_index + 1) * 1);
-      return (bytes(_blob));
-    }
-  }
-
-  /**
-   * @notice Push a slice to secondarySignature.
-   */
-  function pushSecondarySignature(bytes32 key, bytes memory _slice) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    StoreSwitch.pushToDynamicField(_tableId, _keyTuple, 1, bytes((_slice)));
-  }
-
-  /**
-   * @notice Push a slice to secondarySignature.
-   */
-  function _pushSecondarySignature(bytes32 key, bytes memory _slice) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    StoreCore.pushToDynamicField(_tableId, _keyTuple, 1, bytes((_slice)));
-  }
-
-  /**
-   * @notice Pop a slice from secondarySignature.
-   */
-  function popSecondarySignature(bytes32 key) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    StoreSwitch.popFromDynamicField(_tableId, _keyTuple, 1, 1);
-  }
-
-  /**
-   * @notice Pop a slice from secondarySignature.
-   */
-  function _popSecondarySignature(bytes32 key) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    StoreCore.popFromDynamicField(_tableId, _keyTuple, 1, 1);
-  }
-
-  /**
-   * @notice Update a slice of secondarySignature at `_index`.
-   */
-  function updateSecondarySignature(bytes32 key, uint256 _index, bytes memory _slice) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    unchecked {
-      bytes memory _encoded = bytes((_slice));
-      StoreSwitch.spliceDynamicData(_tableId, _keyTuple, 1, uint40(_index * 1), uint40(_encoded.length), _encoded);
-    }
-  }
-
-  /**
-   * @notice Update a slice of secondarySignature at `_index`.
-   */
-  function _updateSecondarySignature(bytes32 key, uint256 _index, bytes memory _slice) internal {
-    bytes32[] memory _keyTuple = new bytes32[](1);
-    _keyTuple[0] = key;
-
-    unchecked {
-      bytes memory _encoded = bytes((_slice));
-      StoreCore.spliceDynamicData(_tableId, _keyTuple, 1, uint40(_index * 1), uint40(_encoded.length), _encoded);
-    }
-  }
-
-  /**
    * @notice Get the full data.
    */
   function get(
@@ -651,9 +323,7 @@ library TradeInfo {
       address initiatedBy,
       address initiatedWith,
       address offeredCardPlayer,
-      address requestedCardPlayer,
-      bytes memory primarySignature,
-      bytes memory secondarySignature
+      address requestedCardPlayer
     )
   {
     bytes32[] memory _keyTuple = new bytes32[](1);
@@ -680,9 +350,7 @@ library TradeInfo {
       address initiatedBy,
       address initiatedWith,
       address offeredCardPlayer,
-      address requestedCardPlayer,
-      bytes memory primarySignature,
-      bytes memory secondarySignature
+      address requestedCardPlayer
     )
   {
     bytes32[] memory _keyTuple = new bytes32[](1);
@@ -705,14 +373,12 @@ library TradeInfo {
     address initiatedBy,
     address initiatedWith,
     address offeredCardPlayer,
-    address requestedCardPlayer,
-    bytes memory primarySignature,
-    bytes memory secondarySignature
+    address requestedCardPlayer
   ) internal {
     bytes memory _staticData = encodeStatic(active, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer);
 
-    PackedCounter _encodedLengths = encodeLengths(primarySignature, secondarySignature);
-    bytes memory _dynamicData = encodeDynamic(primarySignature, secondarySignature);
+    PackedCounter _encodedLengths;
+    bytes memory _dynamicData;
 
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
@@ -729,14 +395,12 @@ library TradeInfo {
     address initiatedBy,
     address initiatedWith,
     address offeredCardPlayer,
-    address requestedCardPlayer,
-    bytes memory primarySignature,
-    bytes memory secondarySignature
+    address requestedCardPlayer
   ) internal {
     bytes memory _staticData = encodeStatic(active, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer);
 
-    PackedCounter _encodedLengths = encodeLengths(primarySignature, secondarySignature);
-    bytes memory _dynamicData = encodeDynamic(primarySignature, secondarySignature);
+    PackedCounter _encodedLengths;
+    bytes memory _dynamicData;
 
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
@@ -772,36 +436,15 @@ library TradeInfo {
   }
 
   /**
-   * @notice Decode the tightly packed blob of dynamic data using the encoded lengths.
-   */
-  function decodeDynamic(
-    PackedCounter _encodedLengths,
-    bytes memory _blob
-  ) internal pure returns (bytes memory primarySignature, bytes memory secondarySignature) {
-    uint256 _start;
-    uint256 _end;
-    unchecked {
-      _end = _encodedLengths.atIndex(0);
-    }
-    primarySignature = (bytes(SliceLib.getSubslice(_blob, _start, _end).toBytes()));
-
-    _start = _end;
-    unchecked {
-      _end += _encodedLengths.atIndex(1);
-    }
-    secondarySignature = (bytes(SliceLib.getSubslice(_blob, _start, _end).toBytes()));
-  }
-
-  /**
    * @notice Decode the tightly packed blobs using this table's field layout.
    * @param _staticData Tightly packed static fields.
-   * @param _encodedLengths Encoded lengths of dynamic fields.
-   * @param _dynamicData Tightly packed dynamic fields.
+   *
+   *
    */
   function decode(
     bytes memory _staticData,
-    PackedCounter _encodedLengths,
-    bytes memory _dynamicData
+    PackedCounter,
+    bytes memory
   )
     internal
     pure
@@ -810,14 +453,10 @@ library TradeInfo {
       address initiatedBy,
       address initiatedWith,
       address offeredCardPlayer,
-      address requestedCardPlayer,
-      bytes memory primarySignature,
-      bytes memory secondarySignature
+      address requestedCardPlayer
     )
   {
     (active, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer) = decodeStatic(_staticData);
-
-    (primarySignature, secondarySignature) = decodeDynamic(_encodedLengths, _dynamicData);
   }
 
   /**
@@ -855,31 +494,6 @@ library TradeInfo {
   }
 
   /**
-   * @notice Tightly pack dynamic data lengths using this table's schema.
-   * @return _encodedLengths The lengths of the dynamic fields (packed into a single bytes32 value).
-   */
-  function encodeLengths(
-    bytes memory primarySignature,
-    bytes memory secondarySignature
-  ) internal pure returns (PackedCounter _encodedLengths) {
-    // Lengths are effectively checked during copy by 2**40 bytes exceeding gas limits
-    unchecked {
-      _encodedLengths = PackedCounterLib.pack(bytes(primarySignature).length, bytes(secondarySignature).length);
-    }
-  }
-
-  /**
-   * @notice Tightly pack dynamic (variable length) data using this table's schema.
-   * @return The dynamic data, encoded into a sequence of bytes.
-   */
-  function encodeDynamic(
-    bytes memory primarySignature,
-    bytes memory secondarySignature
-  ) internal pure returns (bytes memory) {
-    return abi.encodePacked(bytes((primarySignature)), bytes((secondarySignature)));
-  }
-
-  /**
    * @notice Encode all of a record's fields.
    * @return The static (fixed length) data, encoded into a sequence of bytes.
    * @return The lengths of the dynamic fields (packed into a single bytes32 value).
@@ -890,14 +504,12 @@ library TradeInfo {
     address initiatedBy,
     address initiatedWith,
     address offeredCardPlayer,
-    address requestedCardPlayer,
-    bytes memory primarySignature,
-    bytes memory secondarySignature
+    address requestedCardPlayer
   ) internal pure returns (bytes memory, PackedCounter, bytes memory) {
     bytes memory _staticData = encodeStatic(active, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer);
 
-    PackedCounter _encodedLengths = encodeLengths(primarySignature, secondarySignature);
-    bytes memory _dynamicData = encodeDynamic(primarySignature, secondarySignature);
+    PackedCounter _encodedLengths;
+    bytes memory _dynamicData;
 
     return (_staticData, _encodedLengths, _dynamicData);
   }

@@ -85,7 +85,7 @@ contract MapSystem is System {
       PartyInfo.set(player, initiatedBy, initiatedBy, initiatedBy);
     }
 
-    TradeInfo.set(tradeEntity, true, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer, "", "");
+    TradeInfo.set(tradeEntity, true, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer);
   }
 
   function move(address playerAddress, uint32 x, uint32 y) public {
