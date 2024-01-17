@@ -24,7 +24,7 @@ type RaidPartyContextType = {
   onCloseRaidPartyModal: () => void;
   onCloseTradeTableModal: () => void;
   onOpenRaidPartyModal: (character: Character | null) => void;
-  onOpenTradeTableModal: () => void;
+  onOpenTradeTableModal: (character: Character) => void;
   selectedCharacter: Character | null;
   selectedCharacterAvatarClassId: string;
   selectedCharacterPartyCharacters: [Character, Character, Character] | null;
@@ -167,10 +167,14 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
     return party as [Character, Character, Character];
   }, [game, PartyInfo, selectedCharacter, selectedCharacterEntity]);
 
-  const onOpenTradeTableModal = useCallback(() => {
-    raidPartyModalControls.onClose();
-    tradeTableModalControls.onOpen();
-  }, [raidPartyModalControls, tradeTableModalControls]);
+  const onOpenTradeTableModal = useCallback(
+    (_character: Character) => {
+      setSelectedCharacter(_character);
+      raidPartyModalControls.onClose();
+      tradeTableModalControls.onOpen();
+    },
+    [raidPartyModalControls, tradeTableModalControls],
+  );
 
   return (
     <RaidPartyContext.Provider

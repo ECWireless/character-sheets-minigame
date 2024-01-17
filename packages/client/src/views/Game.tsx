@@ -26,9 +26,11 @@ import { useAccount, useWalletClient } from 'wagmi';
 import { Alert } from '../components/Alert';
 import { ConnectWalletButton } from '../components/ConnectWalletButton';
 import { GameBoard } from '../components/GameBoard';
+import { Leaderboard } from '../components/Leaderboard';
 import { RaidPartyModal } from '../components/Modals/RaidPartyModal';
 import { RulesModal } from '../components/Modals/RulesModal';
 import { TradeTableModal } from '../components/Modals/TradeTableModal';
+import { TradeOffers } from '../components/TradeOffers';
 import { GameProvider, useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
 import { RaidPartyProvider, useRaidParty } from '../contexts/RaidPartyContext';
@@ -247,7 +249,9 @@ export const GameViewInner: React.FC = () => {
         )}
       </Box>
       <Heading>{game.name}</Heading>
+      {isConnected && <TradeOffers />}
       <GameBoard />
+      <Leaderboard />
       <RaidPartyModal />
       <TradeTableModal />
       <RulesModal {...rulesModalControls} />

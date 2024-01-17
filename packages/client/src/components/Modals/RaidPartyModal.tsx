@@ -276,7 +276,10 @@ export const RaidPartyModal: React.FC = () => {
                   cancel the active one.
                 </Text>
               )}
-              <Button onClick={onOpenTradeModal} size="sm">
+              <Button
+                onClick={() => onOpenTradeModal(selectedCharacter)}
+                size="sm"
+              >
                 Trade Cards
               </Button>
             </VStack>
