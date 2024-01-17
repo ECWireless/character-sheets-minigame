@@ -74,6 +74,12 @@ export const TradeOffers: React.FC = () => {
       >
         Trade Offers
       </Text>
+      {offeredToCharacter.length === 0 &&
+        requestedFromCharacter.length === 0 && (
+          <Text fontSize="sm" mt={4}>
+            No active trades
+          </Text>
+        )}
       {offeredToCharacter.map((c, i) => {
         return <TradeButton character={c} offer key={`offer-name-${i}`} />;
       })}

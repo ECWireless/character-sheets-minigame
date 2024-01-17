@@ -57,35 +57,63 @@ contract MapSystem is System {
   function makeOffer(address initiatedBy, address initiatedWith, address offeredCardPlayer, address requestedCardPlayer) public {
     bytes32 tradeEntity = addressesToEntityKey(initiatedBy, initiatedWith);
 
+    offerInitiatedByChecks(initiatedBy, offeredCardPlayer);
+    offerInitiatedWithChecks(initiatedWith, requestedCardPlayer);
+
+    TradeInfo.set(tradeEntity, true, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer);
+  }
+
+  function offerInitiatedByChecks(address initiatedBy, address offeredCardPlayer) internal {
     bytes32 player = addressToEntityKey(initiatedBy);
     require(Player.get(player), "not a player");
 
     (address burnerAddress,,) = SpawnInfo.get(player);
     require(burnerAddress == address(_msgSender()), "not the burner address for this character");
 
-    bytes32 initiatedWithPlayer = addressToEntityKey(initiatedWith);
-    require(Player.get(initiatedWithPlayer), "initiatedWith is not a player");
-
-    (address slotOne, address slotTwo, address slotThree) = PartyInfo.get(player);
+    (address playerSlotOne, address playerSlotTwo, address playerSlotThree) = PartyInfo.get(player);
 
     uint8 personalCardCount = 0;
-    if (slotOne == initiatedBy) {
+    if (playerSlotOne == initiatedBy) {
       personalCardCount++;
     }
-    if (slotTwo == initiatedBy) {
+    if (playerSlotTwo == initiatedBy) {
       personalCardCount++;
     }
-    if (slotThree == initiatedBy) {
+    if (playerSlotThree == initiatedBy) {
       personalCardCount++;
     }
 
     require(personalCardCount > 1 || offeredCardPlayer != initiatedBy, "cannot offer last personal card");
-    
-    if (slotOne == address(0)) {
+    require(playerSlotOne == offeredCardPlayer || playerSlotTwo == offeredCardPlayer || playerSlotThree == offeredCardPlayer, "you don't have this card");
+
+    if (playerSlotOne == address(0)) {
       PartyInfo.set(player, initiatedBy, initiatedBy, initiatedBy);
     }
+  }
 
-    TradeInfo.set(tradeEntity, true, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer);
+  function offerInitiatedWithChecks(address initiatedWith, address requestedCardPlayer) internal {
+    bytes32 initiatedWithPlayer = addressToEntityKey(initiatedWith);
+    require(Player.get(initiatedWithPlayer), "initiatedWith is not a player");
+
+    (address initiatedWithSlotOne, address initiatedWithSlotTwo, address initiatedWithSlotThree) = PartyInfo.get(initiatedWithPlayer);
+
+    uint8 initiatedWithPersonalCardCount = 0;
+    if (initiatedWithSlotOne == initiatedWith) {
+      initiatedWithPersonalCardCount++;
+    }
+    if (initiatedWithSlotTwo == initiatedWith) {
+      initiatedWithPersonalCardCount++;
+    }
+    if (initiatedWithSlotThree == initiatedWith) {
+      initiatedWithPersonalCardCount++;
+    }
+
+    require(initiatedWithPersonalCardCount > 1 || requestedCardPlayer != initiatedWith, "cannot request last personal card");
+    require(initiatedWithSlotOne == requestedCardPlayer || initiatedWithSlotTwo == requestedCardPlayer || initiatedWithSlotThree == requestedCardPlayer, "they don't have this card");
+
+    if (initiatedWithSlotOne == address(0)) {
+      PartyInfo.set(initiatedWithPlayer, initiatedWith, initiatedWith, initiatedWith);
+    }
   }
 
   function move(address playerAddress, uint32 x, uint32 y) public {
