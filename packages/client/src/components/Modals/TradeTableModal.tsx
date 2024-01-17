@@ -10,6 +10,7 @@ import {
   ModalOverlay,
   Text,
   useRadioGroup,
+  useToast,
   VStack,
   Wrap,
   WrapItem,
@@ -23,6 +24,7 @@ import { CharacterStats } from '../../components/CharacterStats';
 import { ClassTag } from '../../components/ClassTag';
 import { RadioOption } from '../../components/RadioOption';
 import { useGame } from '../../contexts/GameContext';
+import { useMUD } from '../../contexts/MUDContext';
 import { useRaidParty } from '../../contexts/RaidPartyContext';
 import { CLASS_STATS, WEARABLE_STATS } from '../../utils/constants';
 import { Character, EquippableTraitType, Stats } from '../../utils/types';
@@ -39,10 +41,15 @@ export const TradeTableModal: React.FC = () => {
     selectedCharacterAvatarClassId: otherAvatarClassId,
     selectedCharacterPartyCharacters: otherPartyCharacters,
   } = useRaidParty();
+  const {
+    systemCalls: { makeOffer },
+  } = useMUD();
+  const toast = useToast();
 
   const [mySelectedCard, setMySelectedCard] = useState(1);
   const [otherSelectedCard, setOtherSelectedCard] = useState(1);
   const [lockedCards, setLockedCards] = useState<[number, number]>([0, 0]);
+  const [makingOffer, setMakingOffer] = useState(false);
 
   const {
     getRootProps: getMyClassRootProps,
@@ -268,6 +275,77 @@ export const TradeTableModal: React.FC = () => {
     return classesWithVillager[selectedCharacter.id]?.map(c => c.classId);
   }, [selectedCharacter, classesWithVillager]);
 
+  const onMakeOffer = useCallback(async () => {
+    setMakingOffer(true);
+
+    try {
+      if (!(address && selectedCharacter && character)) {
+        throw new Error('Missing address, character, or selectedCharacter');
+      }
+
+      if (!(mySelectedCard && otherSelectedCard)) {
+        throw new Error('Missing mySelectedCard or otherSelectedCard');
+      }
+
+      if (
+        !(
+          partyCharacters &&
+          partyCharacters[character.id] &&
+          partyCharacters[selectedCharacter.id]
+        )
+      ) {
+        throw new Error('Missing partyCharacters');
+      }
+
+      const offeredCard = partyCharacters[character.id][mySelectedCard - 1];
+      const requestedCard =
+        partyCharacters[selectedCharacter.id][otherSelectedCard - 1];
+
+      const success = await makeOffer(
+        address,
+        selectedCharacter.player,
+        offeredCard.player,
+        requestedCard.player,
+      );
+
+      if (!success) {
+        throw new Error('Error making offer');
+      }
+
+      toast({
+        title: 'Trade offer made!',
+        status: 'success',
+        position: 'top',
+        duration: 5000,
+        isClosable: true,
+      });
+
+      onClose();
+    } catch (error) {
+      console.error(error);
+
+      toast({
+        title: 'Error offering trade!',
+        status: 'error',
+        position: 'top',
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setMakingOffer(false);
+    }
+  }, [
+    address,
+    character,
+    makeOffer,
+    mySelectedCard,
+    onClose,
+    otherSelectedCard,
+    partyCharacters,
+    selectedCharacter,
+    toast,
+  ]);
+
   if (
     !(
       address &&
@@ -319,7 +397,13 @@ export const TradeTableModal: React.FC = () => {
                 a trade.
               </Text>
             )}
-            <Button isDisabled={!(lockedCards[0] && lockedCards[1])} size="sm">
+            <Button
+              isDisabled={!(lockedCards[0] && lockedCards[1]) || makingOffer}
+              isLoading={makingOffer}
+              loadingText="Making Offer..."
+              onClick={onMakeOffer}
+              size="sm"
+            >
               Make Offer
             </Button>
           </VStack>

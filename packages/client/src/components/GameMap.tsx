@@ -61,7 +61,8 @@ export const GameMap = ({
     return getPlayerEntity(address);
   }, [address]);
 
-  const playerExists = useComponentValue(Player, playerEntity)?.value === true;
+  const myPlayerExists =
+    useComponentValue(Player, playerEntity)?.value === true;
 
   const rows = useMemo(
     () => new Array(width).fill(0).map((_, i) => i),
@@ -95,7 +96,7 @@ export const GameMap = ({
           duration: 5000,
           isClosable: true,
         });
-      } else if (!playerExists) {
+      } else if (!myPlayerExists) {
         if (!playerEntity) return;
         setIsSpawning({ x, y });
 
@@ -137,8 +138,8 @@ export const GameMap = ({
       address,
       burnerPlayerEntity,
       gamePlayers,
+      myPlayerExists,
       playerEntity,
-      playerExists,
       spawn,
       SpawnInfo,
       toast,
@@ -186,6 +187,8 @@ export const GameMap = ({
 
         const playersHere = players?.filter(p => p.x === x && p.y === y);
         const molochsHere = molochSoldiers?.filter(m => m.x === x && m.y === y);
+        const allowSpawn =
+          game && playersHere?.length === 0 && molochsHere?.length === 0;
 
         return (
           <Box
@@ -193,10 +196,12 @@ export const GameMap = ({
             key={`${x},${y}`}
             gridColumn={x + 1}
             gridRow={y + 1}
-            onClick={() => (game ? onTileClick?.(x, y, game.id) : undefined)}
+            onClick={() =>
+              allowSpawn ? onTileClick?.(x, y, game.id) : undefined
+            }
             position="relative"
             _hover={
-              !playerExists
+              !myPlayerExists
                 ? {
                     bg: 'green.500',
                     border: '2px solid',
@@ -206,7 +211,7 @@ export const GameMap = ({
                 : {}
             }
             _active={
-              !playerExists
+              !myPlayerExists
                 ? {
                     bg: 'green.600',
                   }
@@ -230,8 +235,8 @@ export const GameMap = ({
     game,
     isSpawning,
     molochSoldiers,
+    myPlayerExists,
     onTileClick,
-    playerExists,
     players,
     rows,
     terrain,

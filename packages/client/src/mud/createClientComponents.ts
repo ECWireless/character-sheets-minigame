@@ -11,6 +11,5 @@ export function createClientComponents({ components }: SetupNetworkResult) {
     Health: overridableComponent(components.Health),
     Player: overridableComponent(components.Player),
     Position: overridableComponent(components.Position),
-    TradeInfo: overridableComponent(components.TradeInfo),
   };
 }

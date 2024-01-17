@@ -26,7 +26,7 @@ ResourceId constant _tableId = ResourceId.wrap(
 ResourceId constant TradeInfoTableId = _tableId;
 
 FieldLayout constant _fieldLayout = FieldLayout.wrap(
-  0x0029030201141400000000000000000000000000000000000000000000000000
+  0x0051050201141414140000000000000000000000000000000000000000000000
 );
 
 library TradeInfo {
@@ -54,12 +54,14 @@ library TradeInfo {
    * @return _valueSchema The value schema for the table.
    */
   function getValueSchema() internal pure returns (Schema) {
-    SchemaType[] memory _valueSchema = new SchemaType[](5);
+    SchemaType[] memory _valueSchema = new SchemaType[](7);
     _valueSchema[0] = SchemaType.BOOL;
     _valueSchema[1] = SchemaType.ADDRESS;
     _valueSchema[2] = SchemaType.ADDRESS;
-    _valueSchema[3] = SchemaType.BYTES;
-    _valueSchema[4] = SchemaType.BYTES;
+    _valueSchema[3] = SchemaType.ADDRESS;
+    _valueSchema[4] = SchemaType.ADDRESS;
+    _valueSchema[5] = SchemaType.BYTES;
+    _valueSchema[6] = SchemaType.BYTES;
 
     return SchemaLib.encode(_valueSchema);
   }
@@ -78,12 +80,14 @@ library TradeInfo {
    * @return fieldNames An array of strings with the names of value fields.
    */
   function getFieldNames() internal pure returns (string[] memory fieldNames) {
-    fieldNames = new string[](5);
+    fieldNames = new string[](7);
     fieldNames[0] = "active";
     fieldNames[1] = "initiatedBy";
     fieldNames[2] = "initiatedWith";
-    fieldNames[3] = "primarySignature";
-    fieldNames[4] = "secondarySignature";
+    fieldNames[3] = "offeredCardPlayer";
+    fieldNames[4] = "requestedCardPlayer";
+    fieldNames[5] = "primarySignature";
+    fieldNames[6] = "secondarySignature";
   }
 
   /**
@@ -224,6 +228,90 @@ library TradeInfo {
     _keyTuple[0] = key;
 
     StoreCore.setStaticField(_tableId, _keyTuple, 2, abi.encodePacked((initiatedWith)), _fieldLayout);
+  }
+
+  /**
+   * @notice Get offeredCardPlayer.
+   */
+  function getOfferedCardPlayer(bytes32 key) internal view returns (address offeredCardPlayer) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 3, _fieldLayout);
+    return (address(bytes20(_blob)));
+  }
+
+  /**
+   * @notice Get offeredCardPlayer.
+   */
+  function _getOfferedCardPlayer(bytes32 key) internal view returns (address offeredCardPlayer) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 3, _fieldLayout);
+    return (address(bytes20(_blob)));
+  }
+
+  /**
+   * @notice Set offeredCardPlayer.
+   */
+  function setOfferedCardPlayer(bytes32 key, address offeredCardPlayer) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    StoreSwitch.setStaticField(_tableId, _keyTuple, 3, abi.encodePacked((offeredCardPlayer)), _fieldLayout);
+  }
+
+  /**
+   * @notice Set offeredCardPlayer.
+   */
+  function _setOfferedCardPlayer(bytes32 key, address offeredCardPlayer) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    StoreCore.setStaticField(_tableId, _keyTuple, 3, abi.encodePacked((offeredCardPlayer)), _fieldLayout);
+  }
+
+  /**
+   * @notice Get requestedCardPlayer.
+   */
+  function getRequestedCardPlayer(bytes32 key) internal view returns (address requestedCardPlayer) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 4, _fieldLayout);
+    return (address(bytes20(_blob)));
+  }
+
+  /**
+   * @notice Get requestedCardPlayer.
+   */
+  function _getRequestedCardPlayer(bytes32 key) internal view returns (address requestedCardPlayer) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 4, _fieldLayout);
+    return (address(bytes20(_blob)));
+  }
+
+  /**
+   * @notice Set requestedCardPlayer.
+   */
+  function setRequestedCardPlayer(bytes32 key, address requestedCardPlayer) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    StoreSwitch.setStaticField(_tableId, _keyTuple, 4, abi.encodePacked((requestedCardPlayer)), _fieldLayout);
+  }
+
+  /**
+   * @notice Set requestedCardPlayer.
+   */
+  function _setRequestedCardPlayer(bytes32 key, address requestedCardPlayer) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    StoreCore.setStaticField(_tableId, _keyTuple, 4, abi.encodePacked((requestedCardPlayer)), _fieldLayout);
   }
 
   /**
@@ -562,6 +650,8 @@ library TradeInfo {
       bool active,
       address initiatedBy,
       address initiatedWith,
+      address offeredCardPlayer,
+      address requestedCardPlayer,
       bytes memory primarySignature,
       bytes memory secondarySignature
     )
@@ -589,6 +679,8 @@ library TradeInfo {
       bool active,
       address initiatedBy,
       address initiatedWith,
+      address offeredCardPlayer,
+      address requestedCardPlayer,
       bytes memory primarySignature,
       bytes memory secondarySignature
     )
@@ -612,10 +704,12 @@ library TradeInfo {
     bool active,
     address initiatedBy,
     address initiatedWith,
+    address offeredCardPlayer,
+    address requestedCardPlayer,
     bytes memory primarySignature,
     bytes memory secondarySignature
   ) internal {
-    bytes memory _staticData = encodeStatic(active, initiatedBy, initiatedWith);
+    bytes memory _staticData = encodeStatic(active, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer);
 
     PackedCounter _encodedLengths = encodeLengths(primarySignature, secondarySignature);
     bytes memory _dynamicData = encodeDynamic(primarySignature, secondarySignature);
@@ -634,10 +728,12 @@ library TradeInfo {
     bool active,
     address initiatedBy,
     address initiatedWith,
+    address offeredCardPlayer,
+    address requestedCardPlayer,
     bytes memory primarySignature,
     bytes memory secondarySignature
   ) internal {
-    bytes memory _staticData = encodeStatic(active, initiatedBy, initiatedWith);
+    bytes memory _staticData = encodeStatic(active, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer);
 
     PackedCounter _encodedLengths = encodeLengths(primarySignature, secondarySignature);
     bytes memory _dynamicData = encodeDynamic(primarySignature, secondarySignature);
@@ -653,12 +749,26 @@ library TradeInfo {
    */
   function decodeStatic(
     bytes memory _blob
-  ) internal pure returns (bool active, address initiatedBy, address initiatedWith) {
+  )
+    internal
+    pure
+    returns (
+      bool active,
+      address initiatedBy,
+      address initiatedWith,
+      address offeredCardPlayer,
+      address requestedCardPlayer
+    )
+  {
     active = (_toBool(uint8(Bytes.slice1(_blob, 0))));
 
     initiatedBy = (address(Bytes.slice20(_blob, 1)));
 
     initiatedWith = (address(Bytes.slice20(_blob, 21)));
+
+    offeredCardPlayer = (address(Bytes.slice20(_blob, 41)));
+
+    requestedCardPlayer = (address(Bytes.slice20(_blob, 61)));
   }
 
   /**
@@ -699,11 +809,13 @@ library TradeInfo {
       bool active,
       address initiatedBy,
       address initiatedWith,
+      address offeredCardPlayer,
+      address requestedCardPlayer,
       bytes memory primarySignature,
       bytes memory secondarySignature
     )
   {
-    (active, initiatedBy, initiatedWith) = decodeStatic(_staticData);
+    (active, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer) = decodeStatic(_staticData);
 
     (primarySignature, secondarySignature) = decodeDynamic(_encodedLengths, _dynamicData);
   }
@@ -732,8 +844,14 @@ library TradeInfo {
    * @notice Tightly pack static (fixed length) data using this table's schema.
    * @return The static data, encoded into a sequence of bytes.
    */
-  function encodeStatic(bool active, address initiatedBy, address initiatedWith) internal pure returns (bytes memory) {
-    return abi.encodePacked(active, initiatedBy, initiatedWith);
+  function encodeStatic(
+    bool active,
+    address initiatedBy,
+    address initiatedWith,
+    address offeredCardPlayer,
+    address requestedCardPlayer
+  ) internal pure returns (bytes memory) {
+    return abi.encodePacked(active, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer);
   }
 
   /**
@@ -771,10 +889,12 @@ library TradeInfo {
     bool active,
     address initiatedBy,
     address initiatedWith,
+    address offeredCardPlayer,
+    address requestedCardPlayer,
     bytes memory primarySignature,
     bytes memory secondarySignature
   ) internal pure returns (bytes memory, PackedCounter, bytes memory) {
-    bytes memory _staticData = encodeStatic(active, initiatedBy, initiatedWith);
+    bytes memory _staticData = encodeStatic(active, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer);
 
     PackedCounter _encodedLengths = encodeLengths(primarySignature, secondarySignature);
     bytes memory _dynamicData = encodeDynamic(primarySignature, secondarySignature);

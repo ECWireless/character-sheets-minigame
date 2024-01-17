@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.0;
 import { System } from "@latticexyz/world/src/System.sol";
-import { addressToEntityKey } from "../lib/addressToEntityKey.sol";
+import { addressToEntityKey, addressesToEntityKey } from "../lib/addressToEntityKey.sol";
 import { positionToEntityKey } from "../lib/positionToEntityKey.sol";
 import { verifyEIP712Signature } from "../lib/signature.sol";
 import {
@@ -46,7 +46,17 @@ contract MapSystem is System {
     return deltaX + deltaY;
   }
 
-  function initiateTrade(address initiatedBy, address initiatedWith) public {
+  function logout(address playerAddress) public {
+    bytes32 player = addressToEntityKey(playerAddress);
+    require(Player.get(player), "not logged in");
+
+    Player.set(player, false);
+    Movable.set(player, false);
+  }
+
+  function makeOffer(address initiatedBy, address initiatedWith, address offeredCardPlayer, address requestedCardPlayer) public {
+    bytes32 tradeEntity = addressesToEntityKey(initiatedBy, initiatedWith);
+
     bytes32 player = addressToEntityKey(initiatedBy);
     require(Player.get(player), "not a player");
 
@@ -56,16 +66,26 @@ contract MapSystem is System {
     bytes32 initiatedWithPlayer = addressToEntityKey(initiatedWith);
     require(Player.get(initiatedWithPlayer), "initiatedWith is not a player");
 
-    TradeInfo.set(player, true, initiatedBy, initiatedWith, "", "");
-    TradeInfo.set(initiatedWithPlayer, true, initiatedBy, initiatedWith, "", "");
-  }
+    (address slotOne, address slotTwo, address slotThree) = PartyInfo.get(player);
 
-  function logout(address playerAddress) public {
-    bytes32 player = addressToEntityKey(playerAddress);
-    require(Player.get(player), "not logged in");
+    uint8 personalCardCount = 0;
+    if (slotOne == initiatedBy) {
+      personalCardCount++;
+    }
+    if (slotTwo == initiatedBy) {
+      personalCardCount++;
+    }
+    if (slotThree == initiatedBy) {
+      personalCardCount++;
+    }
 
-    Player.set(player, false);
-    Movable.set(player, false);
+    require(personalCardCount > 1 || offeredCardPlayer != initiatedBy, "cannot offer last personal card");
+    
+    if (slotOne == address(0)) {
+      PartyInfo.set(player, initiatedBy, initiatedBy, initiatedBy);
+    }
+
+    TradeInfo.set(tradeEntity, true, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer, "", "");
   }
 
   function move(address playerAddress, uint32 x, uint32 y) public {

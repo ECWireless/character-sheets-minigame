@@ -59,6 +59,8 @@ export default mudConfig({
         active: "bool",
         initiatedBy: "address",
         initiatedWith: "address",
+        offeredCardPlayer: "address",
+        requestedCardPlayer: "address",
         primarySignature: "bytes",
         secondarySignature: "bytes",
       },

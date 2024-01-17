@@ -24,7 +24,6 @@ export function createSystemCalls(
     Obstruction,
     Player,
     Position,
-    TradeInfo,
   }: ClientComponents,
 ) {
   const attack = async (playerAddress: string, x: number, y: number) => {
@@ -69,51 +68,6 @@ export function createSystemCalls(
     }
   };
 
-  const initiateTrade = async (initiatedBy: string, initiatedWith: string) => {
-    const playerEntity = getPlayerEntity(initiatedBy);
-    if (!playerEntity) {
-      throw new Error('No player entity');
-    }
-
-    const initiatedWithEntity = getPlayerEntity(initiatedWith);
-    if (!initiatedWithEntity) {
-      throw new Error('No initiatedWith player entity');
-    }
-
-    const tradeInfos = runQuery([
-      Has(TradeInfo),
-      HasValue(TradeInfo, { active: true }),
-    ]);
-    const tradeInfo = Array.from(tradeInfos)[0];
-    if (tradeInfo) {
-      // eslint-disable-next-line no-console
-      console.warn('Trade already active');
-      return;
-    }
-
-    const tradeInfoId = uuid();
-    TradeInfo.addOverride(tradeInfoId, {
-      entity: playerEntity,
-      value: {
-        active: true,
-        initiatedBy: initiatedBy.toLowerCase() as Address,
-        initiatedWith: initiatedWith.toLowerCase() as Address,
-        primarySignature: '',
-        secondarySignature: '',
-      },
-    });
-
-    try {
-      const tx = await worldContract.write.initiateTrade([
-        initiatedBy.toLowerCase() as Address,
-        initiatedWith.toLowerCase() as Address,
-      ]);
-      await waitForTransaction(tx);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
   const isObstructed = (x: number, y: number) => {
     return runQuery([Has(Obstruction), HasValue(Position, { x, y })]).size > 0;
   };
@@ -141,6 +95,37 @@ export function createSystemCalls(
       return getComponentValue(Position, playerEntity);
     } finally {
       Player.removeOverride(playerId);
+    }
+  };
+
+  const makeOffer = async (
+    initiatedBy: string,
+    initiatedWith: string,
+    offeredCardPlayer: string,
+    requestedCardPlayer: string,
+  ) => {
+    const playerEntity = getPlayerEntity(initiatedBy);
+    if (!playerEntity) {
+      throw new Error('No player entity');
+    }
+
+    const initiatedWithEntity = getPlayerEntity(initiatedWith);
+    if (!initiatedWithEntity) {
+      throw new Error('No initiatedWith player entity');
+    }
+
+    try {
+      const tx = await worldContract.write.makeOffer([
+        initiatedBy,
+        initiatedWith,
+        offeredCardPlayer,
+        requestedCardPlayer,
+      ]);
+      await waitForTransaction(tx);
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
     }
   };
 
@@ -312,8 +297,8 @@ export function createSystemCalls(
 
   return {
     attack,
-    initiateTrade,
     logout,
+    makeOffer,
     moveTo,
     moveBy,
     updateBurnerWallet,
