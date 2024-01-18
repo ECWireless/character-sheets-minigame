@@ -121,13 +121,13 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
 
     const allGameCharacters = game?.characters.map(c => c) ?? [];
     const slotOneCharacter = allGameCharacters.find(
-      c => c.player === partyInfo.slotOne,
+      c => c.player.toLowerCase() === partyInfo.slotOne.toLowerCase(),
     );
     const slotTwoCharacter = allGameCharacters.find(
-      c => c.player === partyInfo.slotTwo,
+      c => c.player.toLowerCase() === partyInfo.slotTwo.toLowerCase(),
     );
     const slotThreeCharacter = allGameCharacters.find(
-      c => c.player === partyInfo.slotThree,
+      c => c.player.toLowerCase() === partyInfo.slotThree.toLowerCase(),
     );
 
     const party = [];
@@ -148,13 +148,13 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
 
     const allGameCharacters = game?.characters.map(c => c) ?? [];
     const slotOneCharacter = allGameCharacters.find(
-      c => c.player === partyInfo.slotOne,
+      c => c.player.toLowerCase() === partyInfo.slotOne.toLowerCase(),
     );
     const slotTwoCharacter = allGameCharacters.find(
-      c => c.player === partyInfo.slotTwo,
+      c => c.player.toLowerCase() === partyInfo.slotTwo.toLowerCase(),
     );
     const slotThreeCharacter = allGameCharacters.find(
-      c => c.player === partyInfo.slotThree,
+      c => c.player.toLowerCase() === partyInfo.slotThree.toLowerCase(),
     );
 
     const party = [];

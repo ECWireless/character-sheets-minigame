@@ -26,6 +26,30 @@ export function createSystemCalls(
     Position,
   }: ClientComponents,
 ) {
+  const acceptOffer = async (initiatedBy: string, initiatedWith: string) => {
+    const playerEntity = getPlayerEntity(initiatedBy);
+    if (!playerEntity) {
+      throw new Error('No player entity');
+    }
+
+    const initiatedWithEntity = getPlayerEntity(initiatedWith);
+    if (!initiatedWithEntity) {
+      throw new Error('No initiatedWith player entity');
+    }
+
+    try {
+      const tx = await worldContract.write.acceptOffer([
+        initiatedBy,
+        initiatedWith,
+      ]);
+      await waitForTransaction(tx);
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
   const attack = async (playerAddress: string, x: number, y: number) => {
     const playerEntity = getPlayerEntity(playerAddress);
     if (!playerEntity) {
@@ -296,6 +320,7 @@ export function createSystemCalls(
   };
 
   return {
+    acceptOffer,
     attack,
     logout,
     makeOffer,

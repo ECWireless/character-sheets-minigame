@@ -15,7 +15,10 @@ import {
   Wrap,
   WrapItem,
 } from '@chakra-ui/react';
+import { useEntityQuery } from '@latticexyz/react';
+import { getComponentValueStrict, Has, HasValue } from '@latticexyz/recs';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { getAddress } from 'viem';
 import { useAccount } from 'wagmi';
 
 import villagerImage from '../../assets/villager/villager.png';
@@ -42,14 +45,15 @@ export const TradeTableModal: React.FC = () => {
     selectedCharacterPartyCharacters: otherPartyCharacters,
   } = useRaidParty();
   const {
-    systemCalls: { makeOffer },
+    components: { TradeInfo },
+    systemCalls: { acceptOffer, makeOffer },
   } = useMUD();
   const toast = useToast();
 
   const [mySelectedCard, setMySelectedCard] = useState(1);
   const [otherSelectedCard, setOtherSelectedCard] = useState(1);
   const [lockedCards, setLockedCards] = useState<[number, number]>([0, 0]);
-  const [makingOffer, setMakingOffer] = useState(false);
+  const [isPending, setIsPending] = useState(false);
 
   const {
     getRootProps: getMyClassRootProps,
@@ -276,7 +280,7 @@ export const TradeTableModal: React.FC = () => {
   }, [selectedCharacter, classesWithVillager]);
 
   const onMakeOffer = useCallback(async () => {
-    setMakingOffer(true);
+    setIsPending(true);
 
     try {
       if (!(address && selectedCharacter && character)) {
@@ -332,7 +336,7 @@ export const TradeTableModal: React.FC = () => {
         isClosable: true,
       });
     } finally {
-      setMakingOffer(false);
+      setIsPending(false);
     }
   }, [
     address,
@@ -345,6 +349,61 @@ export const TradeTableModal: React.FC = () => {
     selectedCharacter,
     toast,
   ]);
+
+  const isTradeActive =
+    useEntityQuery([
+      Has(TradeInfo),
+      HasValue(TradeInfo, {
+        active: true,
+        initiatedBy: selectedCharacter
+          ? getAddress(selectedCharacter.player)
+          : '',
+      }),
+    ]).map(entity => {
+      const tradeInfo = getComponentValueStrict(TradeInfo, entity);
+      return {
+        initiatedBy: tradeInfo.initiatedBy,
+        initiatedWith: tradeInfo.initiatedWith,
+      };
+    }).length > 0;
+
+  const onAcceptOffer = useCallback(async () => {
+    setIsPending(true);
+
+    try {
+      if (!(address && selectedCharacter)) {
+        throw new Error('Missing address or selectedCharacter');
+      }
+
+      const success = await acceptOffer(selectedCharacter.player, address);
+
+      if (!success) {
+        throw new Error('Error making offer');
+      }
+
+      toast({
+        title: 'Trade accepted!',
+        status: 'success',
+        position: 'top',
+        duration: 5000,
+        isClosable: true,
+      });
+
+      onClose();
+    } catch (error) {
+      console.error(error);
+
+      toast({
+        title: 'Error accepting trade!',
+        status: 'error',
+        position: 'top',
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsPending(false);
+    }
+  }, [acceptOffer, address, onClose, selectedCharacter, toast]);
 
   if (
     !(
@@ -373,40 +432,69 @@ export const TradeTableModal: React.FC = () => {
           <ModalCloseButton size="lg" />
         </ModalHeader>
         <ModalBody>
-          <VStack mb={8} spacing={4}>
-            {!lockedCards[0] && !lockedCards[1] && (
+          {!isTradeActive && (
+            <VStack mb={8} spacing={4}>
+              {!lockedCards[0] && !lockedCards[1] && (
+                <Text textAlign="center">
+                  Lock in cards from both parties to make a trade offer.
+                </Text>
+              )}
+              {!!lockedCards[0] && !lockedCards[1] && (
+                <Text textAlign="center">
+                  {character.name} is locked in for trade. Please select a card
+                  from other party.
+                </Text>
+              )}
+              {!lockedCards[0] && !!lockedCards[1] && (
+                <Text textAlign="center">
+                  {selectedCharacter.name} is locked in for trade. Please select
+                  a card from your party.
+                </Text>
+              )}
+              {!!lockedCards[0] && !!lockedCards[1] && (
+                <Text textAlign="center">
+                  {character.name} and {selectedCharacter.name} are locked in
+                  for a trade.
+                </Text>
+              )}
+              <Button
+                isDisabled={!(lockedCards[0] && lockedCards[1]) || isPending}
+                isLoading={isPending}
+                loadingText="Making Offer..."
+                onClick={onMakeOffer}
+                size="sm"
+              >
+                Make Offer
+              </Button>
+            </VStack>
+          )}
+          {isTradeActive && (
+            <VStack mb={8} spacing={4}>
               <Text textAlign="center">
-                Lock in cards from both parties to make a trade offer.
+                You can accept or reject this trade offer.
               </Text>
-            )}
-            {!!lockedCards[0] && !lockedCards[1] && (
-              <Text textAlign="center">
-                {character.name} is locked in for trade. Please select a card
-                from other party.
-              </Text>
-            )}
-            {!lockedCards[0] && !!lockedCards[1] && (
-              <Text textAlign="center">
-                {selectedCharacter.name} is locked in for trade. Please select a
-                card from your party.
-              </Text>
-            )}
-            {!!lockedCards[0] && !!lockedCards[1] && (
-              <Text textAlign="center">
-                {character.name} and {selectedCharacter.name} are locked in for
-                a trade.
-              </Text>
-            )}
-            <Button
-              isDisabled={!(lockedCards[0] && lockedCards[1]) || makingOffer}
-              isLoading={makingOffer}
-              loadingText="Making Offer..."
-              onClick={onMakeOffer}
-              size="sm"
-            >
-              Make Offer
-            </Button>
-          </VStack>
+              <HStack>
+                <Button
+                  onClick={() => {
+                    onClose();
+                  }}
+                  size="xs"
+                >
+                  Reject
+                </Button>
+                <Button
+                  isDisabled={isPending}
+                  isLoading={isPending}
+                  loadingText="Accepting Offer..."
+                  onClick={onAcceptOffer}
+                  size="sm"
+                  variant="solid"
+                >
+                  Accept
+                </Button>
+              </HStack>
+            </VStack>
+          )}
           <HStack alignItems="flex-start" spacing={24}>
             <Box w="100%">
               <Text>Your character cards (max of 3):</Text>
@@ -428,26 +516,30 @@ export const TradeTableModal: React.FC = () => {
                   </Box>
                 ))}
               </HStack>
-              <VStack my={8} spacing={4}>
-                <Text>
-                  {!!lockedCards[0]
-                    ? `You have ${character.name} locked for a trade.`
-                    : `Lock ${character.name} to make trade offer.`}
-                </Text>
-                <Button
-                  onClick={() =>
-                    setLockedCards(prev =>
-                      !!lockedCards[0]
-                        ? [0, prev[1]]
-                        : [mySelectedCard, prev[1]],
-                    )
-                  }
-                  size="sm"
-                >
-                  {!!lockedCards[0] ? 'Unlock' : 'Lock'}
-                </Button>
-              </VStack>
-              <Text>{character.name}&apos;s classes:</Text>
+              {!isTradeActive && (
+                <VStack my={8} spacing={4}>
+                  <Text>
+                    {!!lockedCards[0]
+                      ? `You have ${character.name} locked for a trade.`
+                      : `Lock ${character.name} to make trade offer.`}
+                  </Text>
+                  <Button
+                    onClick={() =>
+                      setLockedCards(prev =>
+                        !!lockedCards[0]
+                          ? [0, prev[1]]
+                          : [mySelectedCard, prev[1]],
+                      )
+                    }
+                    size="sm"
+                  >
+                    {!!lockedCards[0] ? 'Unlock' : 'Lock'}
+                  </Button>
+                </VStack>
+              )}
+              <Text mt={isTradeActive ? 8 : 0}>
+                {character.name}&apos;s classes:
+              </Text>
               <Wrap mt={2} spacing={2} {...getMyClassRootProps()}>
                 {myClassOptions.map(value => {
                   const radio = getMyClassRadioProps({ value });
@@ -495,26 +587,30 @@ export const TradeTableModal: React.FC = () => {
                   </Box>
                 ))}
               </HStack>
-              <VStack my={8} spacing={4}>
-                <Text>
-                  {!!lockedCards[1]
-                    ? `You have ${selectedCharacter.name} locked for a trade.`
-                    : `Lock ${selectedCharacter.name} to make trade offer.`}
-                </Text>
-                <Button
-                  onClick={() =>
-                    setLockedCards(prev =>
-                      !!lockedCards[1]
-                        ? [prev[0], 0]
-                        : [prev[0], otherSelectedCard],
-                    )
-                  }
-                  size="sm"
-                >
-                  {!!lockedCards[1] ? 'Unlock' : 'Lock'}
-                </Button>
-              </VStack>
-              <Text>{selectedCharacter.name}&apos;s classes:</Text>
+              {!isTradeActive && (
+                <VStack my={8} spacing={4}>
+                  <Text>
+                    {!!lockedCards[1]
+                      ? `You have ${selectedCharacter.name} locked for a trade.`
+                      : `Lock ${selectedCharacter.name} to make trade offer.`}
+                  </Text>
+                  <Button
+                    onClick={() =>
+                      setLockedCards(prev =>
+                        !!lockedCards[1]
+                          ? [prev[0], 0]
+                          : [prev[0], otherSelectedCard],
+                      )
+                    }
+                    size="sm"
+                  >
+                    {!!lockedCards[1] ? 'Unlock' : 'Lock'}
+                  </Button>
+                </VStack>
+              )}
+              <Text mt={isTradeActive ? 8 : 0}>
+                {selectedCharacter.name}&apos;s classes:
+              </Text>
               <Wrap mt={2} spacing={2} {...getOtherClassRootProps()}>
                 {otherClassOptions.map(value => {
                   const radio = getOtherClassRadioProps({ value });

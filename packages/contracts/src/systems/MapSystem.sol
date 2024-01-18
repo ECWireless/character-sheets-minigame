@@ -20,6 +20,49 @@ import {
 } from "../codegen/index.sol";
 
 contract MapSystem is System {
+  function acceptOffer(address initiatedBy, address initiatedWith) public {
+    bytes32 player = addressToEntityKey(initiatedWith);
+    require(Player.get(player), "not a player");
+
+    bytes32 initiatedByPlayer = addressToEntityKey(initiatedBy);
+    require(Player.get(initiatedByPlayer), "initiatedBy is not a player");
+
+    (address burnerAddress,,) = SpawnInfo.get(player);
+    require(burnerAddress == address(_msgSender()), "not the burner address for this character");
+
+    bytes32 tradeEntity = addressesToEntityKey(initiatedBy, initiatedWith);
+
+    (bool active,,, address offeredCardPlayer, address requestedCardPlayer) = TradeInfo.get(tradeEntity);
+    require(active, "no trade initiated");
+
+    updatePartiesAfterTrade(initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer);
+    TradeInfo.set(tradeEntity, false, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer);
+  }
+
+  function updatePartiesAfterTrade(address initiatedBy, address initiatedWith, address offeredCardPlayer, address requestedCardPlayer) internal {
+    bytes32 initiatedByPlayer = addressToEntityKey(initiatedBy);
+    bytes32 initiatedWithPlayer = addressToEntityKey(initiatedWith);
+
+    (address initiatedBySlotOne, address initiatedBySlotTwo, address initiatedBySlotThree) = PartyInfo.get(initiatedByPlayer);
+    (address initiatedWithSlotOne, address initiatedWithSlotTwo, address initiatedWithSlotThree) = PartyInfo.get(initiatedWithPlayer);
+
+    if (initiatedBySlotThree == offeredCardPlayer) {
+      PartyInfo.set(initiatedByPlayer, initiatedBySlotOne, initiatedBySlotTwo, requestedCardPlayer);
+    } else if (initiatedBySlotTwo == offeredCardPlayer) {
+      PartyInfo.set(initiatedByPlayer, initiatedBySlotOne, requestedCardPlayer, initiatedBySlotThree);
+    } else if (initiatedBySlotOne == offeredCardPlayer) {
+      PartyInfo.set(initiatedByPlayer, requestedCardPlayer, initiatedBySlotTwo, initiatedBySlotThree);
+    }
+
+    if (initiatedWithSlotThree == requestedCardPlayer) {
+      PartyInfo.set(initiatedWithPlayer, initiatedWithSlotOne, initiatedWithSlotTwo, offeredCardPlayer);
+    } else if (initiatedWithSlotTwo == requestedCardPlayer) {
+      PartyInfo.set(initiatedWithPlayer, initiatedWithSlotOne, offeredCardPlayer, initiatedWithSlotThree);
+    } else if (initiatedWithSlotOne == requestedCardPlayer) {
+      PartyInfo.set(initiatedWithPlayer, offeredCardPlayer, initiatedWithSlotTwo, initiatedWithSlotThree);
+    }
+  }
+
   function attack(address playerAddress, uint32 x, uint32 y) public {
     bytes32 player = addressToEntityKey(playerAddress);
     bytes32 molochSoldier = positionToEntityKey(x, y);
