@@ -113,12 +113,16 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
       selectedCharacterEntity,
     )?.value?.toString() ?? '-1';
 
+  const partyInfo = useComponentValue(PartyInfo, playerEntity);
+
   const myPartyCharacters = useMemo(() => {
     if (!(character && playerEntity)) return null;
-
-    const partyInfo = getComponentValue(PartyInfo, playerEntity);
-    if (!partyInfo) return null;
-
+    if (!partyInfo)
+      return [character, character, character] as [
+        Character,
+        Character,
+        Character,
+      ];
     const allGameCharacters = game?.characters.map(c => c) ?? [];
     const slotOneCharacter = allGameCharacters.find(
       c => c.player.toLowerCase() === partyInfo.slotOne.toLowerCase(),
@@ -138,7 +142,7 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
     if (party.length !== 3) return null;
 
     return party as [Character, Character, Character];
-  }, [character, game, PartyInfo, playerEntity]);
+  }, [character, game, partyInfo, playerEntity]);
 
   const selectedCharacterPartyCharacters = useMemo(() => {
     if (!(selectedCharacter && selectedCharacterEntity)) return null;

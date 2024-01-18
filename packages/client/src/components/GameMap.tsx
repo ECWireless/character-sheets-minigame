@@ -1,14 +1,12 @@
 import { Box, Image, Spinner, useToast } from '@chakra-ui/react';
 import { useComponentValue } from '@latticexyz/react';
-import { Entity, getComponentValue } from '@latticexyz/recs';
-import { decodeEntity } from '@latticexyz/store-sync/recs';
+import { Entity } from '@latticexyz/recs';
 import { useCallback, useMemo, useState } from 'react';
 import { useAccount, useWalletClient } from 'wagmi';
 
 import grass1 from '../assets/map/grass1.svg';
 import { useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
-import { getSignatureDetails } from '../lib/web3';
 import { getPlayerEntity } from '../utils/helpers';
 
 type GameMapProps = {
@@ -46,8 +44,7 @@ export const GameMap = ({
   const { address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const {
-    components: { Player, SpawnInfo },
-    network: { playerEntity: burnerPlayerEntity },
+    components: { Movable },
     systemCalls: { spawn },
   } = useMUD();
   const { game } = useGame();
@@ -61,8 +58,8 @@ export const GameMap = ({
     return getPlayerEntity(address);
   }, [address]);
 
-  const myPlayerExists =
-    useComponentValue(Player, playerEntity)?.value === true;
+  const isMyPlayerSpawned =
+    useComponentValue(Movable, playerEntity)?.value === true;
 
   const rows = useMemo(
     () => new Array(width).fill(0).map((_, i) => i),
@@ -79,7 +76,7 @@ export const GameMap = ({
   }, [game]);
 
   const onTileClick = useCallback(
-    async (x: number, y: number, gameAddress: string) => {
+    async (x: number, y: number) => {
       if (!(address && walletClient)) {
         toast({
           title: 'Login to play',
@@ -96,30 +93,12 @@ export const GameMap = ({
           duration: 5000,
           isClosable: true,
         });
-      } else if (!myPlayerExists) {
+      } else if (!isMyPlayerSpawned) {
         if (!playerEntity) return;
         setIsSpawning({ x, y });
 
         try {
-          const currentNonce =
-            getComponentValue(SpawnInfo, playerEntity)?.nonce ?? BigInt(0);
-          const message = {
-            playerAddress: address,
-            burnerAddress: decodeEntity(
-              { address: 'address' },
-              burnerPlayerEntity,
-            ).address,
-            nonce: currentNonce + BigInt(1),
-          };
-          const chainId = walletClient.chain.id;
-          const signatureDetails = getSignatureDetails(chainId);
-          const signature = (await walletClient.signTypedData({
-            domain: signatureDetails.domain,
-            types: signatureDetails.types,
-            primaryType: 'SpawnRequest',
-            message,
-          })) as `0x${string}`;
-          await spawn(chainId, gameAddress, address, x, y, signature);
+          await spawn(address, x, y);
         } catch (e) {
           console.error(e);
           toast({
@@ -136,12 +115,10 @@ export const GameMap = ({
     },
     [
       address,
-      burnerPlayerEntity,
       gamePlayers,
-      myPlayerExists,
+      isMyPlayerSpawned,
       playerEntity,
       spawn,
-      SpawnInfo,
       toast,
       walletClient,
     ],
@@ -196,12 +173,10 @@ export const GameMap = ({
             key={`${x},${y}`}
             gridColumn={x + 1}
             gridRow={y + 1}
-            onClick={() =>
-              allowSpawn ? onTileClick?.(x, y, game.id) : undefined
-            }
+            onClick={() => (allowSpawn ? onTileClick?.(x, y) : undefined)}
             position="relative"
             _hover={
-              !myPlayerExists
+              !isMyPlayerSpawned
                 ? {
                     bg: 'green.500',
                     border: '2px solid',
@@ -211,7 +186,7 @@ export const GameMap = ({
                 : {}
             }
             _active={
-              !myPlayerExists
+              !isMyPlayerSpawned
                 ? {
                     bg: 'green.600',
                   }
@@ -233,9 +208,9 @@ export const GameMap = ({
   }, [
     columns,
     game,
+    isMyPlayerSpawned,
     isSpawning,
     molochSoldiers,
-    myPlayerExists,
     onTileClick,
     players,
     rows,

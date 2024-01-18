@@ -21,7 +21,7 @@ import { decodeEntity, singletonEntity } from '@latticexyz/store-sync/recs';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getAddress, isAddress } from 'viem';
-import { useAccount, useWalletClient } from 'wagmi';
+import { useAccount, useDisconnect, useWalletClient } from 'wagmi';
 
 import { Alert } from '../components/Alert';
 import { ConnectWalletButton } from '../components/ConnectWalletButton';
@@ -35,6 +35,7 @@ import { GameProvider, useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
 import { RaidPartyProvider, useRaidParty } from '../contexts/RaidPartyContext';
 import { getChainIdFromLabel, getSignatureDetails } from '../lib/web3';
+import { getPlayerEntity } from '../utils/helpers';
 
 export const GameView: React.FC = () => {
   const { gameId, chainLabel } = useParams();
@@ -68,7 +69,8 @@ export const GameView: React.FC = () => {
 
 export const GameViewInner: React.FC = () => {
   const { data: walletClient } = useWalletClient();
-  const { isConnected } = useAccount();
+  const { address, isConnected } = useAccount();
+  const { disconnect } = useDisconnect();
   const { onOpenRaidPartyModal } = useRaidParty();
   const toast = useToast();
   const navigate = useNavigate();
@@ -78,9 +80,9 @@ export const GameViewInner: React.FC = () => {
   const rulesModalControls = useDisclosure();
 
   const {
-    components: { CharacterSheetInfo, SpawnInfo, SyncProgress },
-    network: { playerEntity },
-    systemCalls: { updateBurnerWallet },
+    components: { AccountInfo, CharacterSheetInfo, SyncProgress },
+    network: { playerEntity: burnerPlayerEntity },
+    systemCalls: { login, updateBurnerWallet },
   } = useMUD();
 
   const [updateCounter, setUpdateCounter] = useState(0);
@@ -95,28 +97,96 @@ export const GameViewInner: React.FC = () => {
     }),
   ]);
 
+  const playerEntity = useMemo(() => {
+    return getPlayerEntity(address);
+  }, [address]);
+
+  const onLogin = useCallback(async () => {
+    try {
+      if (!(address && walletClient)) {
+        throw new Error('No address or wallet client');
+      }
+
+      if (!game) {
+        throw new Error('No game');
+      }
+
+      if (!playerEntity) {
+        throw new Error('No player entity');
+      }
+
+      const currentNonce =
+        getComponentValue(AccountInfo, playerEntity)?.nonce ?? BigInt(0);
+      const message = {
+        playerAddress: address,
+        burnerAddress: decodeEntity({ address: 'address' }, burnerPlayerEntity)
+          .address,
+        nonce: currentNonce + BigInt(1),
+      };
+      const chainId = walletClient.chain.id;
+      const signatureDetails = getSignatureDetails(chainId);
+      const signature = (await walletClient.signTypedData({
+        domain: signatureDetails.domain,
+        types: signatureDetails.types,
+        primaryType: 'LoginRequest',
+        message,
+      })) as `0x${string}`;
+      await login(chainId, game.id, address, signature);
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: 'Error logging in',
+        status: 'error',
+        position: 'top',
+        duration: 5000,
+        isClosable: true,
+      });
+      disconnect();
+    }
+  }, [
+    AccountInfo,
+    address,
+    burnerPlayerEntity,
+    disconnect,
+    game,
+    login,
+    playerEntity,
+    toast,
+    walletClient,
+  ]);
+
+  useEffect(() => {
+    if (!game) return;
+    if (address && playerEntity && walletClient) {
+      const accountInfo = getComponentValue(AccountInfo, playerEntity);
+      if (!accountInfo) {
+        onLogin();
+      }
+    }
+  }, [AccountInfo, address, game, onLogin, playerEntity, walletClient]);
+
   const needsBurnerAddressUpdate = useMemo(() => {
     if (!walletClient?.account) return false;
     let _needsBurnerAddress = false;
     otherLoggedInAccounts.forEach(entity => {
-      const spawnInfo = getComponentValueStrict(SpawnInfo, entity);
+      const accountInfo = getComponentValueStrict(AccountInfo, entity);
 
       const currentBurnerAddress = decodeEntity(
         { address: 'address' },
-        playerEntity,
+        burnerPlayerEntity,
       ).address;
 
-      if (spawnInfo?.burnerAddress !== currentBurnerAddress) {
+      if (accountInfo?.burnerAddress !== currentBurnerAddress) {
         _needsBurnerAddress = true;
       }
     });
     return _needsBurnerAddress;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
+    AccountInfo,
+    burnerPlayerEntity,
     otherLoggedInAccounts,
-    playerEntity,
     updateCounter,
-    SpawnInfo,
     walletClient,
   ]);
 
@@ -134,11 +204,11 @@ export const GameViewInner: React.FC = () => {
     }
     try {
       const currentNonce =
-        getComponentValue(SpawnInfo, otherLoggedInAccounts[0])?.nonce ??
+        getComponentValue(AccountInfo, otherLoggedInAccounts[0])?.nonce ??
         BigInt(0);
       const message = {
         playerAddress: address,
-        burnerAddress: decodeEntity({ address: 'address' }, playerEntity)
+        burnerAddress: decodeEntity({ address: 'address' }, burnerPlayerEntity)
           .address,
         nonce: currentNonce + BigInt(1),
       };
@@ -147,7 +217,7 @@ export const GameViewInner: React.FC = () => {
       const signature = (await walletClient.signTypedData({
         domain: signatureDetails.domain,
         types: signatureDetails.types,
-        primaryType: 'SpawnRequest',
+        primaryType: 'LoginRequest',
         message,
       })) as `0x${string}`;
 
@@ -172,9 +242,9 @@ export const GameViewInner: React.FC = () => {
       });
     }
   }, [
+    AccountInfo,
+    burnerPlayerEntity,
     otherLoggedInAccounts,
-    playerEntity,
-    SpawnInfo,
     toast,
     updateBurnerWallet,
     walletClient,

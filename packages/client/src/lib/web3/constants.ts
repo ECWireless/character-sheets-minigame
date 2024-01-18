@@ -105,7 +105,7 @@ export const SIGNATURE_DETAILS = {
     chainId: 100,
   } as TypedDataDomain,
   types: {
-    SpawnRequest: [
+    LoginRequest: [
       { name: 'playerAddress', type: 'address' },
       { name: 'burnerAddress', type: 'address' },
       { name: 'nonce', type: 'uint256' },

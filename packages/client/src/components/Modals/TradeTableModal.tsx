@@ -168,7 +168,6 @@ export const TradeTableModal: React.FC = () => {
   const resetData = useCallback(() => {
     setMyClassValue(myAvatarClassId);
     setOtherClassValue(otherAvatarClassId);
-    setLockedCards([0, 0]);
 
     if (isTradeOfferActive) {
       const activeTradeOffers = tradeOffers.filter(t => t.active);
@@ -249,6 +248,7 @@ export const TradeTableModal: React.FC = () => {
     } else {
       setMySelectedCard(1);
       setOtherSelectedCard(1);
+      setLockedCards([0, 0]);
     }
   }, [
     isTradeOfferActive,

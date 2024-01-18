@@ -10,6 +10,8 @@ pragma solidity >=0.8.21;
 interface IMapSystem {
   function attack(address playerAddress, uint32 x, uint32 y) external;
 
+  function login(uint256 chainId, address gameAddress, address playerAddress, bytes calldata signature) external;
+
   function logout(address playerAddress) external;
 
   function move(address playerAddress, uint32 x, uint32 y) external;
@@ -18,14 +20,7 @@ interface IMapSystem {
 
   function setAvatarClass(address playerAddress, uint256 classId) external;
 
-  function spawn(
-    uint256 chainId,
-    address gameAddress,
-    address playerAddress,
-    uint32 x,
-    uint32 y,
-    bytes calldata signature
-  ) external;
+  function spawn(address playerAddress, uint32 x, uint32 y) external;
 
   function updateBurnerWallet(address playerAddress, bytes calldata signature) external;
 }

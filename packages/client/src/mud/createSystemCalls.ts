@@ -21,59 +21,15 @@ export function createSystemCalls(
     Health,
     MapConfig,
     MolochSoldier,
+    Movable,
     Obstruction,
     Player,
     Position,
   }: ClientComponents,
 ) {
-  const acceptOffer = async (initiatedBy: string, initiatedWith: string) => {
-    const playerEntity = getPlayerEntity(initiatedBy);
-    if (!playerEntity) {
-      throw new Error('No player entity');
-    }
-
-    const initiatedWithEntity = getPlayerEntity(initiatedWith);
-    if (!initiatedWithEntity) {
-      throw new Error('No initiatedWith player entity');
-    }
-
-    try {
-      const tx = await worldContract.write.acceptOffer([
-        initiatedBy,
-        initiatedWith,
-      ]);
-      await waitForTransaction(tx);
-      return true;
-    } catch (e) {
-      console.error(e);
-      return false;
-    }
-  };
-
-  const cancelOffer = async (initiatedBy: string, initiatedWith: string) => {
-    const playerEntity = getPlayerEntity(initiatedBy);
-    if (!playerEntity) {
-      throw new Error('No player entity');
-    }
-
-    const initiatedWithEntity = getPlayerEntity(initiatedWith);
-    if (!initiatedWithEntity) {
-      throw new Error('No initiatedWith player entity');
-    }
-
-    try {
-      const tx = await worldContract.write.cancelOffer([
-        initiatedBy,
-        initiatedWith,
-      ]);
-      await waitForTransaction(tx);
-      return true;
-    } catch (e) {
-      console.error(e);
-      return false;
-    }
-  };
-
+  /**
+   * MAP SYSTEMS
+   */
   const attack = async (playerAddress: string, x: number, y: number) => {
     const playerEntity = getPlayerEntity(playerAddress);
     if (!playerEntity) {
@@ -120,6 +76,30 @@ export function createSystemCalls(
     return runQuery([Has(Obstruction), HasValue(Position, { x, y })]).size > 0;
   };
 
+  const login = async (
+    chainId: number,
+    gameAddress: string,
+    playerAddress: string,
+    signature: `0x${string}`,
+  ) => {
+    const playerEntity = getPlayerEntity(playerAddress);
+    if (!playerEntity) {
+      throw new Error('No player entity');
+    }
+
+    try {
+      const tx = await worldContract.write.login([
+        BigInt(chainId),
+        gameAddress.toLowerCase() as Address,
+        playerAddress.toLowerCase() as Address,
+        signature,
+      ]);
+      await waitForTransaction(tx);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const logout = async (playerAddress: string) => {
     const playerEntity = getPlayerEntity(playerAddress);
     if (!playerEntity) {
@@ -128,7 +108,7 @@ export function createSystemCalls(
 
     const canLogout = getComponentValue(Player, playerEntity)?.value === true;
     if (!canLogout) {
-      throw new Error('Not spawned');
+      throw new Error('No account created');
     }
 
     const playerId = uuid();
@@ -252,7 +232,7 @@ export function createSystemCalls(
     const canChangeBurnerWallet =
       getComponentValue(Player, playerEntity)?.value === true;
     if (!canChangeBurnerWallet) {
-      throw new Error('Not spawned');
+      throw new Error('No account created');
     }
 
     try {
@@ -274,6 +254,117 @@ export function createSystemCalls(
       await waitForTransaction(tx);
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const setAvatarClass = async (
+    playerAddress: string,
+    avatarClassId: string,
+  ) => {
+    try {
+      const tx = await worldContract.write.setAvatarClass([
+        playerAddress.toLowerCase() as Address,
+        avatarClassId,
+      ]);
+      await waitForTransaction(tx);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const spawn = async (
+    playerAddress: string,
+    inputX: number,
+    inputY: number,
+  ) => {
+    const playerEntity = getPlayerEntity(playerAddress);
+    if (!playerEntity) {
+      throw new Error('No player entity');
+    }
+
+    const canSpawn = getComponentValue(Movable, playerEntity)?.value !== true;
+    if (!canSpawn) {
+      throw new Error('already spawned');
+    }
+
+    const [x, y] = wrapPosition(inputX, inputY);
+    if (isObstructed(x, y)) {
+      // eslint-disable-next-line no-console
+      console.warn('cannot spawn on obstructed space');
+      return;
+    }
+
+    try {
+      const tx = await worldContract.write.spawn([
+        playerAddress.toLowerCase() as Address,
+        x,
+        y,
+      ]);
+      await waitForTransaction(tx);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const wrapPosition = (x: number, y: number) => {
+    const mapConfig = getComponentValue(MapConfig, singletonEntity);
+    if (!mapConfig) {
+      throw new Error('mapConfig no yet loaded or initialized');
+    }
+    return [
+      (x + mapConfig.width) % mapConfig.width,
+      (y + mapConfig.height) % mapConfig.height,
+    ];
+  };
+
+  /**
+   * TRADE SYSTEMS
+   */
+  const acceptOffer = async (initiatedBy: string, initiatedWith: string) => {
+    const playerEntity = getPlayerEntity(initiatedBy);
+    if (!playerEntity) {
+      throw new Error('No player entity');
+    }
+
+    const initiatedWithEntity = getPlayerEntity(initiatedWith);
+    if (!initiatedWithEntity) {
+      throw new Error('No initiatedWith player entity');
+    }
+
+    try {
+      const tx = await worldContract.write.acceptOffer([
+        initiatedBy,
+        initiatedWith,
+      ]);
+      await waitForTransaction(tx);
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
+  const cancelOffer = async (initiatedBy: string, initiatedWith: string) => {
+    const playerEntity = getPlayerEntity(initiatedBy);
+    if (!playerEntity) {
+      throw new Error('No player entity');
+    }
+
+    const initiatedWithEntity = getPlayerEntity(initiatedWith);
+    if (!initiatedWithEntity) {
+      throw new Error('No initiatedWith player entity');
+    }
+
+    try {
+      const tx = await worldContract.write.cancelOffer([
+        initiatedBy,
+        initiatedWith,
+      ]);
+      await waitForTransaction(tx);
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
     }
   };
 
@@ -301,76 +392,11 @@ export function createSystemCalls(
     }
   };
 
-  const setAvatarClass = async (
-    playerAddress: string,
-    avatarClassId: string,
-  ) => {
-    try {
-      const tx = await worldContract.write.setAvatarClass([
-        playerAddress.toLowerCase() as Address,
-        avatarClassId,
-      ]);
-      await waitForTransaction(tx);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const spawn = async (
-    chainId: number,
-    gameAddress: string,
-    playerAddress: string,
-    inputX: number,
-    inputY: number,
-    signature: `0x${string}`,
-  ) => {
-    const playerEntity = getPlayerEntity(playerAddress);
-    if (!playerEntity) {
-      throw new Error('No player entity');
-    }
-
-    const canSpawn = getComponentValue(Player, playerEntity)?.value !== true;
-    if (!canSpawn) {
-      throw new Error('already spawned');
-    }
-
-    const [x, y] = wrapPosition(inputX, inputY);
-    if (isObstructed(x, y)) {
-      // eslint-disable-next-line no-console
-      console.warn('cannot spawn on obstructed space');
-      return;
-    }
-
-    try {
-      const tx = await worldContract.write.spawn([
-        BigInt(chainId),
-        gameAddress.toLowerCase() as Address,
-        playerAddress.toLowerCase() as Address,
-        x,
-        y,
-        signature,
-      ]);
-      await waitForTransaction(tx);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  const wrapPosition = (x: number, y: number) => {
-    const mapConfig = getComponentValue(MapConfig, singletonEntity);
-    if (!mapConfig) {
-      throw new Error('mapConfig no yet loaded or initialized');
-    }
-    return [
-      (x + mapConfig.width) % mapConfig.width,
-      (y + mapConfig.height) % mapConfig.height,
-    ];
-  };
-
   return {
     acceptOffer,
     cancelOffer,
     attack,
+    login,
     logout,
     makeOffer,
     moveTo,

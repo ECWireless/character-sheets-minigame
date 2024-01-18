@@ -3,9 +3,9 @@ pragma solidity >=0.8.0;
 import { System } from "@latticexyz/world/src/System.sol";
 import { addressToEntityKey, addressesToEntityKey } from "../lib/addressToEntityKey.sol";
 import {
+  AccountInfo,
   PartyInfo,
   Player,
-  SpawnInfo,
   TradeInfo
 } from "../codegen/index.sol";
 
@@ -17,7 +17,7 @@ contract TradeSystem is System {
     bytes32 initiatedByPlayer = addressToEntityKey(initiatedBy);
     require(Player.get(initiatedByPlayer), "initiatedBy is not a player");
 
-    (address burnerAddress,,) = SpawnInfo.get(player);
+    (address burnerAddress,,) = AccountInfo.get(player);
     require(burnerAddress == address(_msgSender()), "not the burner address for this character");
 
     bytes32 tradeEntity = addressesToEntityKey(initiatedBy, initiatedWith);
@@ -39,7 +39,7 @@ contract TradeSystem is System {
     bytes32 initiatedWithPlayer = addressToEntityKey(initiatedWith);
     require(Player.get(initiatedWithPlayer), "initiatedWith is not a player");
 
-    (address burnerAddress,,) = SpawnInfo.get(player);
+    (address burnerAddress,,) = AccountInfo.get(player);
     require(burnerAddress == address(_msgSender()), "not the burner address for this character");
 
     bytes32 tradeEntity = addressesToEntityKey(initiatedBy, initiatedWith);
@@ -72,7 +72,7 @@ contract TradeSystem is System {
     bytes32 initiatedByPlayer = addressToEntityKey(initiatedBy);
     require(Player.get(initiatedByPlayer), "initiatedBy is not a player");
 
-    (address burnerAddress,,) = SpawnInfo.get(player);
+    (address burnerAddress,,) = AccountInfo.get(player);
     require(burnerAddress == address(_msgSender()), "not the burner address for this character");
 
     bytes32 tradeEntity = addressesToEntityKey(initiatedBy, initiatedWith);
@@ -94,7 +94,7 @@ contract TradeSystem is System {
     bytes32 player = addressToEntityKey(initiatedBy);
     require(Player.get(player), "not a player");
 
-    (address burnerAddress,,) = SpawnInfo.get(player);
+    (address burnerAddress,,) = AccountInfo.get(player);
     require(burnerAddress == address(_msgSender()), "not the burner address for this character");
 
     (address playerSlotOne, address playerSlotTwo, address playerSlotThree) = PartyInfo.get(player);
