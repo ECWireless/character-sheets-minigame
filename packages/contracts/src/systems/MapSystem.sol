@@ -31,6 +31,9 @@ contract MapSystem is System {
     require(burnerAddress == address(_msgSender()), "not the burner address for this character");
 
     bytes32 tradeEntity = addressesToEntityKey(initiatedBy, initiatedWith);
+    if (initiatedBy > initiatedWith) {
+      tradeEntity = addressesToEntityKey(initiatedWith, initiatedBy);
+    }
 
     (bool active,,, address offeredCardPlayer, address requestedCardPlayer,,) = TradeInfo.get(tradeEntity);
     require(active, "no trade initiated");
@@ -50,6 +53,9 @@ contract MapSystem is System {
     require(burnerAddress == address(_msgSender()), "not the burner address for this character");
 
     bytes32 tradeEntity = addressesToEntityKey(initiatedBy, initiatedWith);
+    if (initiatedBy > initiatedWith) {
+      tradeEntity = addressesToEntityKey(initiatedWith, initiatedBy);
+    }
 
     (bool active,,, address offeredCardPlayer, address requestedCardPlayer,,) = TradeInfo.get(tradeEntity);
     require(active, "no trade initiated");
@@ -117,6 +123,9 @@ contract MapSystem is System {
 
   function makeOffer(address initiatedBy, address initiatedWith, address offeredCardPlayer, address requestedCardPlayer) public {
     bytes32 tradeEntity = addressesToEntityKey(initiatedBy, initiatedWith);
+    if (initiatedBy > initiatedWith) {
+      tradeEntity = addressesToEntityKey(initiatedWith, initiatedBy);
+    }
 
     offerInitiatedByChecks(initiatedBy, offeredCardPlayer);
     offerInitiatedWithChecks(initiatedWith, requestedCardPlayer);
@@ -214,6 +223,9 @@ contract MapSystem is System {
     require(burnerAddress == address(_msgSender()), "not the burner address for this character");
 
     bytes32 tradeEntity = addressesToEntityKey(initiatedBy, initiatedWith);
+    if (initiatedBy > initiatedWith) {
+      tradeEntity = addressesToEntityKey(initiatedWith, initiatedBy);
+    }
 
     (bool active,,, address offeredCardPlayer, address requestedCardPlayer,,) = TradeInfo.get(tradeEntity);
     require(active, "no trade initiated");

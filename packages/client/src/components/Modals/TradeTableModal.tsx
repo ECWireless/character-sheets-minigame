@@ -61,7 +61,7 @@ export const TradeTableModal: React.FC = () => {
   } = useRaidParty();
   const {
     components: { TradeInfo },
-    systemCalls: { acceptOffer, makeOffer },
+    systemCalls: { acceptOffer, cancelOffer, makeOffer, rejectOffer },
   } = useMUD();
   const toast = useToast();
 
@@ -69,6 +69,7 @@ export const TradeTableModal: React.FC = () => {
   const [otherSelectedCard, setOtherSelectedCard] = useState(1);
   const [lockedCards, setLockedCards] = useState<[number, number]>([0, 0]);
   const [isPending, setIsPending] = useState(false);
+  const [isRejecting, setIsRejecting] = useState(false);
 
   const {
     getRootProps: getMyClassRootProps,
@@ -89,9 +90,11 @@ export const TradeTableModal: React.FC = () => {
     defaultValue: '-1',
   });
 
-  const activeTradeRequests = useMemo(() => {
+  const tradeRequests = useMemo(() => {
     const entities = getEntitiesWithValue(TradeInfo, {
-      active: true,
+      initiatedBy: selectedCharacter
+        ? getAddress(selectedCharacter.player)
+        : '',
       initiatedWith: address ? getAddress(address) : '',
     });
 
@@ -100,16 +103,22 @@ export const TradeTableModal: React.FC = () => {
     return entitiesArray.map(e => {
       const tradeInfo = getComponentValueStrict(TradeInfo, e);
       return {
+        active: tradeInfo.active,
         offeredCardPlayer: tradeInfo.offeredCardPlayer,
         requestedCardPlayer: tradeInfo.requestedCardPlayer,
+        canceled: tradeInfo.canceled,
+        rejected: tradeInfo.rejected,
       };
     });
-  }, [address, TradeInfo]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address, isOpen, TradeInfo]);
 
-  const activeTradeOffers = useMemo(() => {
+  const tradeOffers = useMemo(() => {
     const entities = getEntitiesWithValue(TradeInfo, {
-      active: true,
       initiatedBy: address ? getAddress(address) : '',
+      initiatedWith: selectedCharacter
+        ? getAddress(selectedCharacter.player)
+        : '',
     });
 
     const entitiesArray = Array.from(entities);
@@ -117,25 +126,43 @@ export const TradeTableModal: React.FC = () => {
     return entitiesArray.map(e => {
       const tradeInfo = getComponentValueStrict(TradeInfo, e);
       return {
+        active: tradeInfo.active,
         offeredCardPlayer: tradeInfo.offeredCardPlayer,
         requestedCardPlayer: tradeInfo.requestedCardPlayer,
+        canceled: tradeInfo.canceled,
+        rejected: tradeInfo.rejected,
       };
     });
-  }, [address, TradeInfo]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address, isOpen, TradeInfo]);
 
   const isTradeRequestActive = useMemo(
-    () => activeTradeRequests.length > 0,
-    [activeTradeRequests],
+    () => tradeRequests.filter(tr => tr.active).length > 0,
+    [tradeRequests],
   );
 
   const isTradeOfferActive = useMemo(
-    () => activeTradeOffers.length > 0,
-    [activeTradeOffers],
+    () => tradeOffers.filter(to => to.active).length > 0,
+    [tradeOffers],
   );
 
   const pauseControls = useMemo(
     () => isTradeOfferActive || isTradeRequestActive,
     [isTradeOfferActive, isTradeRequestActive],
+  );
+
+  const isLastTradeCanceled = useMemo(
+    () =>
+      tradeOffers.filter(to => to.canceled).length > 0 ||
+      tradeRequests.filter(tr => tr.canceled).length > 0,
+    [tradeOffers, tradeRequests],
+  );
+
+  const isLastTradeRejected = useMemo(
+    () =>
+      tradeRequests.filter(tr => tr.rejected).length > 0 ||
+      tradeOffers.filter(to => to.rejected).length > 0,
+    [tradeOffers, tradeRequests],
   );
 
   const resetData = useCallback(() => {
@@ -144,6 +171,8 @@ export const TradeTableModal: React.FC = () => {
     setLockedCards([0, 0]);
 
     if (isTradeOfferActive) {
+      const activeTradeOffers = tradeOffers.filter(t => t.active);
+
       let _mySelectedCard = myPartyCharacters?.findIndex(
         c =>
           c.player.toLowerCase() ===
@@ -180,6 +209,8 @@ export const TradeTableModal: React.FC = () => {
       setOtherSelectedCard(_otherSelectedCard);
       setLockedCards([_mySelectedCard, _otherSelectedCard]);
     } else if (isTradeRequestActive) {
+      const activeTradeRequests = tradeRequests.filter(t => t.active);
+
       let _mySelectedCard = myPartyCharacters?.findIndex(
         c =>
           c.player.toLowerCase() ===
@@ -220,8 +251,6 @@ export const TradeTableModal: React.FC = () => {
       setOtherSelectedCard(1);
     }
   }, [
-    activeTradeRequests,
-    activeTradeOffers,
     isTradeOfferActive,
     isTradeRequestActive,
     myAvatarClassId,
@@ -231,6 +260,8 @@ export const TradeTableModal: React.FC = () => {
     setMyClassValue,
     setOtherClassValue,
     toast,
+    tradeOffers,
+    tradeRequests,
   ]);
 
   useEffect(() => {
@@ -534,6 +565,82 @@ export const TradeTableModal: React.FC = () => {
     }
   }, [acceptOffer, address, onClose, selectedCharacter, toast]);
 
+  const onCancelOffer = useCallback(async () => {
+    setIsPending(true);
+
+    try {
+      if (!(address && selectedCharacter)) {
+        throw new Error('Missing address or selectedCharacter');
+      }
+
+      const success = await cancelOffer(address, selectedCharacter.player);
+
+      if (!success) {
+        throw new Error('Error canceling offer');
+      }
+
+      toast({
+        title: 'Trade canceled!',
+        status: 'success',
+        position: 'top',
+        duration: 5000,
+        isClosable: true,
+      });
+
+      onClose();
+    } catch (error) {
+      console.error(error);
+
+      toast({
+        title: 'Error canceling trade!',
+        status: 'error',
+        position: 'top',
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsPending(false);
+    }
+  }, [address, cancelOffer, onClose, selectedCharacter, toast]);
+
+  const onRejectOffer = useCallback(async () => {
+    setIsRejecting(true);
+
+    try {
+      if (!(address && selectedCharacter)) {
+        throw new Error('Missing address or selectedCharacter');
+      }
+
+      const success = await rejectOffer(selectedCharacter.player, address);
+
+      if (!success) {
+        throw new Error('Error rejecting offer');
+      }
+
+      toast({
+        title: 'Trade rejected!',
+        status: 'success',
+        position: 'top',
+        duration: 5000,
+        isClosable: true,
+      });
+
+      onClose();
+    } catch (error) {
+      console.error(error);
+
+      toast({
+        title: 'Error rejecting trade!',
+        status: 'error',
+        position: 'top',
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsRejecting(false);
+    }
+  }, [address, onClose, rejectOffer, selectedCharacter, toast]);
+
   if (
     !(
       address &&
@@ -586,6 +693,16 @@ export const TradeTableModal: React.FC = () => {
                   for a trade.
                 </Text>
               )}
+              {isLastTradeCanceled && (
+                <Text align="center" color="orange" fontSize="sm">
+                  Your last trade was canceled. You can make a new offer.
+                </Text>
+              )}
+              {isLastTradeRejected && (
+                <Text align="center" color="orange" fontSize="sm">
+                  Your last trade was rejected. You can make a new offer.
+                </Text>
+              )}
               <Button
                 isDisabled={!(lockedCards[0] && lockedCards[1]) || isPending}
                 isLoading={isPending}
@@ -604,9 +721,10 @@ export const TradeTableModal: React.FC = () => {
               </Text>
               <HStack>
                 <Button
-                  onClick={() => {
-                    onClose();
-                  }}
+                  isDisabled={isRejecting}
+                  isLoading={isRejecting}
+                  loadingText="Rejecting Offer..."
+                  onClick={onRejectOffer}
                   size="xs"
                 >
                   Reject
@@ -633,7 +751,7 @@ export const TradeTableModal: React.FC = () => {
                 isDisabled={isPending}
                 isLoading={isPending}
                 loadingText="Cancelling Offer..."
-                onClick={onClose}
+                onClick={onCancelOffer}
                 size="sm"
               >
                 Cancel
