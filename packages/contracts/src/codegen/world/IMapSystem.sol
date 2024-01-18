@@ -8,26 +8,13 @@ pragma solidity >=0.8.21;
  * @dev This interface is automatically generated from the corresponding system contract. Do not edit manually.
  */
 interface IMapSystem {
-  function acceptOffer(address initiatedBy, address initiatedWith) external;
-
-  function cancelOffer(address initiatedBy, address initiatedWith) external;
-
   function attack(address playerAddress, uint32 x, uint32 y) external;
 
   function logout(address playerAddress) external;
 
-  function makeOffer(
-    address initiatedBy,
-    address initiatedWith,
-    address offeredCardPlayer,
-    address requestedCardPlayer
-  ) external;
-
   function move(address playerAddress, uint32 x, uint32 y) external;
 
   function removeAvatarClass(address playerAddress) external;
-
-  function rejectOffer(address initiatedBy, address initiatedWith) external;
 
   function setAvatarClass(address playerAddress, uint256 classId) external;
 
