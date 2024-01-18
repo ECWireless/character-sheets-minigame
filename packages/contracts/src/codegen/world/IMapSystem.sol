@@ -10,6 +10,8 @@ pragma solidity >=0.8.21;
 interface IMapSystem {
   function acceptOffer(address initiatedBy, address initiatedWith) external;
 
+  function cancelOffer(address initiatedBy, address initiatedWith) external;
+
   function attack(address playerAddress, uint32 x, uint32 y) external;
 
   function logout(address playerAddress) external;
@@ -24,6 +26,8 @@ interface IMapSystem {
   function move(address playerAddress, uint32 x, uint32 y) external;
 
   function removeAvatarClass(address playerAddress) external;
+
+  function rejectOffer(address initiatedBy, address initiatedWith) external;
 
   function setAvatarClass(address playerAddress, uint256 classId) external;
 

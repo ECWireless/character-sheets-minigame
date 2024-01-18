@@ -50,6 +50,30 @@ export function createSystemCalls(
     }
   };
 
+  const cancelOffer = async (initiatedBy: string, initiatedWith: string) => {
+    const playerEntity = getPlayerEntity(initiatedBy);
+    if (!playerEntity) {
+      throw new Error('No player entity');
+    }
+
+    const initiatedWithEntity = getPlayerEntity(initiatedWith);
+    if (!initiatedWithEntity) {
+      throw new Error('No initiatedWith player entity');
+    }
+
+    try {
+      const tx = await worldContract.write.cancelOffer([
+        initiatedBy,
+        initiatedWith,
+      ]);
+      await waitForTransaction(tx);
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
   const attack = async (playerAddress: string, x: number, y: number) => {
     const playerEntity = getPlayerEntity(playerAddress);
     if (!playerEntity) {
@@ -253,6 +277,30 @@ export function createSystemCalls(
     }
   };
 
+  const rejectOffer = async (initiatedBy: string, initiatedWith: string) => {
+    const playerEntity = getPlayerEntity(initiatedWith);
+    if (!playerEntity) {
+      throw new Error('No player entity');
+    }
+
+    const initiatedByEntity = getPlayerEntity(initiatedBy);
+    if (!initiatedByEntity) {
+      throw new Error('No initiatedBy player entity');
+    }
+
+    try {
+      const tx = await worldContract.write.rejectOffer([
+        initiatedBy,
+        initiatedWith,
+      ]);
+      await waitForTransaction(tx);
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
   const setAvatarClass = async (
     playerAddress: string,
     avatarClassId: string,
@@ -321,6 +369,7 @@ export function createSystemCalls(
 
   return {
     acceptOffer,
+    cancelOffer,
     attack,
     logout,
     makeOffer,
@@ -328,6 +377,7 @@ export function createSystemCalls(
     moveBy,
     updateBurnerWallet,
     removeAvatarClass,
+    rejectOffer,
     setAvatarClass,
     spawn,
   };

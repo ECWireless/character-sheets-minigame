@@ -61,6 +61,8 @@ export default mudConfig({
         initiatedWith: "address",
         offeredCardPlayer: "address",
         requestedCardPlayer: "address",
+        canceled: "bool",
+        rejected: "bool",
       },
     },
   },

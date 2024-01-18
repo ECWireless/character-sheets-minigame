@@ -15,8 +15,10 @@ import {
   Wrap,
   WrapItem,
 } from '@chakra-ui/react';
-import { useEntityQuery } from '@latticexyz/react';
-import { getComponentValueStrict, Has, HasValue } from '@latticexyz/recs';
+import {
+  getComponentValueStrict,
+  getEntitiesWithValue,
+} from '@latticexyz/recs';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getAddress } from 'viem';
 import { useAccount } from 'wagmi';
@@ -31,6 +33,19 @@ import { useMUD } from '../../contexts/MUDContext';
 import { useRaidParty } from '../../contexts/RaidPartyContext';
 import { CLASS_STATS, WEARABLE_STATS } from '../../utils/constants';
 import { Character, EquippableTraitType, Stats } from '../../utils/types';
+
+const reversePartyIndex = (index: number): number => {
+  switch (index) {
+    case 1:
+      return 3;
+    case 2:
+      return 2;
+    case 3:
+      return 1;
+    default:
+      return 1;
+  }
+};
 
 export const TradeTableModal: React.FC = () => {
   const { address } = useAccount();
@@ -74,17 +89,148 @@ export const TradeTableModal: React.FC = () => {
     defaultValue: '-1',
   });
 
+  const activeTradeRequests = useMemo(() => {
+    const entities = getEntitiesWithValue(TradeInfo, {
+      active: true,
+      initiatedWith: address ? getAddress(address) : '',
+    });
+
+    const entitiesArray = Array.from(entities);
+
+    return entitiesArray.map(e => {
+      const tradeInfo = getComponentValueStrict(TradeInfo, e);
+      return {
+        offeredCardPlayer: tradeInfo.offeredCardPlayer,
+        requestedCardPlayer: tradeInfo.requestedCardPlayer,
+      };
+    });
+  }, [address, TradeInfo]);
+
+  const activeTradeOffers = useMemo(() => {
+    const entities = getEntitiesWithValue(TradeInfo, {
+      active: true,
+      initiatedBy: address ? getAddress(address) : '',
+    });
+
+    const entitiesArray = Array.from(entities);
+
+    return entitiesArray.map(e => {
+      const tradeInfo = getComponentValueStrict(TradeInfo, e);
+      return {
+        offeredCardPlayer: tradeInfo.offeredCardPlayer,
+        requestedCardPlayer: tradeInfo.requestedCardPlayer,
+      };
+    });
+  }, [address, TradeInfo]);
+
+  const isTradeRequestActive = useMemo(
+    () => activeTradeRequests.length > 0,
+    [activeTradeRequests],
+  );
+
+  const isTradeOfferActive = useMemo(
+    () => activeTradeOffers.length > 0,
+    [activeTradeOffers],
+  );
+
+  const pauseControls = useMemo(
+    () => isTradeOfferActive || isTradeRequestActive,
+    [isTradeOfferActive, isTradeRequestActive],
+  );
+
   const resetData = useCallback(() => {
     setMyClassValue(myAvatarClassId);
     setOtherClassValue(otherAvatarClassId);
-    setMySelectedCard(1);
-    setOtherSelectedCard(1);
     setLockedCards([0, 0]);
+
+    if (isTradeOfferActive) {
+      let _mySelectedCard = myPartyCharacters?.findIndex(
+        c =>
+          c.player.toLowerCase() ===
+          activeTradeOffers[0]?.offeredCardPlayer.toLowerCase(),
+      );
+      let _otherSelectedCard = otherPartyCharacters?.findIndex(
+        c =>
+          c.player.toLowerCase() ===
+          activeTradeOffers[0]?.requestedCardPlayer.toLowerCase(),
+      );
+
+      if (
+        _mySelectedCard === undefined ||
+        _mySelectedCard < 0 ||
+        _otherSelectedCard === undefined ||
+        _otherSelectedCard < 0
+      ) {
+        setMySelectedCard(1);
+        setOtherSelectedCard(1);
+        toast({
+          title: 'Error loading trade offer!',
+          status: 'error',
+          position: 'top',
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      _mySelectedCard = reversePartyIndex(_mySelectedCard + 1);
+      _otherSelectedCard = reversePartyIndex(_otherSelectedCard + 1);
+
+      setMySelectedCard(_mySelectedCard);
+      setOtherSelectedCard(_otherSelectedCard);
+      setLockedCards([_mySelectedCard, _otherSelectedCard]);
+    } else if (isTradeRequestActive) {
+      let _mySelectedCard = myPartyCharacters?.findIndex(
+        c =>
+          c.player.toLowerCase() ===
+          activeTradeRequests[0]?.requestedCardPlayer.toLowerCase(),
+      );
+      let _otherSelectedCard = otherPartyCharacters?.findIndex(
+        c =>
+          c.player.toLowerCase() ===
+          activeTradeRequests[0]?.offeredCardPlayer.toLowerCase(),
+      );
+
+      if (
+        _mySelectedCard === undefined ||
+        _mySelectedCard < 0 ||
+        _otherSelectedCard === undefined ||
+        _otherSelectedCard < 0
+      ) {
+        setMySelectedCard(1);
+        setOtherSelectedCard(1);
+        toast({
+          title: 'Error loading trade request!',
+          status: 'error',
+          position: 'top',
+          duration: 5000,
+          isClosable: true,
+        });
+        return;
+      }
+
+      _mySelectedCard = reversePartyIndex(_mySelectedCard + 1);
+      _otherSelectedCard = reversePartyIndex(_otherSelectedCard + 1);
+
+      setMySelectedCard(_mySelectedCard);
+      setOtherSelectedCard(_otherSelectedCard);
+      setLockedCards([_mySelectedCard, _otherSelectedCard]);
+    } else {
+      setMySelectedCard(1);
+      setOtherSelectedCard(1);
+    }
   }, [
+    activeTradeRequests,
+    activeTradeOffers,
+    isTradeOfferActive,
+    isTradeRequestActive,
     myAvatarClassId,
+    myPartyCharacters,
     otherAvatarClassId,
+    otherPartyCharacters,
     setMyClassValue,
     setOtherClassValue,
+    toast,
   ]);
 
   useEffect(() => {
@@ -350,23 +496,6 @@ export const TradeTableModal: React.FC = () => {
     toast,
   ]);
 
-  const isTradeActive =
-    useEntityQuery([
-      Has(TradeInfo),
-      HasValue(TradeInfo, {
-        active: true,
-        initiatedBy: selectedCharacter
-          ? getAddress(selectedCharacter.player)
-          : '',
-      }),
-    ]).map(entity => {
-      const tradeInfo = getComponentValueStrict(TradeInfo, entity);
-      return {
-        initiatedBy: tradeInfo.initiatedBy,
-        initiatedWith: tradeInfo.initiatedWith,
-      };
-    }).length > 0;
-
   const onAcceptOffer = useCallback(async () => {
     setIsPending(true);
 
@@ -432,7 +561,7 @@ export const TradeTableModal: React.FC = () => {
           <ModalCloseButton size="lg" />
         </ModalHeader>
         <ModalBody>
-          {!isTradeActive && (
+          {!pauseControls && (
             <VStack mb={8} spacing={4}>
               {!lockedCards[0] && !lockedCards[1] && (
                 <Text textAlign="center">
@@ -468,7 +597,7 @@ export const TradeTableModal: React.FC = () => {
               </Button>
             </VStack>
           )}
-          {isTradeActive && (
+          {isTradeRequestActive && (
             <VStack mb={8} spacing={4}>
               <Text textAlign="center">
                 You can accept or reject this trade offer.
@@ -495,6 +624,22 @@ export const TradeTableModal: React.FC = () => {
               </HStack>
             </VStack>
           )}
+          {isTradeOfferActive && (
+            <VStack mb={8} spacing={4}>
+              <Text textAlign="center">
+                Trade is active, but you can cancel by clicking below.
+              </Text>
+              <Button
+                isDisabled={isPending}
+                isLoading={isPending}
+                loadingText="Cancelling Offer..."
+                onClick={onClose}
+                size="sm"
+              >
+                Cancel
+              </Button>
+            </VStack>
+          )}
           <HStack alignItems="flex-start" spacing={24}>
             <Box w="100%">
               <Text>Your character cards (max of 3):</Text>
@@ -516,7 +661,7 @@ export const TradeTableModal: React.FC = () => {
                   </Box>
                 ))}
               </HStack>
-              {!isTradeActive && (
+              {!pauseControls && (
                 <VStack my={8} spacing={4}>
                   <Text>
                     {!!lockedCards[0]
@@ -537,7 +682,7 @@ export const TradeTableModal: React.FC = () => {
                   </Button>
                 </VStack>
               )}
-              <Text mt={isTradeActive ? 8 : 0}>
+              <Text mt={pauseControls ? 8 : 0}>
                 {character.name}&apos;s classes:
               </Text>
               <Wrap mt={2} spacing={2} {...getMyClassRootProps()}>
@@ -587,7 +732,7 @@ export const TradeTableModal: React.FC = () => {
                   </Box>
                 ))}
               </HStack>
-              {!isTradeActive && (
+              {!pauseControls && (
                 <VStack my={8} spacing={4}>
                   <Text>
                     {!!lockedCards[1]
@@ -608,7 +753,7 @@ export const TradeTableModal: React.FC = () => {
                   </Button>
                 </VStack>
               )}
-              <Text mt={isTradeActive ? 8 : 0}>
+              <Text mt={pauseControls ? 8 : 0}>
                 {selectedCharacter.name}&apos;s classes:
               </Text>
               <Wrap mt={2} spacing={2} {...getOtherClassRootProps()}>

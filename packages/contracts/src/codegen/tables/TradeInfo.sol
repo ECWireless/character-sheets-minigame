@@ -26,7 +26,7 @@ ResourceId constant _tableId = ResourceId.wrap(
 ResourceId constant TradeInfoTableId = _tableId;
 
 FieldLayout constant _fieldLayout = FieldLayout.wrap(
-  0x0051050001141414140000000000000000000000000000000000000000000000
+  0x0053070001141414140101000000000000000000000000000000000000000000
 );
 
 library TradeInfo {
@@ -54,12 +54,14 @@ library TradeInfo {
    * @return _valueSchema The value schema for the table.
    */
   function getValueSchema() internal pure returns (Schema) {
-    SchemaType[] memory _valueSchema = new SchemaType[](5);
+    SchemaType[] memory _valueSchema = new SchemaType[](7);
     _valueSchema[0] = SchemaType.BOOL;
     _valueSchema[1] = SchemaType.ADDRESS;
     _valueSchema[2] = SchemaType.ADDRESS;
     _valueSchema[3] = SchemaType.ADDRESS;
     _valueSchema[4] = SchemaType.ADDRESS;
+    _valueSchema[5] = SchemaType.BOOL;
+    _valueSchema[6] = SchemaType.BOOL;
 
     return SchemaLib.encode(_valueSchema);
   }
@@ -78,12 +80,14 @@ library TradeInfo {
    * @return fieldNames An array of strings with the names of value fields.
    */
   function getFieldNames() internal pure returns (string[] memory fieldNames) {
-    fieldNames = new string[](5);
+    fieldNames = new string[](7);
     fieldNames[0] = "active";
     fieldNames[1] = "initiatedBy";
     fieldNames[2] = "initiatedWith";
     fieldNames[3] = "offeredCardPlayer";
     fieldNames[4] = "requestedCardPlayer";
+    fieldNames[5] = "canceled";
+    fieldNames[6] = "rejected";
   }
 
   /**
@@ -311,6 +315,90 @@ library TradeInfo {
   }
 
   /**
+   * @notice Get canceled.
+   */
+  function getCanceled(bytes32 key) internal view returns (bool canceled) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 5, _fieldLayout);
+    return (_toBool(uint8(bytes1(_blob))));
+  }
+
+  /**
+   * @notice Get canceled.
+   */
+  function _getCanceled(bytes32 key) internal view returns (bool canceled) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 5, _fieldLayout);
+    return (_toBool(uint8(bytes1(_blob))));
+  }
+
+  /**
+   * @notice Set canceled.
+   */
+  function setCanceled(bytes32 key, bool canceled) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    StoreSwitch.setStaticField(_tableId, _keyTuple, 5, abi.encodePacked((canceled)), _fieldLayout);
+  }
+
+  /**
+   * @notice Set canceled.
+   */
+  function _setCanceled(bytes32 key, bool canceled) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    StoreCore.setStaticField(_tableId, _keyTuple, 5, abi.encodePacked((canceled)), _fieldLayout);
+  }
+
+  /**
+   * @notice Get rejected.
+   */
+  function getRejected(bytes32 key) internal view returns (bool rejected) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 6, _fieldLayout);
+    return (_toBool(uint8(bytes1(_blob))));
+  }
+
+  /**
+   * @notice Get rejected.
+   */
+  function _getRejected(bytes32 key) internal view returns (bool rejected) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 6, _fieldLayout);
+    return (_toBool(uint8(bytes1(_blob))));
+  }
+
+  /**
+   * @notice Set rejected.
+   */
+  function setRejected(bytes32 key, bool rejected) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    StoreSwitch.setStaticField(_tableId, _keyTuple, 6, abi.encodePacked((rejected)), _fieldLayout);
+  }
+
+  /**
+   * @notice Set rejected.
+   */
+  function _setRejected(bytes32 key, bool rejected) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    StoreCore.setStaticField(_tableId, _keyTuple, 6, abi.encodePacked((rejected)), _fieldLayout);
+  }
+
+  /**
    * @notice Get the full data.
    */
   function get(
@@ -323,7 +411,9 @@ library TradeInfo {
       address initiatedBy,
       address initiatedWith,
       address offeredCardPlayer,
-      address requestedCardPlayer
+      address requestedCardPlayer,
+      bool canceled,
+      bool rejected
     )
   {
     bytes32[] memory _keyTuple = new bytes32[](1);
@@ -350,7 +440,9 @@ library TradeInfo {
       address initiatedBy,
       address initiatedWith,
       address offeredCardPlayer,
-      address requestedCardPlayer
+      address requestedCardPlayer,
+      bool canceled,
+      bool rejected
     )
   {
     bytes32[] memory _keyTuple = new bytes32[](1);
@@ -373,9 +465,19 @@ library TradeInfo {
     address initiatedBy,
     address initiatedWith,
     address offeredCardPlayer,
-    address requestedCardPlayer
+    address requestedCardPlayer,
+    bool canceled,
+    bool rejected
   ) internal {
-    bytes memory _staticData = encodeStatic(active, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer);
+    bytes memory _staticData = encodeStatic(
+      active,
+      initiatedBy,
+      initiatedWith,
+      offeredCardPlayer,
+      requestedCardPlayer,
+      canceled,
+      rejected
+    );
 
     PackedCounter _encodedLengths;
     bytes memory _dynamicData;
@@ -395,9 +497,19 @@ library TradeInfo {
     address initiatedBy,
     address initiatedWith,
     address offeredCardPlayer,
-    address requestedCardPlayer
+    address requestedCardPlayer,
+    bool canceled,
+    bool rejected
   ) internal {
-    bytes memory _staticData = encodeStatic(active, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer);
+    bytes memory _staticData = encodeStatic(
+      active,
+      initiatedBy,
+      initiatedWith,
+      offeredCardPlayer,
+      requestedCardPlayer,
+      canceled,
+      rejected
+    );
 
     PackedCounter _encodedLengths;
     bytes memory _dynamicData;
@@ -421,7 +533,9 @@ library TradeInfo {
       address initiatedBy,
       address initiatedWith,
       address offeredCardPlayer,
-      address requestedCardPlayer
+      address requestedCardPlayer,
+      bool canceled,
+      bool rejected
     )
   {
     active = (_toBool(uint8(Bytes.slice1(_blob, 0))));
@@ -433,6 +547,10 @@ library TradeInfo {
     offeredCardPlayer = (address(Bytes.slice20(_blob, 41)));
 
     requestedCardPlayer = (address(Bytes.slice20(_blob, 61)));
+
+    canceled = (_toBool(uint8(Bytes.slice1(_blob, 81))));
+
+    rejected = (_toBool(uint8(Bytes.slice1(_blob, 82))));
   }
 
   /**
@@ -453,10 +571,14 @@ library TradeInfo {
       address initiatedBy,
       address initiatedWith,
       address offeredCardPlayer,
-      address requestedCardPlayer
+      address requestedCardPlayer,
+      bool canceled,
+      bool rejected
     )
   {
-    (active, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer) = decodeStatic(_staticData);
+    (active, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer, canceled, rejected) = decodeStatic(
+      _staticData
+    );
   }
 
   /**
@@ -488,9 +610,12 @@ library TradeInfo {
     address initiatedBy,
     address initiatedWith,
     address offeredCardPlayer,
-    address requestedCardPlayer
+    address requestedCardPlayer,
+    bool canceled,
+    bool rejected
   ) internal pure returns (bytes memory) {
-    return abi.encodePacked(active, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer);
+    return
+      abi.encodePacked(active, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer, canceled, rejected);
   }
 
   /**
@@ -504,9 +629,19 @@ library TradeInfo {
     address initiatedBy,
     address initiatedWith,
     address offeredCardPlayer,
-    address requestedCardPlayer
+    address requestedCardPlayer,
+    bool canceled,
+    bool rejected
   ) internal pure returns (bytes memory, PackedCounter, bytes memory) {
-    bytes memory _staticData = encodeStatic(active, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer);
+    bytes memory _staticData = encodeStatic(
+      active,
+      initiatedBy,
+      initiatedWith,
+      offeredCardPlayer,
+      requestedCardPlayer,
+      canceled,
+      rejected
+    );
 
     PackedCounter _encodedLengths;
     bytes memory _dynamicData;

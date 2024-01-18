@@ -32,11 +32,29 @@ contract MapSystem is System {
 
     bytes32 tradeEntity = addressesToEntityKey(initiatedBy, initiatedWith);
 
-    (bool active,,, address offeredCardPlayer, address requestedCardPlayer) = TradeInfo.get(tradeEntity);
+    (bool active,,, address offeredCardPlayer, address requestedCardPlayer,,) = TradeInfo.get(tradeEntity);
     require(active, "no trade initiated");
 
     updatePartiesAfterTrade(initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer);
-    TradeInfo.set(tradeEntity, false, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer);
+    TradeInfo.set(tradeEntity, false, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer, false, false);
+  }
+
+  function cancelOffer(address initiatedBy, address initiatedWith) public {
+    bytes32 player = addressToEntityKey(initiatedBy);
+    require(Player.get(player), "not a player");
+
+    bytes32 initiatedWithPlayer = addressToEntityKey(initiatedWith);
+    require(Player.get(initiatedWithPlayer), "initiatedWith is not a player");
+
+    (address burnerAddress,,) = SpawnInfo.get(player);
+    require(burnerAddress == address(_msgSender()), "not the burner address for this character");
+
+    bytes32 tradeEntity = addressesToEntityKey(initiatedBy, initiatedWith);
+
+    (bool active,,, address offeredCardPlayer, address requestedCardPlayer,,) = TradeInfo.get(tradeEntity);
+    require(active, "no trade initiated");
+
+    TradeInfo.set(tradeEntity, false, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer, true, false);
   }
 
   function updatePartiesAfterTrade(address initiatedBy, address initiatedWith, address offeredCardPlayer, address requestedCardPlayer) internal {
@@ -103,7 +121,7 @@ contract MapSystem is System {
     offerInitiatedByChecks(initiatedBy, offeredCardPlayer);
     offerInitiatedWithChecks(initiatedWith, requestedCardPlayer);
 
-    TradeInfo.set(tradeEntity, true, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer);
+    TradeInfo.set(tradeEntity, true, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer, false, false);
   }
 
   function offerInitiatedByChecks(address initiatedBy, address offeredCardPlayer) internal {
@@ -183,6 +201,24 @@ contract MapSystem is System {
   function removeAvatarClass(address playerAddress) public {
     bytes32 player = addressToEntityKey(playerAddress);
     AvatarClass.deleteRecord(player);
+  }
+
+  function rejectOffer(address initiatedBy, address initiatedWith) public {
+    bytes32 player = addressToEntityKey(initiatedWith);
+    require(Player.get(player), "not a player");
+
+    bytes32 initiatedByPlayer = addressToEntityKey(initiatedBy);
+    require(Player.get(initiatedByPlayer), "initiatedBy is not a player");
+
+    (address burnerAddress,,) = SpawnInfo.get(player);
+    require(burnerAddress == address(_msgSender()), "not the burner address for this character");
+
+    bytes32 tradeEntity = addressesToEntityKey(initiatedBy, initiatedWith);
+
+    (bool active,,, address offeredCardPlayer, address requestedCardPlayer,,) = TradeInfo.get(tradeEntity);
+    require(active, "no trade initiated");
+
+    TradeInfo.set(tradeEntity, false, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer, false, true);
   }
 
   function setAvatarClass(address playerAddress,  uint256 classId) public {
