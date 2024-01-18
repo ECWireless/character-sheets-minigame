@@ -5,7 +5,7 @@ function verifyEIP712Signature(address signer, bytes calldata signature, address
   bytes32 structHash = keccak256(
     abi.encode(
       keccak256(
-        "SpawnRequest(address playerAddress,address burnerAddress,uint256 nonce)"
+        "LoginRequest(address playerAddress,address burnerAddress,uint256 nonce)"
       ),
       playerAddress,
       burnerAddress,

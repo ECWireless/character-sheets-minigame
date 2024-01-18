@@ -15,47 +15,51 @@ import {
   Wrap,
   WrapItem,
 } from '@chakra-ui/react';
+import { useEntityQuery } from '@latticexyz/react';
+import { Has, HasValue } from '@latticexyz/recs';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
 
 import villagerImage from '../../assets/villager/villager.png';
 import { CharacterCardSmall } from '../../components/CharacterCard';
+import { CharacterStats } from '../../components/CharacterStats';
 import { ClassTag } from '../../components/ClassTag';
 import { RadioOption } from '../../components/RadioOption';
-import { useGame } from '../../contexts/GameContext';
 import { useMUD } from '../../contexts/MUDContext';
 import { useRaidParty } from '../../contexts/RaidPartyContext';
-import {
-  CLASS_STATS,
-  WEAPON_STATS,
-  WEARABLE_STATS,
-} from '../../utils/constants';
+import { CLASS_STATS, WEARABLE_STATS } from '../../utils/constants';
 import { EquippableTraitType } from '../../utils/types';
 
-type RaidPartyModalProps = {
-  isOpen: boolean;
-  onClose: () => void;
-};
-
-export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
-  isOpen,
-  onClose,
-}) => {
+export const RaidPartyModal: React.FC = () => {
   const { address } = useAccount();
-  const { character } = useGame();
   const {
+    components: { CharacterSheetInfo, TradeInfo },
     systemCalls: { removeAvatarClass, setAvatarClass },
   } = useMUD();
-  const { avatarClassId } = useRaidParty();
+  const {
+    myAvatarClassId,
+    isMyCharacterSelected,
+    isRaidPartyModalOpen: isOpen,
+    onCloseRaidPartyModal: onClose,
+    onOpenTradeTableModal: onOpenTradeModal,
+    selectedCharacter,
+    selectedCharacterAvatarClassId: otherAvatarClassId,
+    selectedCharacterPartyCharacters: potentialPartyCharacters,
+  } = useRaidParty();
   const toast = useToast();
+
+  const partyCharacters = useMemo(() => {
+    if (!selectedCharacter) {
+      return [];
+    } else if (!potentialPartyCharacters) {
+      return [selectedCharacter, selectedCharacter, selectedCharacter];
+    } else {
+      return potentialPartyCharacters;
+    }
+  }, [potentialPartyCharacters, selectedCharacter]);
 
   const [isSaving, setIsSaving] = useState(false);
   const [selectedCard, setSelectedCard] = useState(0);
-
-  const partyCharacters = useMemo(() => {
-    if (!character) return [];
-    return [character, character, character];
-  }, [character]);
 
   const { getRootProps, getRadioProps, setValue, value } = useRadioGroup({
     name: 'avatar class',
@@ -63,8 +67,8 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
   });
 
   const equippedWeapons = useMemo(() => {
-    if (!character) return null;
-    const { equippedItems } = character;
+    if (!selectedCharacter) return null;
+    const { equippedItems } = selectedCharacter;
     return equippedItems.filter(
       item =>
         item.attributes.find(
@@ -73,11 +77,11 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
             a.value === EquippableTraitType.EQUIPPED_ITEM_2,
         ) !== undefined,
     );
-  }, [character]);
+  }, [selectedCharacter]);
 
   const equippedWearable = useMemo(() => {
-    if (!character) return null;
-    const { equippedItems } = character;
+    if (!selectedCharacter) return null;
+    const { equippedItems } = selectedCharacter;
     return (
       equippedItems.find(
         item =>
@@ -86,7 +90,7 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
           ) !== undefined,
       ) ?? null
     );
-  }, [character]);
+  }, [selectedCharacter]);
 
   const wearableBonuses = useMemo(() => {
     if (!equippedWearable) return null;
@@ -107,7 +111,7 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
   }, [equippedWearable]);
 
   const characterStats = useMemo(() => {
-    if (!character) return null;
+    if (!selectedCharacter) return null;
 
     if (value === '-1') {
       return {
@@ -130,9 +134,9 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
       specialAttack: specialAttack + (wearableBonuses?.specialAttack ?? 0),
       specialDefense: specialDefense + (wearableBonuses?.specialDefense ?? 0),
     };
-  }, [character, value, wearableBonuses]);
+  }, [selectedCharacter, value, wearableBonuses]);
 
-  const { classes } = character ?? {};
+  const { classes } = selectedCharacter ?? {};
   const classesWithVillager = useMemo(() => {
     if (!classes) return [];
     const villagerClass = {
@@ -156,8 +160,8 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
   }, [classesWithVillager]);
 
   const resetData = useCallback(() => {
-    setValue(avatarClassId);
-  }, [avatarClassId, setValue]);
+    setValue(myAvatarClassId);
+  }, [myAvatarClassId, setValue]);
 
   useEffect(() => {
     if (isOpen) {
@@ -166,11 +170,11 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
   }, [resetData, isOpen]);
 
   const hasChanged = useMemo(() => {
-    return avatarClassId !== value;
-  }, [avatarClassId, value]);
+    return myAvatarClassId !== value;
+  }, [myAvatarClassId, value]);
 
   const onSetAvatarClass = useCallback(async () => {
-    if (!(address && character && classes)) return;
+    if (!(address && selectedCharacter && classes)) return;
     setIsSaving(true);
 
     try {
@@ -203,16 +207,22 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
     }
   }, [
     address,
-    character,
     classes,
     onClose,
     removeAvatarClass,
+    selectedCharacter,
     setAvatarClass,
     toast,
     value,
   ]);
 
-  if (!(address && character && classes)) return null;
+  const isTradeActive =
+    useEntityQuery([
+      HasValue(TradeInfo, { active: true }),
+      Has(CharacterSheetInfo),
+    ]).length > 0;
+
+  if (!(address && classes && selectedCharacter)) return null;
 
   return (
     <Modal closeOnEsc closeOnOverlayClick isOpen={isOpen} onClose={onClose}>
@@ -225,34 +235,59 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
           <ModalCloseButton size="lg" />
         </ModalHeader>
         <ModalBody>
-          <Text>Select a class-based avatar:</Text>
-          <Wrap mt={2} spacing={2} {...getRootProps()}>
-            {options.map(value => {
-              const radio = getRadioProps({ value });
-              const _class = classesWithVillager.find(c => c.classId === value);
-              if (!_class) return null;
+          {isMyCharacterSelected && (
+            <>
+              <Text>Select a class-based avatar:</Text>
+              <Wrap mt={2} spacing={2} {...getRootProps()}>
+                {options.map(value => {
+                  const radio = getRadioProps({ value });
+                  const _class = classesWithVillager.find(
+                    c => c.classId === value,
+                  );
+                  if (!_class) return null;
 
-              return (
-                <WrapItem key={_class.classId + _class.name}>
-                  <RadioOption {...radio}>
-                    <ClassTag {..._class} size="md" />
-                  </RadioOption>
-                </WrapItem>
-              );
-            })}
-          </Wrap>
-          <HStack justifyContent="flex-end" mt={4}>
-            <Button
-              isLoading={isSaving}
-              loadingText="Saving..."
-              isDisabled={!hasChanged}
-              onClick={onSetAvatarClass}
-              size="xs"
-            >
-              Save
-            </Button>
-          </HStack>
-          <Text>Your party&apos;s character cards (max of 3):</Text>
+                  return (
+                    <WrapItem key={_class.classId + _class.name}>
+                      <RadioOption {...radio}>
+                        <ClassTag {..._class} size="md" />
+                      </RadioOption>
+                    </WrapItem>
+                  );
+                })}
+              </Wrap>
+              <HStack justifyContent="flex-end" mt={4}>
+                <Button
+                  isLoading={isSaving}
+                  loadingText="Saving..."
+                  isDisabled={!hasChanged}
+                  onClick={onSetAvatarClass}
+                  size="xs"
+                >
+                  Save
+                </Button>
+              </HStack>
+            </>
+          )}
+          {!isMyCharacterSelected && (
+            <VStack mb={8} spacing={4}>
+              {isTradeActive && (
+                <Text align="center" color="red" fontSize="sm">
+                  You already have an active trade. Creating a new one will
+                  cancel the active one.
+                </Text>
+              )}
+              <Button
+                onClick={() => onOpenTradeModal(selectedCharacter)}
+                size="sm"
+              >
+                Trade Cards
+              </Button>
+            </VStack>
+          )}
+          <Text>
+            {isMyCharacterSelected ? 'Your' : `${selectedCharacter.name}'s`}{' '}
+            character cards (max of 3):
+          </Text>
           <HStack mt={4} spacing={6}>
             {partyCharacters.map((character, i) => (
               <Box
@@ -263,119 +298,20 @@ export const RaidPartyModal: React.FC<RaidPartyModalProps> = ({
                 <CharacterCardSmall
                   character={character}
                   isSelected={i === selectedCard}
+                  selectedClassId={
+                    isMyCharacterSelected ? String(value) : otherAvatarClassId
+                  }
                 />
               </Box>
             ))}
           </HStack>
-          <VStack border="2px solid rgba(219, 211, 139, 0.75)" mt={4} p={4}>
-            <Text>Stats</Text>
-            {value === '-1' && (
-              <Text color="orange">
-                (choose a non-villager class to see stats)
-              </Text>
-            )}
-            <HStack justify="space-around" mt={2} w="100%">
-              <VStack align="flex-start">
-                <Text fontSize="xs">Health:</Text>
-                <Text color="rgba(219, 211, 139, 0.75)" fontWeight={500}>
-                  {characterStats?.health ?? 0}
-                </Text>
-              </VStack>
-              <VStack align="flex-start">
-                <Text fontSize="xs">Attack:</Text>
-                <Text color="rgba(219, 211, 139, 0.75)" fontWeight={500}>
-                  {characterStats?.attack ?? 0}
-                </Text>
-              </VStack>
-              <VStack align="flex-start">
-                <Text fontSize="xs">Defense:</Text>
-                <Text color="rgba(219, 211, 139, 0.75)" fontWeight={500}>
-                  {characterStats?.defense ?? 0}
-                </Text>
-              </VStack>
-              <VStack align="flex-start">
-                <Text fontSize="xs">Special Attack:</Text>
-                <Text color="rgba(219, 211, 139, 0.75)" fontWeight={500}>
-                  {characterStats?.specialAttack ?? 0}
-                </Text>
-              </VStack>
-              <VStack align="flex-start">
-                <Text fontSize="xs">Special Defense:</Text>
-                <Text color="rgba(219, 211, 139, 0.75)" fontWeight={500}>
-                  {characterStats?.specialDefense ?? 0}
-                </Text>
-              </VStack>
-            </HStack>
-            {equippedWearable && wearableBonuses && (
-              <VStack align="flex-start" alignSelf="flex-start" ml={4} mt={4}>
-                <Text fontSize="sm" textAlign="left">
-                  Because of your equipped {equippedWearable.name}, your stats
-                  have been modified by:
-                </Text>
-                {wearableBonuses.attack > 0 && (
-                  <Text fontSize="xs">+{wearableBonuses.attack} Attack</Text>
-                )}
-                {wearableBonuses.defense > 0 && (
-                  <Text fontSize="xs">+{wearableBonuses.defense} Defense</Text>
-                )}
-                {wearableBonuses.specialAttack > 0 && (
-                  <Text fontSize="xs">
-                    +{wearableBonuses.specialAttack} Special Attack
-                  </Text>
-                )}
-                {wearableBonuses.specialDefense > 0 && (
-                  <Text fontSize="xs">
-                    +{wearableBonuses.specialDefense} Special Defense
-                  </Text>
-                )}
-              </VStack>
-            )}
-          </VStack>
-          <VStack border="2px solid rgba(219, 211, 139, 0.75)" mt={4} p={4}>
-            <Text>Moves</Text>
-            {value === '-1' && (
-              <Text color="orange">
-                (choose a non-villager class to see moves)
-              </Text>
-            )}
-            {equippedWeapons && (
-              <HStack justify="center" mt={2} spacing={4}>
-                {equippedWeapons.map(e => {
-                  return (
-                    <VStack
-                      align="flex-start"
-                      border="2px solid white"
-                      key={e.id}
-                      p={4}
-                    >
-                      <Text fontSize="sm" textAlign="left">
-                        {e.name}
-                      </Text>
-                      <Text fontSize="xs">
-                        Type:{' '}
-                        <Text
-                          as="span"
-                          color={String(WEAPON_STATS[e.itemId].color)}
-                        >
-                          {WEAPON_STATS[e.itemId].type}
-                        </Text>
-                      </Text>
-                      <Text fontSize="xs">
-                        Power:{' '}
-                        <Text
-                          as="span"
-                          color="rgba(219, 211, 139, 0.75)"
-                          fontWeight={500}
-                        >
-                          {WEAPON_STATS[e.itemId].power}
-                        </Text>
-                      </Text>
-                    </VStack>
-                  );
-                })}
-              </HStack>
-            )}
-          </VStack>
+          <CharacterStats
+            avatarClassId={String(value)}
+            characterStats={characterStats}
+            equippedWeapons={equippedWeapons}
+            equippedWearable={equippedWearable}
+            wearableBonuses={wearableBonuses}
+          />
         </ModalBody>
       </ModalContent>
     </Modal>

@@ -20,7 +20,9 @@ import { XPDisplaySmall } from './XPDisplay';
 export const CharacterCardSmall: React.FC<{
   character: Character;
   isSelected?: boolean;
-}> = ({ character, isSelected }) => {
+  locked?: boolean;
+  selectedClassId?: string;
+}> = ({ character, isSelected, locked, selectedClassId }) => {
   const { classes, experience, heldItems, image, jailed, name } = character;
 
   const itemTotal = useMemo(() => {
@@ -33,14 +35,20 @@ export const CharacterCardSmall: React.FC<{
     <VStack spacing={3} w="100%">
       <Box
         border="2px solid"
-        borderColor={isSelected ? 'rgba(219, 211, 139, 0.75)' : 'white'}
+        borderColor={isSelected ? 'white' : 'rgba(219, 211, 139, 0.75)'}
         overflow="hidden"
         p={3}
         transition="transform 0.3s"
-        _hover={{
-          cursor: 'pointer',
-          transform: 'rotateY(15deg)',
-        }}
+        _hover={
+          locked
+            ? {
+                cursor: 'not-allowed',
+              }
+            : {
+                cursor: 'pointer',
+                transform: 'rotateY(15deg)',
+              }
+        }
         w="100%"
         h="100%"
       >
@@ -49,7 +57,7 @@ export const CharacterCardSmall: React.FC<{
             <Image
               alt="character avatar"
               borderRadius="lg"
-              filter={jailed ? 'grayscale(100%)' : 'none'}
+              filter={jailed || locked ? 'grayscale(100%)' : 'none'}
               h="100%"
               objectFit="cover"
               src={image}
@@ -86,7 +94,16 @@ export const CharacterCardSmall: React.FC<{
           <HStack justify="space-between" w="full">
             <Wrap spacing={2}>
               {classes.map(classEntity => (
-                <WrapItem key={classEntity.classId + classEntity.name}>
+                <WrapItem
+                  key={classEntity.classId + classEntity.name}
+                  border="2px solid"
+                  borderColor={
+                    selectedClassId === classEntity.classId
+                      ? 'white'
+                      : 'transparent'
+                  }
+                  borderRadius="50%"
+                >
                   <ClassTag {...classEntity} size="xs" />
                 </WrapItem>
               ))}

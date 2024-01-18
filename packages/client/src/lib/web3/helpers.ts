@@ -92,7 +92,7 @@ export const getSignatureDetails = (
 ): {
   domain: TypedDataDomain;
   types: {
-    SpawnRequest: {
+    LoginRequest: {
       name: string;
       type: string;
     }[];

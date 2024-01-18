@@ -14,6 +14,14 @@ export default mudConfig({
         playerAddress: "address",
       },
     },
+    AccountInfo: {
+      dataStruct: false,
+      valueSchema: {
+        burnerAddress: "address",
+        chainId: "uint256",
+        nonce: "uint256",
+      },
+    },
     Health: "uint32",
     MapConfig: {
       keySchema: {},
@@ -27,6 +35,14 @@ export default mudConfig({
     MolochSoldier: "bool",
     Movable: "bool",
     Obstruction: "bool",
+    PartyInfo: {
+      dataStruct: false,
+      valueSchema: {
+        slotOne: "address",
+        slotTwo: "address",
+        slotThree: "address",
+      },
+    },
     Player: "bool",
     Position: {
       dataStruct: false,
@@ -37,12 +53,16 @@ export default mudConfig({
         previousY: "uint32",
       },
     },
-    SpawnInfo: {
+    TradeInfo: {
       dataStruct: false,
       valueSchema: {
-        burnerAddress: "address",
-        chainId: "uint256",
-        nonce: "uint256",
+        active: "bool",
+        initiatedBy: "address",
+        initiatedWith: "address",
+        offeredCardPlayer: "address",
+        requestedCardPlayer: "address",
+        canceled: "bool",
+        rejected: "bool",
       },
     },
   },
