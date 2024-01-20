@@ -1,21 +1,13 @@
-/*
- * Create the system calls that the client can use to ask
- * for changes in the World state (using the System contracts).
- */
-
 import { getComponentValue, Has, HasValue, runQuery } from '@latticexyz/recs';
 import { singletonEntity } from '@latticexyz/store-sync/recs';
 import { uuid } from '@latticexyz/utils';
 import { Address } from 'viem';
 
-import { getPlayerEntity } from '../utils/helpers';
-import { ClientComponents } from './createClientComponents';
-import { SetupNetworkResult } from './setupNetwork';
+import { getPlayerEntity } from '../../utils/helpers';
+import { ClientComponents } from '../createClientComponents';
+import { SetupNetworkResult } from '../setupNetwork';
 
-export type SystemCalls = ReturnType<typeof createSystemCalls>;
-
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function createSystemCalls(
+export const createMapSystemCalls = (
   { worldContract, waitForTransaction }: SetupNetworkResult,
   {
     Health,
@@ -26,10 +18,8 @@ export function createSystemCalls(
     Player,
     Position,
   }: ClientComponents,
-) {
-  /**
-   * MAP SYSTEMS
-   */
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+) => {
   const attack = async (playerAddress: string, x: number, y: number) => {
     const playerEntity = getPlayerEntity(playerAddress);
     if (!playerEntity) {
@@ -144,10 +134,10 @@ export function createSystemCalls(
 
     try {
       const tx = await worldContract.write.makeOffer([
-        initiatedBy,
-        initiatedWith,
-        offeredCardPlayer,
-        requestedCardPlayer,
+        initiatedBy as Address,
+        initiatedWith as Address,
+        offeredCardPlayer as Address,
+        requestedCardPlayer as Address,
       ]);
       await waitForTransaction(tx);
       return true;
@@ -264,7 +254,7 @@ export function createSystemCalls(
     try {
       const tx = await worldContract.write.setAvatarClass([
         playerAddress.toLowerCase() as Address,
-        avatarClassId,
+        BigInt(avatarClassId),
       ]);
       await waitForTransaction(tx);
     } catch (e) {
@@ -317,84 +307,7 @@ export function createSystemCalls(
     ];
   };
 
-  /**
-   * TRADE SYSTEMS
-   */
-  const acceptOffer = async (initiatedBy: string, initiatedWith: string) => {
-    const playerEntity = getPlayerEntity(initiatedBy);
-    if (!playerEntity) {
-      throw new Error('No player entity');
-    }
-
-    const initiatedWithEntity = getPlayerEntity(initiatedWith);
-    if (!initiatedWithEntity) {
-      throw new Error('No initiatedWith player entity');
-    }
-
-    try {
-      const tx = await worldContract.write.acceptOffer([
-        initiatedBy,
-        initiatedWith,
-      ]);
-      await waitForTransaction(tx);
-      return true;
-    } catch (e) {
-      console.error(e);
-      return false;
-    }
-  };
-
-  const cancelOffer = async (initiatedBy: string, initiatedWith: string) => {
-    const playerEntity = getPlayerEntity(initiatedBy);
-    if (!playerEntity) {
-      throw new Error('No player entity');
-    }
-
-    const initiatedWithEntity = getPlayerEntity(initiatedWith);
-    if (!initiatedWithEntity) {
-      throw new Error('No initiatedWith player entity');
-    }
-
-    try {
-      const tx = await worldContract.write.cancelOffer([
-        initiatedBy,
-        initiatedWith,
-      ]);
-      await waitForTransaction(tx);
-      return true;
-    } catch (e) {
-      console.error(e);
-      return false;
-    }
-  };
-
-  const rejectOffer = async (initiatedBy: string, initiatedWith: string) => {
-    const playerEntity = getPlayerEntity(initiatedWith);
-    if (!playerEntity) {
-      throw new Error('No player entity');
-    }
-
-    const initiatedByEntity = getPlayerEntity(initiatedBy);
-    if (!initiatedByEntity) {
-      throw new Error('No initiatedBy player entity');
-    }
-
-    try {
-      const tx = await worldContract.write.rejectOffer([
-        initiatedBy,
-        initiatedWith,
-      ]);
-      await waitForTransaction(tx);
-      return true;
-    } catch (e) {
-      console.error(e);
-      return false;
-    }
-  };
-
   return {
-    acceptOffer,
-    cancelOffer,
     attack,
     login,
     logout,
@@ -403,8 +316,7 @@ export function createSystemCalls(
     moveBy,
     updateBurnerWallet,
     removeAvatarClass,
-    rejectOffer,
     setAvatarClass,
     spawn,
   };
-}
+};
