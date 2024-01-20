@@ -69,7 +69,7 @@ export const GameView: React.FC = () => {
 
 export const GameViewInner: React.FC = () => {
   const { data: walletClient } = useWalletClient();
-  const { address, isConnected } = useAccount();
+  const { isConnected } = useAccount();
   const { disconnect } = useDisconnect();
   const { onOpenRaidPartyModal } = useRaidParty();
   const toast = useToast();
@@ -98,10 +98,12 @@ export const GameViewInner: React.FC = () => {
   ]);
 
   const playerEntity = useMemo(() => {
+    const address = walletClient?.account.address;
     return getPlayerEntity(address);
-  }, [address]);
+  }, [walletClient?.account.address]);
 
   const onLogin = useCallback(async () => {
+    const address = walletClient?.account.address;
     try {
       if (!(address && walletClient)) {
         throw new Error('No address or wallet client');
@@ -145,7 +147,6 @@ export const GameViewInner: React.FC = () => {
     }
   }, [
     AccountInfo,
-    address,
     burnerPlayerEntity,
     disconnect,
     game,
@@ -157,13 +158,13 @@ export const GameViewInner: React.FC = () => {
 
   useEffect(() => {
     if (!game) return;
-    if (address && playerEntity && walletClient) {
+    if (playerEntity && walletClient && walletClient.account.address) {
       const accountInfo = getComponentValue(AccountInfo, playerEntity);
       if (!accountInfo) {
         onLogin();
       }
     }
-  }, [AccountInfo, address, game, onLogin, playerEntity, walletClient]);
+  }, [AccountInfo, game, onLogin, playerEntity, walletClient]);
 
   const needsBurnerAddressUpdate = useMemo(() => {
     if (!walletClient?.account) return false;
