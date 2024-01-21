@@ -21,8 +21,9 @@ export const CharacterCardSmall: React.FC<{
   character: Character;
   isSelected?: boolean;
   locked?: boolean;
+  primary?: boolean;
   selectedClassId?: string;
-}> = ({ character, isSelected, locked, selectedClassId }) => {
+}> = ({ character, isSelected, locked, primary, selectedClassId }) => {
   const { classes, experience, heldItems, image, jailed, name } = character;
 
   const itemTotal = useMemo(() => {
@@ -86,6 +87,11 @@ export const CharacterCardSmall: React.FC<{
           >
             <XPDisplaySmall experience={experience} />
           </HStack>
+          {primary && (
+            <Text fontSize="xs" left={2} pos="absolute" top={0}>
+              Primary
+            </Text>
+          )}
         </Box>
         <VStack py={4} spacing={5}>
           <Text fontSize="lg" fontWeight={500}>

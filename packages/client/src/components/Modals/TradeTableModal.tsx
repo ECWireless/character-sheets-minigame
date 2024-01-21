@@ -761,7 +761,7 @@ export const TradeTableModal: React.FC = () => {
           <HStack alignItems="flex-start" spacing={24}>
             <Box w="100%">
               <Text>Your character cards (max of 3):</Text>
-              <HStack mt={4} spacing={6}>
+              <HStack mt={4} spacing={4}>
                 {partyCharacters[character.id].map((character, i) => (
                   <Box
                     key={`${character.id}-${i}`}
@@ -774,6 +774,7 @@ export const TradeTableModal: React.FC = () => {
                       character={character}
                       isSelected={i + 1 === mySelectedCard}
                       locked={!!lockedCards[0] && lockedCards[0] !== i + 1}
+                      primary={i === 0}
                       selectedClassId={String(myClassValue)}
                     />
                   </Box>
@@ -782,11 +783,14 @@ export const TradeTableModal: React.FC = () => {
               {!pauseControls && (
                 <VStack my={8} spacing={4}>
                   <Text>
-                    {!!lockedCards[0]
-                      ? `You have ${character.name} locked for a trade.`
-                      : `Lock ${character.name} to make trade offer.`}
+                    {mySelectedCard === 1
+                      ? 'You cannot trade a primary card'
+                      : !!lockedCards[0]
+                        ? `You have ${character.name} locked for a trade.`
+                        : `Lock ${character.name} to make trade offer.`}
                   </Text>
                   <Button
+                    isDisabled={mySelectedCard === 1}
                     onClick={() =>
                       setLockedCards(prev =>
                         !!lockedCards[0]
@@ -832,7 +836,7 @@ export const TradeTableModal: React.FC = () => {
               <Text>
                 {selectedCharacter.name}&apos;s character cards (max of 3):
               </Text>
-              <HStack mt={4} spacing={6}>
+              <HStack mt={4} spacing={4}>
                 {partyCharacters[selectedCharacter.id].map((character, i) => (
                   <Box
                     key={`${character.id}-${i}`}
@@ -845,6 +849,7 @@ export const TradeTableModal: React.FC = () => {
                       character={character}
                       isSelected={i + 1 === otherSelectedCard}
                       locked={!!lockedCards[1] && lockedCards[1] !== i + 1}
+                      primary={i === 0}
                       selectedClassId={String(otherClassValue)}
                     />
                   </Box>
@@ -853,11 +858,14 @@ export const TradeTableModal: React.FC = () => {
               {!pauseControls && (
                 <VStack my={8} spacing={4}>
                   <Text>
-                    {!!lockedCards[1]
-                      ? `You have ${selectedCharacter.name} locked for a trade.`
-                      : `Lock ${selectedCharacter.name} to make trade offer.`}
+                    {mySelectedCard === 1
+                      ? 'You cannot trade a primary card'
+                      : !!lockedCards[1]
+                        ? `You have ${selectedCharacter.name} locked for a trade.`
+                        : `Lock ${selectedCharacter.name} to make trade offer.`}
                   </Text>
                   <Button
+                    isDisabled={otherSelectedCard === 1}
                     onClick={() =>
                       setLockedCards(prev =>
                         !!lockedCards[1]
