@@ -16,7 +16,7 @@ interface IMapSystem {
 
   function move(address playerAddress, uint32 x, uint32 y) external;
 
-  function setCharacterClasses(address playerAddress, int256[] calldata classIds) external;
+  function setPartyClasses(address playerAddress, int256[] calldata classIds) external;
 
   function spawn(address playerAddress, uint32 x, uint32 y) external;
 

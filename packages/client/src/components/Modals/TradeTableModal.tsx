@@ -52,12 +52,10 @@ export const TradeTableModal: React.FC = () => {
   const { character } = useGame();
   const {
     isTradeTableModalOpen: isOpen,
-    myAvatarClassId,
-    myPartyCharacters,
+    myParty,
     onCloseTradeTableModal: onClose,
     selectedCharacter,
-    selectedCharacterAvatarClassId: otherAvatarClassId,
-    selectedCharacterPartyCharacters: otherPartyCharacters,
+    selectedCharacterParty,
   } = useRaidParty();
   const {
     components: { TradeInfo },
@@ -166,11 +164,18 @@ export const TradeTableModal: React.FC = () => {
   );
 
   const resetData = useCallback(() => {
+    const myAvatarClassId = myParty ? myParty[0].class : '-1';
+    const otherAvatarClassId = selectedCharacterParty
+      ? selectedCharacterParty[0].class
+      : '-1';
+
     setMyClassValue(myAvatarClassId);
     setOtherClassValue(otherAvatarClassId);
 
-    if (isTradeOfferActive) {
+    if (isTradeOfferActive && myParty && selectedCharacterParty) {
       const activeTradeOffers = tradeOffers.filter(t => t.active);
+      const myPartyCharacters = myParty.map(s => s.character);
+      const otherPartyCharacters = selectedCharacterParty.map(s => s.character);
 
       let _mySelectedCard = myPartyCharacters?.findIndex(
         c =>
@@ -207,15 +212,17 @@ export const TradeTableModal: React.FC = () => {
       setMySelectedCard(_mySelectedCard);
       setOtherSelectedCard(_otherSelectedCard);
       setLockedCards([_mySelectedCard, _otherSelectedCard]);
-    } else if (isTradeRequestActive) {
+    } else if (isTradeRequestActive && myParty && selectedCharacterParty) {
       const activeTradeRequests = tradeRequests.filter(t => t.active);
+      const myPartyCards = myParty.map(s => s.character);
+      const otherPartyCards = selectedCharacterParty.map(s => s.character);
 
-      let _mySelectedCard = myPartyCharacters?.findIndex(
+      let _mySelectedCard = myPartyCards?.findIndex(
         c =>
           c.player.toLowerCase() ===
           activeTradeRequests[0]?.requestedCardPlayer.toLowerCase(),
       );
-      let _otherSelectedCard = otherPartyCharacters?.findIndex(
+      let _otherSelectedCard = otherPartyCards?.findIndex(
         c =>
           c.player.toLowerCase() ===
           activeTradeRequests[0]?.offeredCardPlayer.toLowerCase(),
@@ -253,10 +260,8 @@ export const TradeTableModal: React.FC = () => {
   }, [
     isTradeOfferActive,
     isTradeRequestActive,
-    myAvatarClassId,
-    myPartyCharacters,
-    otherAvatarClassId,
-    otherPartyCharacters,
+    myParty,
+    selectedCharacterParty,
     setMyClassValue,
     setOtherClassValue,
     toast,
@@ -274,14 +279,14 @@ export const TradeTableModal: React.FC = () => {
     if (!(character && selectedCharacter)) return null;
 
     return {
-      [character.id]: myPartyCharacters ?? [character, character, character],
-      [selectedCharacter.id]: otherPartyCharacters ?? [
-        selectedCharacter,
-        selectedCharacter,
-        selectedCharacter,
-      ],
+      [character.id]: myParty
+        ? myParty.map(m => m.character)
+        : [character, character, character],
+      [selectedCharacter.id]: selectedCharacterParty
+        ? selectedCharacterParty.map(s => s.character)
+        : [selectedCharacter, selectedCharacter, selectedCharacter],
     };
-  }, [character, myPartyCharacters, otherPartyCharacters, selectedCharacter]);
+  }, [character, myParty, selectedCharacter, selectedCharacterParty]);
 
   const getEquippedWeapons = useCallback((_character: Character) => {
     const { equippedItems } = _character;

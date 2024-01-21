@@ -25,23 +25,23 @@ import { GameMap } from './GameMap';
 export const GameBoard: React.FC = () => {
   const {
     components: {
-      AvatarClass,
       CharacterSheetInfo,
       Health,
       MapConfig,
       MolochSoldier,
+      PartyInfo,
       Player,
       Position,
     },
   } = useMUD();
   const { address } = useAccount();
   const { character, game } = useGame();
-  const { myAvatarClassId, onOpenRaidPartyModal } = useRaidParty();
+  const { myParty, onOpenRaidPartyModal } = useRaidParty();
 
   const { actionRunning } = useKeyboardMovement(
     address?.toLowerCase(),
     character?.classes
-      .find(c => c.classId === myAvatarClassId)
+      .find(c => c.classId === myParty?.[0]?.class)
       ?.name?.toLowerCase() ?? 'villager',
   );
 
@@ -55,7 +55,6 @@ export const GameBoard: React.FC = () => {
       CharacterSheetInfo,
       entity,
     );
-    const avatarClassId = getComponentValue(AvatarClass, entity);
 
     const characterByPlayer = game?.characters?.find(
       c => c.player === characterSheetInfo.playerAddress.toLowerCase(),
@@ -64,9 +63,12 @@ export const GameBoard: React.FC = () => {
     let avatarClassName = 'villager';
     let avatarClassSrc = '';
 
-    if (avatarClassId) {
+    const partyInfo = getComponentValue(PartyInfo, entity);
+
+    if (partyInfo) {
+      const avatarClassId = partyInfo.slotOneClass.toString();
       const avatarClass = characterByPlayer?.classes.find(
-        c => c.classId === avatarClassId?.value.toString(),
+        c => c.classId === avatarClassId,
       );
       avatarClassName = avatarClass?.name.toLowerCase() ?? 'villager';
       avatarClassSrc = avatarClass?.image ?? '';

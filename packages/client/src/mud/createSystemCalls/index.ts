@@ -30,8 +30,7 @@ export function createSystemCalls(
     moveTo,
     moveBy,
     updateBurnerWallet,
-    removeAvatarClass,
-    setAvatarClass,
+    setPartyClasses,
     spawn,
   } = createMapSystemCalls(
     { worldContract, waitForTransaction } as SetupNetworkResult,
@@ -61,9 +60,8 @@ export function createSystemCalls(
     moveTo,
     moveBy,
     updateBurnerWallet,
-    removeAvatarClass,
     rejectOffer,
-    setAvatarClass,
+    setPartyClasses,
     spawn,
   };
 }

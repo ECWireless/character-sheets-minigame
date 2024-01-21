@@ -236,29 +236,17 @@ export const createMapSystemCalls = (
     }
   };
 
-  const removeAvatarClass = async (playerAddress: string) => {
+  const setPartyClasses = async (playerAddress: string, classIds: string[]) => {
     try {
-      const tx = await worldContract.write.removeAvatarClass([
+      const tx = await worldContract.write.setPartyClasses([
         playerAddress.toLowerCase() as Address,
+        classIds,
       ]);
       await waitForTransaction(tx);
+      return true;
     } catch (e) {
       console.error(e);
-    }
-  };
-
-  const setAvatarClass = async (
-    playerAddress: string,
-    avatarClassId: string,
-  ) => {
-    try {
-      const tx = await worldContract.write.setAvatarClass([
-        playerAddress.toLowerCase() as Address,
-        BigInt(avatarClassId),
-      ]);
-      await waitForTransaction(tx);
-    } catch (e) {
-      console.error(e);
+      return false;
     }
   };
 
@@ -315,8 +303,7 @@ export const createMapSystemCalls = (
     moveTo,
     moveBy,
     updateBurnerWallet,
-    removeAvatarClass,
-    setAvatarClass,
+    setPartyClasses,
     spawn,
   };
 };

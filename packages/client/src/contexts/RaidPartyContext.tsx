@@ -15,34 +15,35 @@ import { useMUD } from '../contexts/MUDContext';
 import { getPlayerEntity } from '../utils/helpers';
 import { Character } from '../utils/types';
 
+type Slot = {
+  character: Character;
+  class: string;
+};
+
 type RaidPartyContextType = {
   isMyCharacterSelected: boolean;
   isRaidPartyModalOpen: boolean;
   isTradeTableModalOpen: boolean;
-  myAvatarClassId: string;
-  myPartyCharacters: [Character, Character, Character] | null;
+  myParty: [Slot, Slot, Slot] | null;
   onCloseRaidPartyModal: () => void;
   onCloseTradeTableModal: () => void;
   onOpenRaidPartyModal: (character: Character | null) => void;
   onOpenTradeTableModal: (character: Character) => void;
   selectedCharacter: Character | null;
-  selectedCharacterAvatarClassId: string;
-  selectedCharacterPartyCharacters: [Character, Character, Character] | null;
+  selectedCharacterParty: [Slot, Slot, Slot] | null;
 };
 
 const RaidPartyContext = createContext<RaidPartyContextType>({
   isMyCharacterSelected: false,
   isRaidPartyModalOpen: false,
   isTradeTableModalOpen: false,
-  myAvatarClassId: '-1',
-  myPartyCharacters: null,
+  myParty: null,
   onCloseRaidPartyModal: () => {},
   onCloseTradeTableModal: () => {},
   onOpenRaidPartyModal: () => {},
   onOpenTradeTableModal: () => {},
   selectedCharacter: null,
-  selectedCharacterAvatarClassId: '-1',
-  selectedCharacterPartyCharacters: null,
+  selectedCharacterParty: null,
 });
 
 export const useRaidParty = (): RaidPartyContextType =>
@@ -53,7 +54,7 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
 }) => {
   const { address } = useAccount();
   const {
-    components: { AvatarClass, PartyInfo },
+    components: { PartyInfo },
   } = useMUD();
   const { character, game } = useGame();
   const toast = useToast();
@@ -105,70 +106,107 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
     return getPlayerEntity(selectedCharacter?.player);
   }, [selectedCharacter]);
 
-  const myAvatarClassId =
-    useComponentValue(AvatarClass, playerEntity)?.value?.toString() ?? '-1';
-  const selectedCharacterAvatarClassId =
-    useComponentValue(
-      AvatarClass,
-      selectedCharacterEntity,
-    )?.value?.toString() ?? '-1';
-
   const partyInfo = useComponentValue(PartyInfo, playerEntity);
 
-  const myPartyCharacters = useMemo(() => {
+  const myParty = useMemo(() => {
     if (!(character && playerEntity)) return null;
+
+    const defaultSlot = { character: character, class: '-1' };
     if (!partyInfo)
-      return [character, character, character] as [
-        Character,
-        Character,
-        Character,
-      ];
+      return [defaultSlot, defaultSlot, defaultSlot] as [Slot, Slot, Slot];
+
     const allGameCharacters = game?.characters.map(c => c) ?? [];
+
     const slotOneCharacter = allGameCharacters.find(
       c => c.player.toLowerCase() === partyInfo.slotOne.toLowerCase(),
     );
+    const slotOneClass = partyInfo ? partyInfo.slotOneClass.toString() : '-1';
+
     const slotTwoCharacter = allGameCharacters.find(
       c => c.player.toLowerCase() === partyInfo.slotTwo.toLowerCase(),
     );
+    const slotTwoClass = partyInfo ? partyInfo.slotTwoClass.toString() : '-1';
+
     const slotThreeCharacter = allGameCharacters.find(
       c => c.player.toLowerCase() === partyInfo.slotThree.toLowerCase(),
     );
+    const slotThreeClass = partyInfo
+      ? partyInfo.slotThreeClass.toString()
+      : '-1';
 
     const party = [];
-    if (slotOneCharacter) party.push(slotOneCharacter);
-    if (slotTwoCharacter) party.push(slotTwoCharacter);
-    if (slotThreeCharacter) party.push(slotThreeCharacter);
+    if (slotOneCharacter) {
+      party.push({
+        character: slotOneCharacter,
+        class: slotOneClass,
+      });
+    }
+    if (slotTwoCharacter) {
+      party.push({
+        character: slotTwoCharacter,
+        class: slotTwoClass,
+      });
+    }
+    if (slotThreeCharacter) {
+      party.push({
+        character: slotThreeCharacter,
+        class: slotThreeClass,
+      });
+    }
 
     if (party.length !== 3) return null;
 
-    return party as [Character, Character, Character];
+    return party as [Slot, Slot, Slot];
   }, [character, game, partyInfo, playerEntity]);
 
-  const selectedCharacterPartyCharacters = useMemo(() => {
+  const selectedCharacterParty = useMemo(() => {
     if (!(selectedCharacter && selectedCharacterEntity)) return null;
 
     const partyInfo = getComponentValue(PartyInfo, selectedCharacterEntity);
     if (!partyInfo) return null;
 
     const allGameCharacters = game?.characters.map(c => c) ?? [];
+
     const slotOneCharacter = allGameCharacters.find(
       c => c.player.toLowerCase() === partyInfo.slotOne.toLowerCase(),
     );
+    const slotOneClass = partyInfo ? partyInfo.slotOneClass.toString() : '-1';
+
     const slotTwoCharacter = allGameCharacters.find(
       c => c.player.toLowerCase() === partyInfo.slotTwo.toLowerCase(),
     );
+    const slotTwoClass = partyInfo ? partyInfo.slotTwoClass.toString() : '-1';
+
     const slotThreeCharacter = allGameCharacters.find(
       c => c.player.toLowerCase() === partyInfo.slotThree.toLowerCase(),
     );
+    const slotThreeClass = partyInfo
+      ? partyInfo.slotThreeClass.toString()
+      : '-1';
 
     const party = [];
-    if (slotOneCharacter) party.push(slotOneCharacter);
-    if (slotTwoCharacter) party.push(slotTwoCharacter);
-    if (slotThreeCharacter) party.push(slotThreeCharacter);
+    if (slotOneCharacter) {
+      party.push({
+        character: slotOneCharacter,
+        class: slotOneClass,
+      });
+    }
+    if (slotTwoCharacter) {
+      party.push({
+        character: slotTwoCharacter,
+        class: slotTwoClass,
+      });
+    }
+    if (slotThreeCharacter) {
+      party.push({
+        character: slotThreeCharacter,
+        class: slotThreeClass,
+      });
+    }
 
     if (party.length !== 3) return null;
 
-    return party as [Character, Character, Character];
+    return party as [Slot, Slot, Slot];
   }, [game, PartyInfo, selectedCharacter, selectedCharacterEntity]);
 
   const onOpenTradeTableModal = useCallback(
@@ -186,15 +224,13 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
         isMyCharacterSelected,
         isRaidPartyModalOpen: raidPartyModalControls.isOpen,
         isTradeTableModalOpen: tradeTableModalControls.isOpen,
-        myAvatarClassId,
-        myPartyCharacters,
+        myParty,
         onCloseRaidPartyModal: raidPartyModalControls.onClose,
         onCloseTradeTableModal: tradeTableModalControls.onClose,
         onOpenRaidPartyModal,
         onOpenTradeTableModal,
         selectedCharacter,
-        selectedCharacterAvatarClassId,
-        selectedCharacterPartyCharacters,
+        selectedCharacterParty,
       }}
     >
       {children}
