@@ -88,6 +88,23 @@ export const TradeTableModal: React.FC = () => {
     defaultValue: '-1',
   });
 
+  useEffect(() => {
+    const myAvatarClassId = myParty ? myParty[mySelectedCard - 1].class : '-1';
+    const otherAvatarClassId = selectedCharacterParty
+      ? selectedCharacterParty[otherSelectedCard - 1].class
+      : '-1';
+
+    setMyClassValue(myAvatarClassId);
+    setOtherClassValue(otherAvatarClassId);
+  }, [
+    myParty,
+    mySelectedCard,
+    otherSelectedCard,
+    selectedCharacterParty,
+    setMyClassValue,
+    setOtherClassValue,
+  ]);
+
   const tradeRequests = useMemo(() => {
     const entities = getEntitiesWithValue(TradeInfo, {
       initiatedBy: selectedCharacter
@@ -212,6 +229,16 @@ export const TradeTableModal: React.FC = () => {
       setMySelectedCard(_mySelectedCard);
       setOtherSelectedCard(_otherSelectedCard);
       setLockedCards([_mySelectedCard, _otherSelectedCard]);
+
+      const myAvatarClassId = myParty
+        ? myParty[_mySelectedCard - 1].class
+        : '-1';
+      const otherAvatarClassId = selectedCharacterParty
+        ? selectedCharacterParty[_otherSelectedCard - 1].class
+        : '-1';
+
+      setMyClassValue(myAvatarClassId);
+      setOtherClassValue(otherAvatarClassId);
     } else if (isTradeRequestActive && myParty && selectedCharacterParty) {
       const activeTradeRequests = tradeRequests.filter(t => t.active);
       const myPartyCards = myParty.map(s => s.character);
@@ -252,6 +279,16 @@ export const TradeTableModal: React.FC = () => {
       setMySelectedCard(_mySelectedCard);
       setOtherSelectedCard(_otherSelectedCard);
       setLockedCards([_mySelectedCard, _otherSelectedCard]);
+
+      const myAvatarClassId = myParty
+        ? myParty[_mySelectedCard - 1].class
+        : '-1';
+      const otherAvatarClassId = selectedCharacterParty
+        ? selectedCharacterParty[_otherSelectedCard - 1].class
+        : '-1';
+
+      setMyClassValue(myAvatarClassId);
+      setOtherClassValue(otherAvatarClassId);
     } else {
       setMySelectedCard(1);
       setOtherSelectedCard(1);
@@ -780,7 +817,7 @@ export const TradeTableModal: React.FC = () => {
                       isSelected={i + 1 === mySelectedCard}
                       locked={!!lockedCards[0] && lockedCards[0] !== i + 1}
                       primary={i === 0}
-                      selectedClassId={String(myClassValue)}
+                      selectedClassId={myParty ? myParty[i].class : '-1'}
                     />
                   </Box>
                 ))}
@@ -855,7 +892,11 @@ export const TradeTableModal: React.FC = () => {
                       isSelected={i + 1 === otherSelectedCard}
                       locked={!!lockedCards[1] && lockedCards[1] !== i + 1}
                       primary={i === 0}
-                      selectedClassId={String(otherClassValue)}
+                      selectedClassId={
+                        selectedCharacterParty
+                          ? selectedCharacterParty[i].class
+                          : '-1'
+                      }
                     />
                   </Box>
                 ))}
@@ -863,7 +904,7 @@ export const TradeTableModal: React.FC = () => {
               {!pauseControls && (
                 <VStack my={8} spacing={4}>
                   <Text>
-                    {mySelectedCard === 1
+                    {otherSelectedCard === 1
                       ? 'You cannot trade a primary card'
                       : !!lockedCards[1]
                         ? `You have ${selectedCharacter.name} locked for a trade.`

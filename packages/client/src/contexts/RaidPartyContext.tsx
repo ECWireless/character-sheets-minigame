@@ -29,6 +29,7 @@ type RaidPartyContextType = {
   onCloseTradeTableModal: () => void;
   onOpenRaidPartyModal: (character: Character | null) => void;
   onOpenTradeTableModal: (character: Character) => void;
+  resetSelectedCharacter: () => void;
   selectedCharacter: Character | null;
   selectedCharacterParty: [Slot, Slot, Slot] | null;
 };
@@ -42,6 +43,7 @@ const RaidPartyContext = createContext<RaidPartyContextType>({
   onCloseTradeTableModal: () => {},
   onOpenRaidPartyModal: () => {},
   onOpenTradeTableModal: () => {},
+  resetSelectedCharacter: () => {},
   selectedCharacter: null,
   selectedCharacterParty: null,
 });
@@ -209,6 +211,10 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
     return party as [Slot, Slot, Slot];
   }, [game, PartyInfo, selectedCharacter, selectedCharacterEntity]);
 
+  const resetSelectedCharacter = useCallback(() => {
+    setSelectedCharacter(null);
+  }, []);
+
   const onOpenTradeTableModal = useCallback(
     (_character: Character) => {
       setSelectedCharacter(_character);
@@ -229,6 +235,7 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
         onCloseTradeTableModal: tradeTableModalControls.onClose,
         onOpenRaidPartyModal,
         onOpenTradeTableModal,
+        resetSelectedCharacter,
         selectedCharacter,
         selectedCharacterParty,
       }}

@@ -42,6 +42,7 @@ export const RaidPartyModal: React.FC = () => {
     myParty,
     onCloseRaidPartyModal: onClose,
     onOpenTradeTableModal: onOpenTradeModal,
+    resetSelectedCharacter,
     selectedCharacter,
     selectedCharacterParty,
   } = useRaidParty();
@@ -131,7 +132,11 @@ export const RaidPartyModal: React.FC = () => {
     };
   }, [selectedCharacter, value, wearableBonuses]);
 
-  const { classes } = selectedCharacter ?? {};
+  const classes = useMemo(() => {
+    if (!party) return null;
+    return party[selectedCard].character.classes;
+  }, [party, selectedCard]);
+
   const classesWithVillager = useMemo(() => {
     if (!classes) return [];
     const villagerClass = {
@@ -214,6 +219,7 @@ export const RaidPartyModal: React.FC = () => {
         isClosable: true,
       });
 
+      resetSelectedCharacter();
       onClose();
     } catch (e) {
       console.error(e);
@@ -232,6 +238,7 @@ export const RaidPartyModal: React.FC = () => {
     classes,
     party,
     onClose,
+    resetSelectedCharacter,
     selectedCard,
     selectedCharacter,
     setPartyClasses,
@@ -325,11 +332,7 @@ export const RaidPartyModal: React.FC = () => {
                   character={character}
                   isSelected={i === selectedCard}
                   primary={i === 0}
-                  selectedClassId={
-                    isMyCharacterSelected
-                      ? String(value)
-                      : selectedCharacterParty?.[i].class
-                  }
+                  selectedClassId={selectedCharacterParty?.[i].class}
                 />
               </Box>
             ))}
