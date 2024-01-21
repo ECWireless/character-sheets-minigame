@@ -5,7 +5,6 @@ export default mudConfig({
     TerrainType: ["None", "Tree", "Boulder", "Water", "MolochSoldier"],
   },
   tables: {
-    AvatarClass: "uint256",
     CharacterSheetInfo: {
       dataStruct: false,
       valueSchema: {
@@ -39,8 +38,11 @@ export default mudConfig({
       dataStruct: false,
       valueSchema: {
         slotOne: "address",
+        slotOneClass: "int256",
         slotTwo: "address",
+        slotTwoClass: "int256",
         slotThree: "address",
+        slotThreeClass: "int256",
       },
     },
     Player: "bool",

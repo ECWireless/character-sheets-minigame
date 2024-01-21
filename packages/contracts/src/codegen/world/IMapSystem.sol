@@ -16,9 +16,7 @@ interface IMapSystem {
 
   function move(address playerAddress, uint32 x, uint32 y) external;
 
-  function removeAvatarClass(address playerAddress) external;
-
-  function setAvatarClass(address playerAddress, uint256 classId) external;
+  function setCharacterClasses(address playerAddress, int256[] calldata classIds) external;
 
   function spawn(address playerAddress, uint32 x, uint32 y) external;
 

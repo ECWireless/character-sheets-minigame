@@ -6,7 +6,6 @@ import { positionToEntityKey } from "../lib/positionToEntityKey.sol";
 import { verifyEIP712Signature } from "../lib/signature.sol";
 import {
   AccountInfo,
-  AvatarClass,
   CharacterSheetInfo,
   Health,
   MapConfig,
@@ -50,7 +49,7 @@ contract MapSystem is System {
     Player.set(player, true);
     AccountInfo.set(player, address(_msgSender()), chainId, nonce);
     CharacterSheetInfo.set(player, chainId, gameAddress, playerAddress);
-    PartyInfo.set(player, playerAddress, playerAddress, playerAddress);
+    PartyInfo.set(player, playerAddress, -1, playerAddress, -1, playerAddress, -1);
   }
 
   function logout(address playerAddress) public {
@@ -81,14 +80,14 @@ contract MapSystem is System {
     Position.set(player, x, y, previousX, previousY);
   }
 
-  function removeAvatarClass(address playerAddress) public {
+  function setPartyClasses(address playerAddress, int256[] calldata classIds) public {
     bytes32 player = addressToEntityKey(playerAddress);
-    AvatarClass.deleteRecord(player);
-  }
 
-  function setAvatarClass(address playerAddress,  uint256 classId) public {
-    bytes32 player = addressToEntityKey(playerAddress);
-    AvatarClass.set(player, classId);
+    (address burnerAddress,,) = AccountInfo.get(player);
+    require(burnerAddress == address(_msgSender()), "not the burner address for this character");
+
+    (,, address slotTwo,, address slotThree,) = PartyInfo.get(player);
+    PartyInfo.set(player, playerAddress, classIds[0], slotTwo, classIds[1], slotThree, classIds[2]);
   }
 
   function spawn(address playerAddress, uint32 x, uint32 y) public {
