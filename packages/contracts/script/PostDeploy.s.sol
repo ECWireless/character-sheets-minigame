@@ -5,7 +5,7 @@ import { StoreSwitch } from "@latticexyz/store/src/StoreSwitch.sol";
 import { Script } from "forge-std/Script.sol";
 import { console } from "forge-std/console.sol";
 import { IWorld } from "../src/codegen/world/IWorld.sol";
-import { MapConfig, Health, MolochSoldier, Obstruction, Position } from "../src/codegen/index.sol";
+import { MapConfig, MolochSoldier, Obstruction, Position } from "../src/codegen/index.sol";
 import { TerrainType } from "../src/codegen/common.sol";
 import { positionToEntityKey } from "../src/lib/positionToEntityKey.sol";
 
@@ -71,7 +71,6 @@ contract PostDeploy is Script {
           MolochSoldier.set(entity, true);
           Position.set(entity, x, y, x, y);
           Obstruction.set(entity, true);
-          Health.set(entity, 1);
         }
       }
     }
