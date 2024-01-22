@@ -1,14 +1,12 @@
 import { Box, Image, Spinner, useToast } from '@chakra-ui/react';
 import { useComponentValue } from '@latticexyz/react';
-import { Entity, getComponentValue } from '@latticexyz/recs';
-import { decodeEntity } from '@latticexyz/store-sync/recs';
+import { Entity } from '@latticexyz/recs';
 import { useCallback, useMemo, useState } from 'react';
 import { useAccount, useWalletClient } from 'wagmi';
 
 import grass1 from '../assets/map/grass1.svg';
 import { useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
-import { SIGNATURE_DETAILS } from '../lib/web3';
 import { getPlayerEntity } from '../utils/helpers';
 
 type GameMapProps = {
@@ -46,8 +44,7 @@ export const GameMap = ({
   const { address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const {
-    components: { Player, SpawnInfo },
-    network: { playerEntity: burnerPlayerEntity },
+    components: { Movable },
     systemCalls: { spawn },
   } = useMUD();
   const { game } = useGame();
@@ -61,7 +58,8 @@ export const GameMap = ({
     return getPlayerEntity(address);
   }, [address]);
 
-  const playerExists = useComponentValue(Player, playerEntity)?.value === true;
+  const isMyPlayerSpawned =
+    useComponentValue(Movable, playerEntity)?.value === true;
 
   const rows = useMemo(
     () => new Array(width).fill(0).map((_, i) => i),
@@ -78,7 +76,7 @@ export const GameMap = ({
   }, [game]);
 
   const onTileClick = useCallback(
-    async (x: number, y: number, gameAddress: string) => {
+    async (x: number, y: number) => {
       if (!(address && walletClient)) {
         toast({
           title: 'Login to play',
@@ -95,29 +93,12 @@ export const GameMap = ({
           duration: 5000,
           isClosable: true,
         });
-      } else if (!playerExists) {
+      } else if (!isMyPlayerSpawned) {
         if (!playerEntity) return;
         setIsSpawning({ x, y });
 
         try {
-          const currentNonce =
-            getComponentValue(SpawnInfo, playerEntity)?.nonce ?? BigInt(0);
-          const message = {
-            playerAddress: address,
-            burnerAddress: decodeEntity(
-              { address: 'address' },
-              burnerPlayerEntity,
-            ).address,
-            nonce: currentNonce + BigInt(1),
-          };
-
-          const signature = (await walletClient.signTypedData({
-            domain: SIGNATURE_DETAILS.domain,
-            types: SIGNATURE_DETAILS.types,
-            primaryType: 'SpawnRequest',
-            message,
-          })) as `0x${string}`;
-          await spawn(gameAddress, address, x, y, signature);
+          await spawn(address, x, y);
         } catch (e) {
           console.error(e);
           toast({
@@ -134,12 +115,10 @@ export const GameMap = ({
     },
     [
       address,
-      burnerPlayerEntity,
       gamePlayers,
+      isMyPlayerSpawned,
       playerEntity,
-      playerExists,
       spawn,
-      SpawnInfo,
       toast,
       walletClient,
     ],
@@ -185,6 +164,8 @@ export const GameMap = ({
 
         const playersHere = players?.filter(p => p.x === x && p.y === y);
         const molochsHere = molochSoldiers?.filter(m => m.x === x && m.y === y);
+        const allowSpawn =
+          game && playersHere?.length === 0 && molochsHere?.length === 0;
 
         return (
           <Box
@@ -192,10 +173,10 @@ export const GameMap = ({
             key={`${x},${y}`}
             gridColumn={x + 1}
             gridRow={y + 1}
-            onClick={() => (game ? onTileClick?.(x, y, game.id) : undefined)}
+            onClick={() => (allowSpawn ? onTileClick?.(x, y) : undefined)}
             position="relative"
             _hover={
-              !playerExists
+              !isMyPlayerSpawned
                 ? {
                     bg: 'green.500',
                     border: '2px solid',
@@ -205,7 +186,7 @@ export const GameMap = ({
                 : {}
             }
             _active={
-              !playerExists
+              !isMyPlayerSpawned
                 ? {
                     bg: 'green.600',
                   }
@@ -227,10 +208,10 @@ export const GameMap = ({
   }, [
     columns,
     game,
+    isMyPlayerSpawned,
     isSpawning,
     molochSoldiers,
     onTileClick,
-    playerExists,
     players,
     rows,
     terrain,

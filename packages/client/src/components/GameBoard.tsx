@@ -1,6 +1,11 @@
-import { Image } from '@chakra-ui/react';
+import { Image, Tooltip } from '@chakra-ui/react';
 import { useComponentValue, useEntityQuery } from '@latticexyz/react';
-import { getComponentValueStrict, Has, HasValue } from '@latticexyz/recs';
+import {
+  getComponentValue,
+  getComponentValueStrict,
+  Has,
+  HasValue,
+} from '@latticexyz/recs';
 import { singletonEntity } from '@latticexyz/store-sync/recs';
 import { hexToArray } from '@latticexyz/utils';
 import { useAccount } from 'wagmi';
@@ -20,6 +25,7 @@ import { GameMap } from './GameMap';
 export const GameBoard: React.FC = () => {
   const {
     components: {
+      AvatarClass,
       CharacterSheetInfo,
       Health,
       MapConfig,
@@ -30,12 +36,12 @@ export const GameBoard: React.FC = () => {
   } = useMUD();
   const { address } = useAccount();
   const { character, game } = useGame();
-  const { avatarClassId } = useRaidParty();
+  const { myAvatarClassId, onOpenRaidPartyModal } = useRaidParty();
 
   const { actionRunning } = useKeyboardMovement(
     address?.toLowerCase(),
     character?.classes
-      .find(c => c.classId === avatarClassId)
+      .find(c => c.classId === myAvatarClassId)
       ?.name?.toLowerCase() ?? 'villager',
   );
 
@@ -49,6 +55,7 @@ export const GameBoard: React.FC = () => {
       CharacterSheetInfo,
       entity,
     );
+    const avatarClassId = getComponentValue(AvatarClass, entity);
 
     const characterByPlayer = game?.characters?.find(
       c => c.player === characterSheetInfo.playerAddress.toLowerCase(),
@@ -59,7 +66,7 @@ export const GameBoard: React.FC = () => {
 
     if (avatarClassId) {
       const avatarClass = characterByPlayer?.classes.find(
-        c => c.classId === avatarClassId,
+        c => c.classId === avatarClassId?.value.toString(),
       );
       avatarClassName = avatarClass?.name.toLowerCase() ?? 'villager';
       avatarClassSrc = avatarClass?.image ?? '';
@@ -78,16 +85,27 @@ export const GameBoard: React.FC = () => {
       x: position.x,
       y: position.y,
       sprite: (
-        <Image
-          alt={avatarClassName}
+        <Tooltip
+          aria-label={characterByPlayer?.name}
           key={entity}
-          height="100%"
-          objectFit="contain"
-          position="absolute"
-          transform={transform}
-          src={src}
-          zIndex={1}
-        />
+          label={characterByPlayer?.name}
+          placement="top"
+        >
+          <Image
+            alt={avatarClassName}
+            height="100%"
+            objectFit="contain"
+            onClick={() =>
+              characterByPlayer
+                ? onOpenRaidPartyModal(characterByPlayer)
+                : undefined
+            }
+            position="absolute"
+            transform={transform}
+            src={src}
+            zIndex={1}
+          />
+        </Tooltip>
       ),
     };
   });
@@ -110,15 +128,21 @@ export const GameBoard: React.FC = () => {
       x: position.x,
       y: position.y,
       sprite: (
-        <Image
-          alt="moloch soldier"
+        <Tooltip
+          aria-label="moloch soldier"
           key={entity}
-          height="100%"
-          position="absolute"
-          src={health > 0 ? molochSoldier : molochSoldierDead}
-          transform="scale(1.5) translateY(-8px)"
-          zIndex={3}
-        />
+          label="Moloch Soldier"
+          placement="top"
+        >
+          <Image
+            alt="moloch soldier"
+            height="100%"
+            position="absolute"
+            src={health > 0 ? molochSoldier : molochSoldierDead}
+            transform="scale(1.5) translateY(-8px)"
+            zIndex={3}
+          />
+        </Tooltip>
       ),
     };
   });

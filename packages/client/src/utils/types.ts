@@ -121,3 +121,17 @@ export type CharacterMetaDB = Metadata & {
   createdAt: Date;
   updatedAt: Date;
 };
+
+export enum EquippableTraitType {
+  EQUIPPED_ITEM_1 = 'EQUIPPED ITEM 1',
+  EQUIPPED_WEARABLE = 'EQUIPPED WEARABLE',
+  EQUIPPED_ITEM_2 = 'EQUIPPED ITEM 2',
+}
+
+export type Stats = {
+  health: number;
+  attack: number;
+  defense: number;
+  specialAttack: number;
+  specialDefense: number;
+};

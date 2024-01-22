@@ -5,11 +5,13 @@ pragma solidity >=0.8.21;
 
 import { AvatarClass, AvatarClassTableId } from "./tables/AvatarClass.sol";
 import { CharacterSheetInfo, CharacterSheetInfoTableId } from "./tables/CharacterSheetInfo.sol";
+import { AccountInfo, AccountInfoTableId } from "./tables/AccountInfo.sol";
 import { Health, HealthTableId } from "./tables/Health.sol";
 import { MapConfig, MapConfigTableId } from "./tables/MapConfig.sol";
 import { MolochSoldier, MolochSoldierTableId } from "./tables/MolochSoldier.sol";
 import { Movable, MovableTableId } from "./tables/Movable.sol";
 import { Obstruction, ObstructionTableId } from "./tables/Obstruction.sol";
+import { PartyInfo, PartyInfoTableId } from "./tables/PartyInfo.sol";
 import { Player, PlayerTableId } from "./tables/Player.sol";
 import { Position, PositionTableId } from "./tables/Position.sol";
-import { SpawnInfo, SpawnInfoTableId } from "./tables/SpawnInfo.sol";
+import { TradeInfo, TradeInfoTableId } from "./tables/TradeInfo.sol";

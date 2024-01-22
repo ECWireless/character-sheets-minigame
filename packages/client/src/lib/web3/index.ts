@@ -1,12 +1,8 @@
 import { getDefaultWallets } from '@rainbow-me/rainbowkit';
 import { createConfig } from 'wagmi';
 
-import {
-  chains,
-  PROJECT_ID,
-  publicClient,
-  webSocketPublicClient,
-} from './config';
+import { chains, publicClient, webSocketPublicClient } from './config';
+import { PROJECT_ID } from './constants';
 
 const { connectors } = getDefaultWallets({
   appName: 'CharacterSheets Minigame',
@@ -21,6 +17,5 @@ export const wagmiConfig = createConfig({
   webSocketPublicClient,
 });
 
-export { DEFAULT_CHAIN } from './config';
 export * from './constants';
 export * from './helpers';

@@ -2,7 +2,9 @@ import { TypedDataDomain } from 'viem';
 import { Chain, gnosis, goerli, mainnet } from 'wagmi/chains';
 
 import { ENVIRONMENT } from '../../utils/constants';
-import { INFURA_KEY, PROJECT_ID } from './config';
+
+export const PROJECT_ID = import.meta.env.VITE_WALLET_CONNECT_PROJECT_ID;
+export const INFURA_KEY = import.meta.env.VITE_INFURA_KEY;
 
 export const EXPLORER_URLS: { [key: number]: string } = {
   [100]: 'https://gnosisscan.io',
@@ -103,7 +105,7 @@ export const SIGNATURE_DETAILS = {
     chainId: 100,
   } as TypedDataDomain,
   types: {
-    SpawnRequest: [
+    LoginRequest: [
       { name: 'playerAddress', type: 'address' },
       { name: 'burnerAddress', type: 'address' },
       { name: 'nonce', type: 'uint256' },

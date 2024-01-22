@@ -21,15 +21,15 @@ import { ResourceId } from "@latticexyz/store/src/ResourceId.sol";
 import { RESOURCE_TABLE, RESOURCE_OFFCHAIN_TABLE } from "@latticexyz/store/src/storeResourceTypes.sol";
 
 ResourceId constant _tableId = ResourceId.wrap(
-  bytes32(abi.encodePacked(RESOURCE_TABLE, bytes14(""), bytes16("SpawnInfo")))
+  bytes32(abi.encodePacked(RESOURCE_TABLE, bytes14(""), bytes16("AccountInfo")))
 );
-ResourceId constant SpawnInfoTableId = _tableId;
+ResourceId constant AccountInfoTableId = _tableId;
 
 FieldLayout constant _fieldLayout = FieldLayout.wrap(
-  0x0034020014200000000000000000000000000000000000000000000000000000
+  0x0054030014202000000000000000000000000000000000000000000000000000
 );
 
-library SpawnInfo {
+library AccountInfo {
   /**
    * @notice Get the table values' field layout.
    * @return _fieldLayout The field layout for the table.
@@ -54,9 +54,10 @@ library SpawnInfo {
    * @return _valueSchema The value schema for the table.
    */
   function getValueSchema() internal pure returns (Schema) {
-    SchemaType[] memory _valueSchema = new SchemaType[](2);
+    SchemaType[] memory _valueSchema = new SchemaType[](3);
     _valueSchema[0] = SchemaType.ADDRESS;
     _valueSchema[1] = SchemaType.UINT256;
+    _valueSchema[2] = SchemaType.UINT256;
 
     return SchemaLib.encode(_valueSchema);
   }
@@ -75,9 +76,10 @@ library SpawnInfo {
    * @return fieldNames An array of strings with the names of value fields.
    */
   function getFieldNames() internal pure returns (string[] memory fieldNames) {
-    fieldNames = new string[](2);
+    fieldNames = new string[](3);
     fieldNames[0] = "burnerAddress";
-    fieldNames[1] = "nonce";
+    fieldNames[1] = "chainId";
+    fieldNames[2] = "nonce";
   }
 
   /**
@@ -137,13 +139,55 @@ library SpawnInfo {
   }
 
   /**
+   * @notice Get chainId.
+   */
+  function getChainId(bytes32 key) internal view returns (uint256 chainId) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 1, _fieldLayout);
+    return (uint256(bytes32(_blob)));
+  }
+
+  /**
+   * @notice Get chainId.
+   */
+  function _getChainId(bytes32 key) internal view returns (uint256 chainId) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 1, _fieldLayout);
+    return (uint256(bytes32(_blob)));
+  }
+
+  /**
+   * @notice Set chainId.
+   */
+  function setChainId(bytes32 key, uint256 chainId) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    StoreSwitch.setStaticField(_tableId, _keyTuple, 1, abi.encodePacked((chainId)), _fieldLayout);
+  }
+
+  /**
+   * @notice Set chainId.
+   */
+  function _setChainId(bytes32 key, uint256 chainId) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    StoreCore.setStaticField(_tableId, _keyTuple, 1, abi.encodePacked((chainId)), _fieldLayout);
+  }
+
+  /**
    * @notice Get nonce.
    */
   function getNonce(bytes32 key) internal view returns (uint256 nonce) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 1, _fieldLayout);
+    bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 2, _fieldLayout);
     return (uint256(bytes32(_blob)));
   }
 
@@ -154,7 +198,7 @@ library SpawnInfo {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 1, _fieldLayout);
+    bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 2, _fieldLayout);
     return (uint256(bytes32(_blob)));
   }
 
@@ -165,7 +209,7 @@ library SpawnInfo {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    StoreSwitch.setStaticField(_tableId, _keyTuple, 1, abi.encodePacked((nonce)), _fieldLayout);
+    StoreSwitch.setStaticField(_tableId, _keyTuple, 2, abi.encodePacked((nonce)), _fieldLayout);
   }
 
   /**
@@ -175,13 +219,13 @@ library SpawnInfo {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    StoreCore.setStaticField(_tableId, _keyTuple, 1, abi.encodePacked((nonce)), _fieldLayout);
+    StoreCore.setStaticField(_tableId, _keyTuple, 2, abi.encodePacked((nonce)), _fieldLayout);
   }
 
   /**
    * @notice Get the full data.
    */
-  function get(bytes32 key) internal view returns (address burnerAddress, uint256 nonce) {
+  function get(bytes32 key) internal view returns (address burnerAddress, uint256 chainId, uint256 nonce) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
@@ -196,7 +240,7 @@ library SpawnInfo {
   /**
    * @notice Get the full data.
    */
-  function _get(bytes32 key) internal view returns (address burnerAddress, uint256 nonce) {
+  function _get(bytes32 key) internal view returns (address burnerAddress, uint256 chainId, uint256 nonce) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
@@ -211,8 +255,8 @@ library SpawnInfo {
   /**
    * @notice Set the full data using individual values.
    */
-  function set(bytes32 key, address burnerAddress, uint256 nonce) internal {
-    bytes memory _staticData = encodeStatic(burnerAddress, nonce);
+  function set(bytes32 key, address burnerAddress, uint256 chainId, uint256 nonce) internal {
+    bytes memory _staticData = encodeStatic(burnerAddress, chainId, nonce);
 
     PackedCounter _encodedLengths;
     bytes memory _dynamicData;
@@ -226,8 +270,8 @@ library SpawnInfo {
   /**
    * @notice Set the full data using individual values.
    */
-  function _set(bytes32 key, address burnerAddress, uint256 nonce) internal {
-    bytes memory _staticData = encodeStatic(burnerAddress, nonce);
+  function _set(bytes32 key, address burnerAddress, uint256 chainId, uint256 nonce) internal {
+    bytes memory _staticData = encodeStatic(burnerAddress, chainId, nonce);
 
     PackedCounter _encodedLengths;
     bytes memory _dynamicData;
@@ -241,10 +285,14 @@ library SpawnInfo {
   /**
    * @notice Decode the tightly packed blob of static data using this table's field layout.
    */
-  function decodeStatic(bytes memory _blob) internal pure returns (address burnerAddress, uint256 nonce) {
+  function decodeStatic(
+    bytes memory _blob
+  ) internal pure returns (address burnerAddress, uint256 chainId, uint256 nonce) {
     burnerAddress = (address(Bytes.slice20(_blob, 0)));
 
-    nonce = (uint256(Bytes.slice32(_blob, 20)));
+    chainId = (uint256(Bytes.slice32(_blob, 20)));
+
+    nonce = (uint256(Bytes.slice32(_blob, 52)));
   }
 
   /**
@@ -257,8 +305,8 @@ library SpawnInfo {
     bytes memory _staticData,
     PackedCounter,
     bytes memory
-  ) internal pure returns (address burnerAddress, uint256 nonce) {
-    (burnerAddress, nonce) = decodeStatic(_staticData);
+  ) internal pure returns (address burnerAddress, uint256 chainId, uint256 nonce) {
+    (burnerAddress, chainId, nonce) = decodeStatic(_staticData);
   }
 
   /**
@@ -285,8 +333,8 @@ library SpawnInfo {
    * @notice Tightly pack static (fixed length) data using this table's schema.
    * @return The static data, encoded into a sequence of bytes.
    */
-  function encodeStatic(address burnerAddress, uint256 nonce) internal pure returns (bytes memory) {
-    return abi.encodePacked(burnerAddress, nonce);
+  function encodeStatic(address burnerAddress, uint256 chainId, uint256 nonce) internal pure returns (bytes memory) {
+    return abi.encodePacked(burnerAddress, chainId, nonce);
   }
 
   /**
@@ -297,9 +345,10 @@ library SpawnInfo {
    */
   function encode(
     address burnerAddress,
+    uint256 chainId,
     uint256 nonce
   ) internal pure returns (bytes memory, PackedCounter, bytes memory) {
-    bytes memory _staticData = encodeStatic(burnerAddress, nonce);
+    bytes memory _staticData = encodeStatic(burnerAddress, chainId, nonce);
 
     PackedCounter _encodedLengths;
     bytes memory _dynamicData;

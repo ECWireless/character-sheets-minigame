@@ -1,4 +1,4 @@
-import { isAddress, isHash } from 'viem';
+import { isAddress, isHash, TypedDataDomain } from 'viem';
 
 import {
   CHAIN_ID_TO_IMAGE,
@@ -6,6 +6,7 @@ import {
   CHAIN_LABEL_TO_ID,
   EXPLORER_URLS,
   RPC_URLS,
+  SIGNATURE_DETAILS,
   SUBGRAPH_URLS,
   SUPPORTED_CHAINS,
 } from './constants';
@@ -84,4 +85,20 @@ export const getAddressUrl = (chainId: number, address: string): string => {
   }
   const explorerUrl = getExplorerUrl(chainId);
   return `${explorerUrl}/address/${address}`;
+};
+
+export const getSignatureDetails = (
+  chainId: number,
+): {
+  domain: TypedDataDomain;
+  types: {
+    LoginRequest: {
+      name: string;
+      type: string;
+    }[];
+  };
+} => {
+  const signatureDetails = SIGNATURE_DETAILS;
+  signatureDetails.domain.chainId = chainId;
+  return signatureDetails;
 };
