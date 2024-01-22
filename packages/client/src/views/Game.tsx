@@ -4,6 +4,7 @@ import {
   Flex,
   Heading,
   HStack,
+  Image,
   Spinner,
   Text,
   useDisclosure,
@@ -23,6 +24,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getAddress, isAddress } from 'viem';
 import { useAccount, useDisconnect, useWalletClient } from 'wagmi';
 
+import loadingImage from '../assets/loading.png';
 import { Alert } from '../components/Alert';
 import { ConnectWalletButton } from '../components/ConnectWalletButton';
 import { GameBoard } from '../components/GameBoard';
@@ -253,9 +255,18 @@ export const GameViewInner: React.FC = () => {
 
   if (loading) {
     return (
-      <VStack py={12} spacing={8}>
-        <Heading>Loading...</Heading>
-        <Spinner size="lg" />
+      <VStack pos="relative" spacing={8}>
+        <Image alt="loading" h="100vh" src={loadingImage} />
+        {syncProgress && (
+          <Text pos="absolute" left="50%" top={4} transform="translateX(-50%)">
+            {syncProgress.message} {Math.round(syncProgress.percentage)}%
+          </Text>
+        )}
+        {!syncProgress && (
+          <Box pos="absolute" left="50%" top={4}>
+            <Spinner size="xl" />
+          </Box>
+        )}
       </VStack>
     );
   }
