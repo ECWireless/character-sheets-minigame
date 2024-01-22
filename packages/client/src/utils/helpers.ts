@@ -5,41 +5,36 @@ import alchemistAttackLeft from '../assets/alchemist/alchemist_attack_left.gif';
 import alchemistAttackRight from '../assets/alchemist/alchemist_attack_right.gif';
 import alchemistLeft from '../assets/alchemist/alchemist_walk_left.gif';
 import alchemistRight from '../assets/alchemist/alchemist_walk_right.gif';
-
-import healerAttackLeft from '../assets/healer/healer_attack_left.gif';
-import healerAttackRight from '../assets/healer/healer_attack_right.gif';
-import healerLeft from '../assets/healer/healer_walk_left.gif';
-import healerRight from '../assets/healer/healer_walk_right.gif';
-
-import necroAttackLeft from '../assets/necro/necro_attack_left.gif';
-import necroAttackRight from '../assets/necro/necro_attack_right.gif';
-import necroLeft from '../assets/necro/necro_walk_left.gif';
-import necroRight from '../assets/necro/necro_walk_right.gif';
-
-import scribeAttackLeft from '../assets/scribe/scribe_attack_left.gif';
-import scribeAttackRight from '../assets/scribe/scribe_attack_right.gif';
-import scribeLeft from '../assets/scribe/scribe_walk_left.gif';
-import scribeRight from '../assets/scribe/scribe_walk_right.gif';
-
-import tavernAttackLeft from '../assets/tavern/tavern_attack_left.gif';
-import tavernAttackRight from '../assets/tavern/tavern_attack_right.gif';
-import tavernLeft from '../assets/tavern/tavern_walk_left.gif';
-import tavernRight from '../assets/tavern/tavern_walk_right.gif';
-
 import archerAttackLeft from '../assets/archer/archer_attack_left.gif';
 import archerAttackRight from '../assets/archer/archer_attack_right.gif';
 import archerLeft from '../assets/archer/archer_walk_left.gif';
 import archerRight from '../assets/archer/archer_walk_right.gif';
+import healerAttackLeft from '../assets/healer/healer_attack_left.gif';
+import healerAttackRight from '../assets/healer/healer_attack_right.gif';
+import healerLeft from '../assets/healer/healer_walk_left.gif';
+import healerRight from '../assets/healer/healer_walk_right.gif';
 import monkAttackLeft from '../assets/monk/monk_attack_left.gif';
 import monkAttackRight from '../assets/monk/monk_attack_right.gif';
 import monkDown from '../assets/monk/monk_walk_down.gif';
 import monkLeft from '../assets/monk/monk_walk_left.gif';
 import monkRight from '../assets/monk/monk_walk_right.gif';
 import monkUp from '../assets/monk/monk_walk_up.gif';
+import necroAttackLeft from '../assets/necro/necro_attack_left.gif';
+import necroAttackRight from '../assets/necro/necro_attack_right.gif';
+import necroLeft from '../assets/necro/necro_walk_left.gif';
+import necroRight from '../assets/necro/necro_walk_right.gif';
 import paladinAttackLeft from '../assets/paladin/paladin_attack_left.gif';
 import paladinAttackRight from '../assets/paladin/paladin_attack_right.gif';
 import paladinLeft from '../assets/paladin/paladin_walk_left.gif';
 import paladinRight from '../assets/paladin/paladin_walk_right.gif';
+import scribeAttackLeft from '../assets/scribe/scribe_attack_left.gif';
+import scribeAttackRight from '../assets/scribe/scribe_attack_right.gif';
+import scribeLeft from '../assets/scribe/scribe_walk_left.gif';
+import scribeRight from '../assets/scribe/scribe_walk_right.gif';
+import tavernAttackLeft from '../assets/tavern/tavern_attack_left.gif';
+import tavernAttackRight from '../assets/tavern/tavern_attack_right.gif';
+import tavernLeft from '../assets/tavern/tavern_walk_left.gif';
+import tavernRight from '../assets/tavern/tavern_walk_right.gif';
 import villagerDown from '../assets/villager/villager_down.gif';
 import villagerLeft from '../assets/villager/villager_left.gif';
 import villagerRight from '../assets/villager/villager_right.gif';
@@ -440,97 +435,99 @@ export const getCharacterImage = (
           return archerRight;
       }
 
-// **************************************************
-      case 'tavern':
-        if (actionRunning) {
-          return direction === 'right' ? tavernAttackRight : tavernAttackLeft;
-        }
-  
-        switch (direction) {
-          case 'up':
-            return tavernRight;
-          case 'down':
-            return tavernLeft;
-          case 'left':
-            return tavernLeft;
-          case 'right':
-            return tavernRight;
-          default:
-            return tavernRight;
-        }
+    // **************************************************
+    case 'tavern':
+      if (actionRunning) {
+        return direction === 'right' ? tavernAttackRight : tavernAttackLeft;
+      }
 
-        case 'alchemist':
-          if (actionRunning) {
-            return direction === 'right' ? alchemistAttackRight : alchemistAttackLeft;
-          }
-    
-          switch (direction) {
-            case 'up':
-              return alchemistRight;
-            case 'down':
-              return alchemistLeft;
-            case 'left':
-              return alchemistLeft;
-            case 'right':
-              return alchemistRight;
-            default:
-              return alchemistRight;
-          }
+      switch (direction) {
+        case 'up':
+          return tavernRight;
+        case 'down':
+          return tavernLeft;
+        case 'left':
+          return tavernLeft;
+        case 'right':
+          return tavernRight;
+        default:
+          return tavernRight;
+      }
 
-          case 'healer':
-            if (actionRunning) {
-              return direction === 'right' ? healerAttackRight : healerAttackLeft;
-            }
-      
-            switch (direction) {
-              case 'up':
-                return healerRight;
-              case 'down':
-                return healerLeft;
-              case 'left':
-                return healerLeft;
-              case 'right':
-                return healerRight;
-              default:
-                return healerRight;
-            }
+    case 'alchemist':
+      if (actionRunning) {
+        return direction === 'right'
+          ? alchemistAttackRight
+          : alchemistAttackLeft;
+      }
 
-            case 'necro':
-            if (actionRunning) {
-              return direction === 'right' ? necroAttackRight : necroAttackLeft;
-            }
-      
-            switch (direction) {
-              case 'up':
-                return necroRight;
-              case 'down':
-                return necroLeft;
-              case 'left':
-                return necroLeft;
-              case 'right':
-                return necroRight;
-              default:
-                return necroRight;
-            }
+      switch (direction) {
+        case 'up':
+          return alchemistRight;
+        case 'down':
+          return alchemistLeft;
+        case 'left':
+          return alchemistLeft;
+        case 'right':
+          return alchemistRight;
+        default:
+          return alchemistRight;
+      }
 
-            case 'scribe':
-            if (actionRunning) {
-              return direction === 'right' ? scribeAttackRight : scribeAttackLeft;
-            }
-      
-            switch (direction) {
-              case 'up':
-                return scribeRight;
-              case 'down':
-                return scribeLeft;
-              case 'left':
-                return scribeLeft;
-              case 'right':
-                return scribeRight;
-              default:
-                return scribeRight;
-            }
-// **************************************************
+    case 'healer':
+      if (actionRunning) {
+        return direction === 'right' ? healerAttackRight : healerAttackLeft;
+      }
+
+      switch (direction) {
+        case 'up':
+          return healerRight;
+        case 'down':
+          return healerLeft;
+        case 'left':
+          return healerLeft;
+        case 'right':
+          return healerRight;
+        default:
+          return healerRight;
+      }
+
+    case 'necro':
+      if (actionRunning) {
+        return direction === 'right' ? necroAttackRight : necroAttackLeft;
+      }
+
+      switch (direction) {
+        case 'up':
+          return necroRight;
+        case 'down':
+          return necroLeft;
+        case 'left':
+          return necroLeft;
+        case 'right':
+          return necroRight;
+        default:
+          return necroRight;
+      }
+
+    case 'scribe':
+      if (actionRunning) {
+        return direction === 'right' ? scribeAttackRight : scribeAttackLeft;
+      }
+
+      switch (direction) {
+        case 'up':
+          return scribeRight;
+        case 'down':
+          return scribeLeft;
+        case 'left':
+          return scribeLeft;
+        case 'right':
+          return scribeRight;
+        default:
+          return scribeRight;
+      }
+    // **************************************************
 
     case 'paladin':
       if (actionRunning) {
