@@ -702,7 +702,7 @@ export const TradeTableModal: React.FC = () => {
   return (
     <Modal closeOnEsc closeOnOverlayClick isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
-      <ModalContent h="100vh" maxH="100vh" minW="100%" w="100%" m={0}>
+      <ModalContent h="100vh" m={0} maxH="100vh" minW="100%" w="100%">
         <ModalHeader>
           <Text textAlign="left" textTransform="initial" fontWeight="500">
             Trade Table

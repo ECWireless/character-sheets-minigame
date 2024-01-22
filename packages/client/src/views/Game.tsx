@@ -29,6 +29,7 @@ import { Alert } from '../components/Alert';
 import { ConnectWalletButton } from '../components/ConnectWalletButton';
 import { GameBoard } from '../components/GameBoard';
 import { Leaderboard } from '../components/Leaderboard';
+import { BattleModal } from '../components/Modals/BattleModal';
 import { RaidPartyModal } from '../components/Modals/RaidPartyModal';
 import { RulesModal } from '../components/Modals/RulesModal';
 import { TradeTableModal } from '../components/Modals/TradeTableModal';
@@ -336,6 +337,7 @@ export const GameViewInner: React.FC = () => {
       <Leaderboard />
       <RaidPartyModal />
       <TradeTableModal />
+      <BattleModal />
       <RulesModal {...rulesModalControls} />
     </VStack>
   );
