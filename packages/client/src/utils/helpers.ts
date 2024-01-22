@@ -1,10 +1,6 @@
 import { Entity } from '@latticexyz/recs';
 import { encodeEntity } from '@latticexyz/store-sync/recs';
 
-import alchemistAttackLeft from '../assets/alchemist/alchemist_attack_left.gif';
-import alchemistAttackRight from '../assets/alchemist/alchemist_attack_right.gif';
-import alchemistLeft from '../assets/alchemist/alchemist_walk_left.gif';
-import alchemistRight from '../assets/alchemist/alchemist_walk_right.gif';
 import archerAttackLeft from '../assets/archer/archer_attack_left.gif';
 import archerAttackRight from '../assets/archer/archer_attack_right.gif';
 import archerLeft from '../assets/archer/archer_walk_left.gif';
@@ -19,10 +15,6 @@ import monkDown from '../assets/monk/monk_walk_down.gif';
 import monkLeft from '../assets/monk/monk_walk_left.gif';
 import monkRight from '../assets/monk/monk_walk_right.gif';
 import monkUp from '../assets/monk/monk_walk_up.gif';
-import necroAttackLeft from '../assets/necro/necro_attack_left.gif';
-import necroAttackRight from '../assets/necro/necro_attack_right.gif';
-import necroLeft from '../assets/necro/necro_walk_left.gif';
-import necroRight from '../assets/necro/necro_walk_right.gif';
 import paladinAttackLeft from '../assets/paladin/paladin_attack_left.gif';
 import paladinAttackRight from '../assets/paladin/paladin_attack_right.gif';
 import paladinLeft from '../assets/paladin/paladin_walk_left.gif';
@@ -399,44 +391,7 @@ export const getCharacterImage = (
           return wizardDown;
       }
 
-    case 'monk':
-      if (actionRunning) {
-        return direction === 'right' ? monkAttackRight : monkAttackLeft;
-      }
-
-      switch (direction) {
-        case 'up':
-          return monkUp;
-        case 'down':
-          return monkDown;
-        case 'left':
-          return monkLeft;
-        case 'right':
-          return monkRight;
-        default:
-          return monkDown;
-      }
-
-    case 'archer':
-      if (actionRunning) {
-        return direction === 'right' ? archerAttackRight : archerAttackLeft;
-      }
-
-      switch (direction) {
-        case 'up':
-          return archerRight;
-        case 'down':
-          return archerLeft;
-        case 'left':
-          return archerLeft;
-        case 'right':
-          return archerRight;
-        default:
-          return archerRight;
-      }
-
-    // **************************************************
-    case 'tavern':
+    case 'tavern keeper':
       if (actionRunning) {
         return direction === 'right' ? tavernAttackRight : tavernAttackLeft;
       }
@@ -454,24 +409,58 @@ export const getCharacterImage = (
           return tavernRight;
       }
 
-    case 'alchemist':
+    case 'scribe':
       if (actionRunning) {
-        return direction === 'right'
-          ? alchemistAttackRight
-          : alchemistAttackLeft;
+        return direction === 'right' ? scribeAttackRight : scribeAttackLeft;
       }
 
       switch (direction) {
         case 'up':
-          return alchemistRight;
+          return scribeRight;
         case 'down':
-          return alchemistLeft;
+          return scribeLeft;
         case 'left':
-          return alchemistLeft;
+          return scribeLeft;
         case 'right':
-          return alchemistRight;
+          return scribeRight;
         default:
-          return alchemistRight;
+          return scribeRight;
+      }
+
+    case 'paladin':
+      if (actionRunning) {
+        return direction === 'right' ? paladinAttackRight : paladinAttackLeft;
+      }
+
+      switch (direction) {
+        case 'up':
+          return paladinRight;
+        case 'down':
+          return paladinLeft;
+        case 'left':
+          return paladinLeft;
+        case 'right':
+          return paladinRight;
+        default:
+          return paladinRight;
+      }
+
+    case 'monk':
+      if (actionRunning) {
+        return direction === 'right' ? monkAttackRight : monkAttackLeft;
+      }
+
+      switch (direction) {
+        case 'up':
+          return monkUp;
+        case 'down':
+          return monkDown;
+        case 'left':
+          return monkLeft;
+        case 'right':
+          return monkRight;
+        default:
+          return monkDown;
       }
 
     case 'healer':
@@ -492,59 +481,22 @@ export const getCharacterImage = (
           return healerRight;
       }
 
-    case 'necro':
+    case 'archer':
       if (actionRunning) {
-        return direction === 'right' ? necroAttackRight : necroAttackLeft;
+        return direction === 'right' ? archerAttackRight : archerAttackLeft;
       }
 
       switch (direction) {
         case 'up':
-          return necroRight;
+          return archerRight;
         case 'down':
-          return necroLeft;
+          return archerLeft;
         case 'left':
-          return necroLeft;
+          return archerLeft;
         case 'right':
-          return necroRight;
+          return archerRight;
         default:
-          return necroRight;
-      }
-
-    case 'scribe':
-      if (actionRunning) {
-        return direction === 'right' ? scribeAttackRight : scribeAttackLeft;
-      }
-
-      switch (direction) {
-        case 'up':
-          return scribeRight;
-        case 'down':
-          return scribeLeft;
-        case 'left':
-          return scribeLeft;
-        case 'right':
-          return scribeRight;
-        default:
-          return scribeRight;
-      }
-    // **************************************************
-
-    case 'paladin':
-      if (actionRunning) {
-        return direction === 'right' ? paladinAttackRight : paladinAttackLeft;
-      }
-
-      switch (direction) {
-        case 'up':
-          return paladinRight;
-        case 'down':
-          return paladinLeft;
-        case 'left':
-          return paladinLeft;
-        case 'right':
-          return paladinRight;
-        default:
-          return paladinRight;
+          return archerRight;
       }
 
     case 'villager':
