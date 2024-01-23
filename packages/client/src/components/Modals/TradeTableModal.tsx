@@ -31,8 +31,6 @@ import { RadioOption } from '../../components/RadioOption';
 import { useGame } from '../../contexts/GameContext';
 import { useMUD } from '../../contexts/MUDContext';
 import { useRaidParty } from '../../contexts/RaidPartyContext';
-import { CLASS_STATS, WEARABLE_STATS } from '../../utils/constants';
-import { Character, EquippableTraitType, Stats } from '../../utils/types';
 
 const reversePartyIndex = (index: number): number => {
   switch (index) {
@@ -51,11 +49,15 @@ export const TradeTableModal: React.FC = () => {
   const { address } = useAccount();
   const { character } = useGame();
   const {
+    equippedWeapons,
+    equippedWearable,
+    getCharacterStats,
     isTradeTableModalOpen: isOpen,
     myParty,
     onCloseTradeTableModal: onClose,
     selectedCharacter,
     selectedCharacterParty,
+    wearableBonuses,
   } = useRaidParty();
   const {
     components: { TradeInfo },
@@ -125,8 +127,7 @@ export const TradeTableModal: React.FC = () => {
         rejected: tradeInfo.rejected,
       };
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, isOpen, TradeInfo]);
+  }, [address, selectedCharacter, TradeInfo]);
 
   const tradeOffers = useMemo(() => {
     const entities = getEntitiesWithValue(TradeInfo, {
@@ -148,8 +149,7 @@ export const TradeTableModal: React.FC = () => {
         rejected: tradeInfo.rejected,
       };
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, isOpen, TradeInfo]);
+  }, [address, selectedCharacter, TradeInfo]);
 
   const isTradeRequestActive = useMemo(
     () => tradeRequests.filter(tr => tr.active).length > 0,
@@ -324,126 +324,6 @@ export const TradeTableModal: React.FC = () => {
         : [selectedCharacter, selectedCharacter, selectedCharacter],
     };
   }, [character, myParty, selectedCharacter, selectedCharacterParty]);
-
-  const getEquippedWeapons = useCallback((_character: Character) => {
-    const { equippedItems } = _character;
-
-    const equippedWeapons = equippedItems.filter(
-      item =>
-        item.attributes.find(
-          a =>
-            a.value === EquippableTraitType.EQUIPPED_ITEM_1 ||
-            a.value === EquippableTraitType.EQUIPPED_ITEM_2,
-        ) !== undefined,
-    );
-
-    return equippedWeapons;
-  }, []);
-
-  const equippedWeapons = useMemo(() => {
-    if (!(character && selectedCharacter)) return null;
-
-    return {
-      [character.id]: getEquippedWeapons(character),
-      [selectedCharacter.id]: getEquippedWeapons(selectedCharacter),
-    };
-  }, [character, getEquippedWeapons, selectedCharacter]);
-
-  const getEquippedWearable = useCallback((_character: Character) => {
-    const { equippedItems } = _character;
-
-    const equippedWearable = equippedItems.find(
-      item =>
-        item.attributes.find(
-          a => a.value === EquippableTraitType.EQUIPPED_WEARABLE,
-        ) !== undefined,
-    );
-
-    return equippedWearable ?? null;
-  }, []);
-
-  const equippedWearable = useMemo(() => {
-    if (!(character && selectedCharacter)) return null;
-
-    return {
-      [character.id]: getEquippedWearable(character),
-      [selectedCharacter.id]: getEquippedWearable(selectedCharacter),
-    };
-  }, [character, getEquippedWearable, selectedCharacter]);
-
-  const getWearableBonuses = useCallback(
-    (_character: Character) => {
-      const defaultValues = {
-        attack: 0,
-        defense: 0,
-        specialAttack: 0,
-        specialDefense: 0,
-      };
-
-      const { itemId } = equippedWearable?.[_character.id] ?? {};
-      if (!itemId) return defaultValues;
-
-      const numberId = Number(itemId);
-      const wearable = WEARABLE_STATS[numberId];
-      if (!wearable) return defaultValues;
-
-      return {
-        attack: wearable.attack,
-        defense: wearable.defense,
-        specialAttack: wearable.specialAttack,
-        specialDefense: wearable.specialDefense,
-      };
-    },
-    [equippedWearable],
-  );
-
-  const wearableBonuses = useMemo(() => {
-    if (!(character && selectedCharacter)) return null;
-
-    return {
-      [character.id]: getWearableBonuses(character),
-      [selectedCharacter.id]: getWearableBonuses(selectedCharacter),
-    };
-  }, [character, getWearableBonuses, selectedCharacter]);
-
-  const getCharacterStats = useCallback(
-    (_character: Character, classValue: string): Stats => {
-      if (classValue === '-1') {
-        return {
-          health: 0,
-          attack: 0,
-          defense: 0,
-          specialAttack: 0,
-          specialDefense: 0,
-        };
-      }
-
-      const selectedClass = Number(classValue);
-      const classStats = CLASS_STATS[selectedClass];
-      const { attack, defense, specialAttack, specialDefense } = classStats;
-
-      if (wearableBonuses && wearableBonuses[_character.id]) {
-        return {
-          health: 10,
-          attack: attack + wearableBonuses[_character.id].attack,
-          defense: defense + wearableBonuses[_character.id].defense,
-          specialAttack:
-            specialAttack + wearableBonuses[_character.id].specialAttack,
-          specialDefense:
-            specialDefense + wearableBonuses[_character.id].specialDefense,
-        };
-      } else {
-        return {
-          health: 10,
-          attack,
-          defense,
-          specialAttack,
-          specialDefense,
-        };
-      }
-    },
-    [wearableBonuses],
-  );
 
   const characterStats = useMemo(() => {
     if (!(character && selectedCharacter)) return null;

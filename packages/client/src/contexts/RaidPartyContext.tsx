@@ -12,8 +12,9 @@ import { useAccount } from 'wagmi';
 
 import { useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
+import { CLASS_STATS, WEARABLE_STATS } from '../utils/constants';
 import { getPlayerEntity } from '../utils/helpers';
-import { Character } from '../utils/types';
+import { Character, EquippableTraitType, Stats } from '../utils/types';
 
 type Slot = {
   character: Character;
@@ -21,6 +22,13 @@ type Slot = {
 };
 
 type RaidPartyContextType = {
+  equippedWeapons: {
+    [characterId: string]: Character['equippedItems'];
+  } | null;
+  equippedWearable: {
+    [characterId: string]: Character['equippedItems'][0] | null;
+  } | null;
+  getCharacterStats: (character: Character, classValue: string) => Stats;
   isMyCharacterSelected: boolean;
   isRaidPartyModalOpen: boolean;
   isTradeTableModalOpen: boolean;
@@ -32,9 +40,21 @@ type RaidPartyContextType = {
   resetSelectedCharacter: () => void;
   selectedCharacter: Character | null;
   selectedCharacterParty: [Slot, Slot, Slot] | null;
+  wearableBonuses: {
+    [characterId: string]: Omit<Stats, 'health'>;
+  } | null;
 };
 
 const RaidPartyContext = createContext<RaidPartyContextType>({
+  equippedWeapons: null,
+  equippedWearable: null,
+  getCharacterStats: () => ({
+    health: 0,
+    attack: 0,
+    defense: 0,
+    specialAttack: 0,
+    specialDefense: 0,
+  }),
   isMyCharacterSelected: false,
   isRaidPartyModalOpen: false,
   isTradeTableModalOpen: false,
@@ -46,6 +66,7 @@ const RaidPartyContext = createContext<RaidPartyContextType>({
   resetSelectedCharacter: () => {},
   selectedCharacter: null,
   selectedCharacterParty: null,
+  wearableBonuses: null,
 });
 
 export const useRaidParty = (): RaidPartyContextType =>
@@ -224,9 +245,132 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
     [raidPartyModalControls, tradeTableModalControls],
   );
 
+  const getEquippedWeapons = useCallback((_character: Character) => {
+    const { equippedItems } = _character;
+
+    const equippedWeapons = equippedItems.filter(
+      item =>
+        item.attributes.find(
+          a =>
+            a.value === EquippableTraitType.EQUIPPED_ITEM_1 ||
+            a.value === EquippableTraitType.EQUIPPED_ITEM_2,
+        ) !== undefined,
+    );
+
+    return equippedWeapons;
+  }, []);
+
+  const equippedWeapons = useMemo(() => {
+    if (!(character && selectedCharacter)) return null;
+
+    return {
+      [character.id]: getEquippedWeapons(character),
+      [selectedCharacter.id]: getEquippedWeapons(selectedCharacter),
+    };
+  }, [character, getEquippedWeapons, selectedCharacter]);
+
+  const getEquippedWearable = useCallback((_character: Character) => {
+    const { equippedItems } = _character;
+
+    const equippedWearable = equippedItems.find(
+      item =>
+        item.attributes.find(
+          a => a.value === EquippableTraitType.EQUIPPED_WEARABLE,
+        ) !== undefined,
+    );
+
+    return equippedWearable ?? null;
+  }, []);
+
+  const equippedWearable = useMemo(() => {
+    if (!(character && selectedCharacter)) return null;
+
+    return {
+      [character.id]: getEquippedWearable(character),
+      [selectedCharacter.id]: getEquippedWearable(selectedCharacter),
+    };
+  }, [character, getEquippedWearable, selectedCharacter]);
+
+  const getWearableBonuses = useCallback(
+    (_character: Character) => {
+      const defaultValues = {
+        attack: 0,
+        defense: 0,
+        specialAttack: 0,
+        specialDefense: 0,
+      };
+
+      const { itemId } = equippedWearable?.[_character.id] ?? {};
+      if (!itemId) return defaultValues;
+
+      const numberId = Number(itemId);
+      const wearable = WEARABLE_STATS[numberId];
+      if (!wearable) return defaultValues;
+
+      return {
+        attack: wearable.attack,
+        defense: wearable.defense,
+        specialAttack: wearable.specialAttack,
+        specialDefense: wearable.specialDefense,
+      };
+    },
+    [equippedWearable],
+  );
+
+  const wearableBonuses = useMemo(() => {
+    if (!(character && selectedCharacter)) return null;
+
+    return {
+      [character.id]: getWearableBonuses(character),
+      [selectedCharacter.id]: getWearableBonuses(selectedCharacter),
+    };
+  }, [character, getWearableBonuses, selectedCharacter]);
+
+  const getCharacterStats = useCallback(
+    (_character: Character, classValue: string): Stats => {
+      if (classValue === '-1') {
+        return {
+          health: 0,
+          attack: 0,
+          defense: 0,
+          specialAttack: 0,
+          specialDefense: 0,
+        };
+      }
+
+      const selectedClass = Number(classValue);
+      const classStats = CLASS_STATS[selectedClass];
+      const { attack, defense, specialAttack, specialDefense } = classStats;
+
+      if (wearableBonuses && wearableBonuses[_character.id]) {
+        return {
+          health: 10,
+          attack: attack + wearableBonuses[_character.id].attack,
+          defense: defense + wearableBonuses[_character.id].defense,
+          specialAttack:
+            specialAttack + wearableBonuses[_character.id].specialAttack,
+          specialDefense:
+            specialDefense + wearableBonuses[_character.id].specialDefense,
+        };
+      } else {
+        return {
+          health: 10,
+          attack,
+          defense,
+          specialAttack,
+          specialDefense,
+        };
+      }
+    },
+    [wearableBonuses],
+  );
+
   return (
     <RaidPartyContext.Provider
       value={{
+        equippedWeapons,
+        equippedWearable,
+        getCharacterStats,
         isMyCharacterSelected,
         isRaidPartyModalOpen: raidPartyModalControls.isOpen,
         isTradeTableModalOpen: tradeTableModalControls.isOpen,
@@ -238,6 +382,7 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
         resetSelectedCharacter,
         selectedCharacter,
         selectedCharacterParty,
+        wearableBonuses,
       }}
     >
       {children}

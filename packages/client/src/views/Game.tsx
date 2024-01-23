@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Flex,
   Heading,
   HStack,
   Image,
@@ -258,16 +257,9 @@ export const GameViewInner: React.FC = () => {
     return (
       <VStack pos="relative" spacing={8}>
         <Image alt="loading" h="100vh" src={loadingImage} />
-        {syncProgress && (
-          <Text pos="absolute" left="50%" top={4} transform="translateX(-50%)">
-            {syncProgress.message} {Math.round(syncProgress.percentage)}%
-          </Text>
-        )}
-        {!syncProgress && (
-          <Box pos="absolute" left="50%" top={4}>
-            <Spinner size="xl" />
-          </Box>
-        )}
+        <Box pos="absolute" left="50%" top={4} transform="translateX(-50%)">
+          <Spinner size="xl" />
+        </Box>
       </VStack>
     );
   }
@@ -288,11 +280,13 @@ export const GameViewInner: React.FC = () => {
   }
 
   if (syncProgress.step !== SyncStep.LIVE) {
-    const formattedPercentage = syncProgress.percentage;
     return (
-      <Flex alignItems="center" h="100vh" justifyContent="center">
-        {syncProgress.message} {Math.round(formattedPercentage)}%
-      </Flex>
+      <VStack pos="relative" spacing={8}>
+        <Image alt="loading" h="100vh" src={loadingImage} />
+        <Text pos="absolute" left="50%" top={4}>
+          {syncProgress.message} {Math.round(syncProgress.percentage)}%
+        </Text>
+      </VStack>
     );
   }
 
