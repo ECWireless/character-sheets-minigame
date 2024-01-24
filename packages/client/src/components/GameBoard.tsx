@@ -10,8 +10,8 @@ import { singletonEntity } from '@latticexyz/store-sync/recs';
 import { hexToArray } from '@latticexyz/utils';
 import { useAccount } from 'wagmi';
 
-import molochSoldierDeadLeft from '../assets/moloch/moloch_dead_left.gif';
-import molochSoldierDeadRight from '../assets/moloch/moloch_dead_right.gif';
+// import molochSoldierDeadLeft from '../assets/moloch/moloch_dead_left.gif';
+// import molochSoldierDeadRight from '../assets/moloch/moloch_dead_right.gif';
 import molochSoldierLeft from '../assets/moloch/moloch_left.gif';
 import molochSoldierRight from '../assets/moloch/moloch_right.gif';
 import { useGame } from '../contexts/GameContext';
@@ -26,7 +26,6 @@ export const GameBoard: React.FC = () => {
   const {
     components: {
       CharacterSheetInfo,
-      Health,
       MapConfig,
       MolochSoldier,
       PartyInfo,
@@ -117,13 +116,13 @@ export const GameBoard: React.FC = () => {
     Has(Position),
   ]).map(entity => {
     const position = getComponentValueStrict(Position, entity);
-    const health = getComponentValueStrict(Health, entity).value ?? 0;
+    // const health = getComponentValueStrict(Health, entity).value ?? 0;
 
     const direction = position.x % 2 === 0 ? 'left' : 'right';
     const molochSoldier =
       direction === 'left' ? molochSoldierLeft : molochSoldierRight;
-    const molochSoldierDead =
-      direction === 'left' ? molochSoldierDeadLeft : molochSoldierDeadRight;
+    // const molochSoldierDead =
+    //   direction === 'left' ? molochSoldierDeadLeft : molochSoldierDeadRight;
 
     return {
       entity,
@@ -140,7 +139,8 @@ export const GameBoard: React.FC = () => {
             alt="moloch soldier"
             height="100%"
             position="absolute"
-            src={health > 0 ? molochSoldier : molochSoldierDead}
+            // src={health > 0 ? molochSoldier : molochSoldierDead}
+            src={molochSoldier}
             transform="scale(1.5) translateY(-8px)"
             zIndex={3}
           />

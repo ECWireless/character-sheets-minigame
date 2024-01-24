@@ -11,4 +11,6 @@ interface IBattleSystem {
   function attack(address playerAddress, bytes32 molochSoldier, uint32 power) external;
 
   function initiateBattle(address playerAddress, uint32 x, uint32 y) external;
+
+  function runFromBattle(address playerAddress) external;
 }

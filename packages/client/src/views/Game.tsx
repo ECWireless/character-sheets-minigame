@@ -28,6 +28,7 @@ import { Alert } from '../components/Alert';
 import { ConnectWalletButton } from '../components/ConnectWalletButton';
 import { GameBoard } from '../components/GameBoard';
 import { Leaderboard } from '../components/Leaderboard';
+import { BattleInitiationModal } from '../components/Modals/BattleInitiationModal';
 import { BattleModal } from '../components/Modals/BattleModal';
 import { RaidPartyModal } from '../components/Modals/RaidPartyModal';
 import { RulesModal } from '../components/Modals/RulesModal';
@@ -73,16 +74,16 @@ export const GameViewInner: React.FC = () => {
   const { data: walletClient } = useWalletClient();
   const { isConnected } = useAccount();
   const { disconnect } = useDisconnect();
-  const { onOpenRaidPartyModal } = useRaidParty();
+  const { onOpenBattleModal, onOpenRaidPartyModal } = useRaidParty();
   const toast = useToast();
   const navigate = useNavigate();
 
-  const { game, loading } = useGame();
+  const { character, game, loading } = useGame();
 
   const rulesModalControls = useDisclosure();
 
   const {
-    components: { AccountInfo, CharacterSheetInfo, SyncProgress },
+    components: { AccountInfo, BattleInfo, CharacterSheetInfo, SyncProgress },
     network: { playerEntity: burnerPlayerEntity },
     systemCalls: { login, updateBurnerWallet },
   } = useMUD();
@@ -253,6 +254,14 @@ export const GameViewInner: React.FC = () => {
     walletClient,
   ]);
 
+  const battleActive = useComponentValue(BattleInfo, playerEntity)?.active;
+
+  useEffect(() => {
+    if (battleActive && character) {
+      onOpenBattleModal(character);
+    }
+  }, [battleActive, character, onOpenBattleModal]);
+
   if (loading) {
     return (
       <VStack pos="relative" spacing={8}>
@@ -331,6 +340,7 @@ export const GameViewInner: React.FC = () => {
       <Leaderboard />
       <RaidPartyModal />
       <TradeTableModal />
+      <BattleInitiationModal />
       <BattleModal />
       <RulesModal {...rulesModalControls} />
     </VStack>

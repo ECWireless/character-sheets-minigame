@@ -9,59 +9,9 @@ import { SetupNetworkResult } from '../setupNetwork';
 
 export const createMapSystemCalls = (
   { worldContract, waitForTransaction }: SetupNetworkResult,
-  {
-    Health,
-    MapConfig,
-    MolochSoldier,
-    Movable,
-    Obstruction,
-    Player,
-    Position,
-  }: ClientComponents,
+  { MapConfig, Movable, Obstruction, Player, Position }: ClientComponents,
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 ) => {
-  const attack = async (playerAddress: string, x: number, y: number) => {
-    const playerEntity = getPlayerEntity(playerAddress);
-    if (!playerEntity) {
-      throw new Error('No player entity');
-    }
-
-    const molochSoldierEntities = runQuery([
-      Has(MolochSoldier),
-      HasValue(Position, { x, y }),
-    ]);
-    const molochSoldierEntity = Array.from(molochSoldierEntities)[0];
-    if (!molochSoldierEntity) {
-      // eslint-disable-next-line no-console
-      console.warn('No moloch soldier to attack');
-      return;
-    }
-
-    const molochHealth = getComponentValue(Health, molochSoldierEntity);
-    if (molochHealth?.value === 0) {
-      // eslint-disable-next-line no-console
-      console.warn('Moloch soldier already dead');
-      return;
-    }
-
-    const healthId = uuid();
-    Health.addOverride(healthId, {
-      entity: molochSoldierEntity,
-      value: { value: 0 },
-    });
-
-    try {
-      const tx = await worldContract.write.attack([
-        playerAddress as Address,
-        x,
-        y,
-      ]);
-      await waitForTransaction(tx);
-    } finally {
-      Health.removeOverride(healthId);
-    }
-  };
-
   const isObstructed = (x: number, y: number) => {
     return runQuery([Has(Obstruction), HasValue(Position, { x, y })]).size > 0;
   };
@@ -240,7 +190,7 @@ export const createMapSystemCalls = (
     try {
       const tx = await worldContract.write.setPartyClasses([
         playerAddress.toLowerCase() as Address,
-        classIds,
+        classIds.map(id => BigInt(id)),
       ]);
       await waitForTransaction(tx);
       return true;
@@ -296,7 +246,6 @@ export const createMapSystemCalls = (
   };
 
   return {
-    attack,
     login,
     logout,
     makeOffer,

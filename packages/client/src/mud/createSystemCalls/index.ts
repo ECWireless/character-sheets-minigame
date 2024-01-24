@@ -4,6 +4,7 @@
  */
 import { ClientComponents } from '../createClientComponents';
 import { SetupNetworkResult } from '../setupNetwork';
+import { createBattleSystemCalls } from './createBattleSystemCalls';
 import { createMapSystemCalls } from './createMapSystemCalls';
 import { createTradeSystemCalls } from './createTradeSystemCalls';
 
@@ -13,7 +14,7 @@ export type SystemCalls = ReturnType<typeof createSystemCalls>;
 export function createSystemCalls(
   { worldContract, waitForTransaction }: SetupNetworkResult,
   {
-    Health,
+    BattleInfo,
     MapConfig,
     MolochSoldier,
     Movable,
@@ -23,7 +24,6 @@ export function createSystemCalls(
   }: ClientComponents,
 ) {
   const {
-    attack,
     login,
     logout,
     makeOffer,
@@ -35,7 +35,6 @@ export function createSystemCalls(
   } = createMapSystemCalls(
     { worldContract, waitForTransaction } as SetupNetworkResult,
     {
-      Health,
       MapConfig,
       MolochSoldier,
       Movable,
@@ -50,10 +49,23 @@ export function createSystemCalls(
     waitForTransaction,
   } as SetupNetworkResult);
 
+  const { initiateBattle, runFromBattle } = createBattleSystemCalls(
+    { worldContract, waitForTransaction } as SetupNetworkResult,
+    {
+      BattleInfo,
+      MapConfig,
+      MolochSoldier,
+      Movable,
+      Obstruction,
+      Player,
+      Position,
+    } as ClientComponents,
+  );
+
   return {
     acceptOffer,
     cancelOffer,
-    attack,
+    initiateBattle,
     login,
     logout,
     makeOffer,
@@ -61,6 +73,7 @@ export function createSystemCalls(
     moveBy,
     updateBurnerWallet,
     rejectOffer,
+    runFromBattle,
     setPartyClasses,
     spawn,
   };

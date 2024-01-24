@@ -1,6 +1,6 @@
 import { useDisclosure, useToast } from '@chakra-ui/react';
 import { useComponentValue } from '@latticexyz/react';
-import { getComponentValue } from '@latticexyz/recs';
+import { getComponentValue, getComponentValueStrict } from '@latticexyz/recs';
 import {
   createContext,
   useCallback,
@@ -29,17 +29,24 @@ type RaidPartyContextType = {
     [characterId: string]: Character['equippedItems'][0] | null;
   } | null;
   getCharacterStats: (character: Character, classValue: string) => Stats;
+  isBattleInitiationModalOpen: boolean;
   isBattleModalOpen: boolean;
+  isInitiatingBattle: boolean;
   isMyCharacterSelected: boolean;
   isRaidPartyModalOpen: boolean;
+  isRunning: boolean;
   isTradeTableModalOpen: boolean;
   myParty: [Slot, Slot, Slot] | null;
+  onCloseBattleInitiationModal: () => void;
   onCloseBattleModal: () => void;
   onCloseRaidPartyModal: () => void;
   onCloseTradeTableModal: () => void;
+  onInitiateBattle: () => void;
+  onOpenBattleInitiationModal: () => void;
   onOpenBattleModal: (character: Character | null) => void;
   onOpenRaidPartyModal: (character: Character | null) => void;
   onOpenTradeTableModal: (character: Character) => void;
+  onRunFromBattle: () => void;
   resetSelectedCharacter: () => void;
   selectedCharacter: Character | null;
   selectedCharacterParty: [Slot, Slot, Slot] | null;
@@ -59,16 +66,23 @@ const RaidPartyContext = createContext<RaidPartyContextType>({
     specialDefense: 0,
   }),
   isBattleModalOpen: false,
+  isBattleInitiationModalOpen: false,
+  isInitiatingBattle: false,
   isMyCharacterSelected: false,
   isRaidPartyModalOpen: false,
+  isRunning: false,
   isTradeTableModalOpen: false,
   myParty: null,
+  onCloseBattleInitiationModal: () => {},
   onCloseBattleModal: () => {},
   onCloseRaidPartyModal: () => {},
   onCloseTradeTableModal: () => {},
+  onInitiateBattle: () => {},
+  onOpenBattleInitiationModal: () => {},
   onOpenBattleModal: () => {},
   onOpenRaidPartyModal: () => {},
   onOpenTradeTableModal: () => {},
+  onRunFromBattle: () => {},
   resetSelectedCharacter: () => {},
   selectedCharacter: null,
   selectedCharacterParty: null,
@@ -83,11 +97,13 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
 }) => {
   const { address } = useAccount();
   const {
-    components: { PartyInfo },
+    components: { PartyInfo, Position },
+    systemCalls: { initiateBattle, runFromBattle },
   } = useMUD();
   const { character, game } = useGame();
   const toast = useToast();
 
+  const battleInitiationModalControls = useDisclosure();
   const battleModalControls = useDisclosure();
   const raidPartyModalControls = useDisclosure();
   const tradeTableModalControls = useDisclosure();
@@ -95,6 +111,8 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(
     null,
   );
+  const [isInitiatingBattle, setIsInitiatingBattle] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
 
   const gamePlayers = useMemo(() => {
     const characters = game?.characters.map(c => c) ?? [];
@@ -381,23 +399,107 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
     [wearableBonuses],
   );
 
+  const onInitiateBattle = useCallback(async () => {
+    try {
+      setIsInitiatingBattle(true);
+      if (!address) {
+        throw new Error('No player address');
+      }
+
+      const playerEntity = getPlayerEntity(address);
+      if (!playerEntity) {
+        throw new Error('No player entity');
+      }
+
+      const playerPosition = getComponentValueStrict(Position, playerEntity);
+      const { x, y, previousX } = playerPosition;
+
+      if (x > previousX) {
+        const success = await initiateBattle(address, x + 1, y);
+
+        if (!success) {
+          throw new Error('Initiate battle transaction failed');
+        }
+      } else if (x < previousX) {
+        const success = await initiateBattle(address, x - 1, y);
+
+        if (!success) {
+          throw new Error('Initiate battle transaction failed');
+        }
+      }
+
+      battleInitiationModalControls.onClose();
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: 'An error occurred while initiating battle!',
+        status: 'error',
+        position: 'top',
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsInitiatingBattle(false);
+    }
+  }, [address, battleInitiationModalControls, initiateBattle, Position, toast]);
+
+  const onRunFromBattle = useCallback(async () => {
+    try {
+      setIsRunning(true);
+
+      if (!address) {
+        throw new Error('No player address');
+      }
+
+      const playerEntity = getPlayerEntity(address);
+      if (!playerEntity) {
+        throw new Error('No player entity');
+      }
+
+      const success = await runFromBattle(address);
+      if (!success) {
+        throw new Error('Run from battle transaction failed');
+      }
+
+      battleModalControls.onClose();
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: 'An error occurred while running from battle!',
+        status: 'error',
+        position: 'top',
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsRunning(false);
+    }
+  }, [address, battleModalControls, runFromBattle, toast]);
+
   return (
     <RaidPartyContext.Provider
       value={{
         equippedWeapons,
         equippedWearable,
         getCharacterStats,
+        isBattleInitiationModalOpen: battleInitiationModalControls.isOpen,
         isBattleModalOpen: battleModalControls.isOpen,
+        isInitiatingBattle,
         isMyCharacterSelected,
         isRaidPartyModalOpen: raidPartyModalControls.isOpen,
+        isRunning,
         isTradeTableModalOpen: tradeTableModalControls.isOpen,
         myParty,
+        onCloseBattleInitiationModal: battleInitiationModalControls.onClose,
         onCloseBattleModal: battleModalControls.onClose,
         onCloseRaidPartyModal: raidPartyModalControls.onClose,
         onCloseTradeTableModal: tradeTableModalControls.onClose,
+        onInitiateBattle,
+        onOpenBattleInitiationModal: battleInitiationModalControls.onOpen,
         onOpenBattleModal,
         onOpenRaidPartyModal,
         onOpenTradeTableModal,
+        onRunFromBattle,
         resetSelectedCharacter,
         selectedCharacter,
         selectedCharacterParty,

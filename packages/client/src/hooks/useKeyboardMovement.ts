@@ -1,3 +1,10 @@
+import { useToast } from '@chakra-ui/react';
+import {
+  getComponentValueStrict,
+  Has,
+  HasValue,
+  runQuery,
+} from '@latticexyz/recs';
 import { useEffect, useState } from 'react';
 
 import { useGame } from '../contexts/GameContext';
@@ -23,11 +30,12 @@ export const useKeyboardMovement = (
   actionRunning: boolean;
 } => {
   const {
-    components: { Position },
+    components: { MolochSoldier, Position },
     systemCalls: { moveBy },
   } = useMUD();
   const { character } = useGame();
-  const { onOpenBattleModal } = useRaidParty();
+  const { onOpenBattleInitiationModal } = useRaidParty();
+  const toast = useToast();
 
   const [actionRunning, setActionRunning] = useState(false);
 
@@ -61,13 +69,45 @@ export const useKeyboardMovement = (
       }
 
       if (e.key === 'e') {
-        if (!classesWithAttackAbility.includes(characterClass)) return;
         const playerEntity = getPlayerEntity(playerAddress);
         if (!playerEntity) return;
+
+        const playerPosition = getComponentValueStrict(Position, playerEntity);
+        const { x, y, previousX } = playerPosition;
+
+        if (x > previousX) {
+          const molochSoldierEntities = runQuery([
+            Has(MolochSoldier),
+            HasValue(Position, { x: x + 1, y }),
+          ]);
+
+          if (molochSoldierEntities.size === 0) {
+            return;
+          }
+        } else if (x < previousX) {
+          const molochSoldierEntities = runQuery([
+            Has(MolochSoldier),
+            HasValue(Position, { x: x - 1, y }),
+          ]);
+
+          if (molochSoldierEntities.size === 0) {
+            return;
+          }
+        }
+        if (!classesWithAttackAbility.includes(characterClass)) {
+          toast({
+            description: 'You must select a non-villager class to attack.',
+            status: 'warning',
+            position: 'top',
+            duration: 9000,
+            isClosable: true,
+          });
+          return;
+        }
         setActionRunning(true);
 
         setTimeout(() => {
-          onOpenBattleModal(character);
+          onOpenBattleInitiationModal();
         }, 500);
       }
     };
@@ -77,10 +117,12 @@ export const useKeyboardMovement = (
   }, [
     character,
     characterClass,
+    MolochSoldier,
     moveBy,
-    onOpenBattleModal,
+    onOpenBattleInitiationModal,
     playerAddress,
     Position,
+    toast,
   ]);
 
   useEffect(() => {

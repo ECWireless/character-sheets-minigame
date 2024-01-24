@@ -49,11 +49,24 @@ contract BattleSystem is System {
     
     // require(distance(playerX, playerY, molochSoldierX, molochSoldierY) == 1, "can only initiate battle with adjacent molochs");
 
-    (bool active,,,, bytes32 molochId,, bool molochDefeated) = BattleInfo.get(player);
-    require(molochId == molochSoldier, "moloch ID does not match moloch soldier");
+    (bool active,,,,,, bool molochDefeated) = BattleInfo.get(player);
+
     require(!active, "battle already active");
     require(!molochDefeated, "moloch already defeated");
     
     BattleInfo.set(player, true, 10, 10, 10, molochSoldier, 20, false);
+  }
+
+  function runFromBattle(address playerAddress) public {
+    bytes32 player = addressToEntityKey(playerAddress);
+    require(Player.get(player), "not a player");
+
+    (address burnerAddress,,) = AccountInfo.get(player);
+    require(burnerAddress == address(_msgSender()), "not the burner address for this character");
+
+    (bool active,,,,,,) = BattleInfo.get(player);
+    require(active, "battle not active");
+
+    BattleInfo.set(player, false, 10, 10, 10, bytes32(0), 20, false);
   }
 }

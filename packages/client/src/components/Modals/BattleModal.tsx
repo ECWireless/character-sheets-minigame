@@ -11,8 +11,6 @@ import {
 import { useMemo, useState } from 'react';
 
 import { useGame } from '../../contexts/GameContext';
-// import { useAccount } from 'wagmi';
-// import { useGame } from '../../contexts/GameContext';
 import { useRaidParty } from '../../contexts/RaidPartyContext';
 import { CharacterCardSmall } from '../CharacterCard';
 import { CharacterStats } from '../CharacterStats';
@@ -21,17 +19,15 @@ import { MolochCardSmall } from '../MolochCard';
 import { AttackModal } from './AttackModal';
 
 export const BattleModal: React.FC = () => {
-  // const { address } = useAccount();
   const { character } = useGame();
   const {
     equippedWeapons,
     equippedWearable,
     getCharacterStats,
     isBattleModalOpen: isOpen,
+    isRunning,
     myParty,
-    onCloseBattleModal: onClose,
-    // selectedCharacter,
-    // selectedCharacterParty,
+    onRunFromBattle,
     wearableBonuses,
   } = useRaidParty();
 
@@ -69,6 +65,8 @@ export const BattleModal: React.FC = () => {
     )
   )
     return <div>Test</div>;
+
+  const isDisabled = isRunning;
 
   return (
     <Box
@@ -131,7 +129,12 @@ export const BattleModal: React.FC = () => {
               transform="translateX(-50%)"
               w="100%"
             >
-              <Button onClick={onOpenAttackModal} variant="solid" w="100%">
+              <Button
+                isDisabled={isDisabled}
+                onClick={onOpenAttackModal}
+                variant="solid"
+                w="100%"
+              >
                 Attack
               </Button>
             </Box>
@@ -141,7 +144,13 @@ export const BattleModal: React.FC = () => {
               pos="absolute"
               transform="translateX(-50%)"
             >
-              <Button fontSize="xs" onClick={onClose}>
+              <Button
+                fontSize="xs"
+                isDisabled={isDisabled}
+                isLoading={isRunning}
+                loadingText="Running..."
+                onClick={onRunFromBattle}
+              >
                 Run
               </Button>
             </Box>
