@@ -5,6 +5,7 @@ import {
   GridItem,
   HStack,
   Text,
+  useDisclosure,
   VStack,
 } from '@chakra-ui/react';
 import { useMemo, useState } from 'react';
@@ -17,6 +18,7 @@ import { CharacterCardSmall } from '../CharacterCard';
 import { CharacterStats } from '../CharacterStats';
 import { HealthBar } from '../HealthBar';
 import { MolochCardSmall } from '../MolochCard';
+import { AttackModal } from './AttackModal';
 
 export const BattleModal: React.FC = () => {
   // const { address } = useAccount();
@@ -32,6 +34,12 @@ export const BattleModal: React.FC = () => {
     // selectedCharacterParty,
     wearableBonuses,
   } = useRaidParty();
+
+  const {
+    isOpen: isAttackModalOpen,
+    onClose: onCloseAttackModal,
+    onOpen: onOpenAttackModal,
+  } = useDisclosure();
 
   const [selectedCard, setSelectedCard] = useState(1);
 
@@ -123,7 +131,7 @@ export const BattleModal: React.FC = () => {
               transform="translateX(-50%)"
               w="100%"
             >
-              <Button variant="solid" w="100%">
+              <Button onClick={onOpenAttackModal} variant="solid" w="100%">
                 Attack
               </Button>
             </Box>
@@ -155,6 +163,12 @@ export const BattleModal: React.FC = () => {
         characterStats={characterStats[character.id]}
         equippedWearable={equippedWearable[character.id]}
         wearableBonuses={wearableBonuses[character.id]}
+      />
+
+      <AttackModal
+        equippedWeapons={equippedWeapons[character.id]}
+        isOpen={isAttackModalOpen}
+        onClose={onCloseAttackModal}
       />
     </Box>
   );
