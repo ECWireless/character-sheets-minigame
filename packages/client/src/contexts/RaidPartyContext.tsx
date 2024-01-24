@@ -37,7 +37,7 @@ type RaidPartyContextType = {
   onCloseBattleModal: () => void;
   onCloseRaidPartyModal: () => void;
   onCloseTradeTableModal: () => void;
-  onOpenBattleModal: () => void;
+  onOpenBattleModal: (character: Character | null) => void;
   onOpenRaidPartyModal: (character: Character | null) => void;
   onOpenTradeTableModal: (character: Character) => void;
   resetSelectedCharacter: () => void;
@@ -100,6 +100,15 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
     const characters = game?.characters.map(c => c) ?? [];
     return characters.map(c => c.player.toLowerCase());
   }, [game]);
+
+  const onOpenBattleModal = useCallback(
+    (_character: Character | null) => {
+      if (!_character) return;
+      setSelectedCharacter(_character);
+      battleModalControls.onOpen();
+    },
+    [battleModalControls],
+  );
 
   const onOpenRaidPartyModal = useCallback(
     (_character: Character | null) => {
@@ -337,11 +346,11 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
     (_character: Character, classValue: string): Stats => {
       if (classValue === '-1') {
         return {
-          health: 0,
-          attack: 0,
-          defense: 0,
-          specialAttack: 0,
-          specialDefense: 0,
+          health: 10,
+          attack: 1,
+          defense: 1,
+          specialAttack: 1,
+          specialDefense: 1,
         };
       }
 
@@ -386,7 +395,7 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
         onCloseBattleModal: battleModalControls.onClose,
         onCloseRaidPartyModal: raidPartyModalControls.onClose,
         onCloseTradeTableModal: tradeTableModalControls.onClose,
-        onOpenBattleModal: battleModalControls.onOpen,
+        onOpenBattleModal,
         onOpenRaidPartyModal,
         onOpenTradeTableModal,
         resetSelectedCharacter,

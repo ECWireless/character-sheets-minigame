@@ -1,7 +1,8 @@
-import { getComponentValueStrict } from '@latticexyz/recs';
 import { useEffect, useState } from 'react';
 
+import { useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
+import { useRaidParty } from '../contexts/RaidPartyContext';
 import { getPlayerEntity } from '../utils/helpers';
 
 const classesWithAttackAbility = [
@@ -23,8 +24,10 @@ export const useKeyboardMovement = (
 } => {
   const {
     components: { Position },
-    systemCalls: { attack, moveBy },
+    systemCalls: { moveBy },
   } = useMUD();
+  const { character } = useGame();
+  const { onOpenBattleModal } = useRaidParty();
 
   const [actionRunning, setActionRunning] = useState(false);
 
@@ -62,19 +65,23 @@ export const useKeyboardMovement = (
         const playerEntity = getPlayerEntity(playerAddress);
         if (!playerEntity) return;
         setActionRunning(true);
-        const playerPosition = getComponentValueStrict(Position, playerEntity);
-        const { x, y, previousX } = playerPosition;
-        if (x > previousX) {
-          attack(playerAddress, x + 1, y);
-        } else if (x < previousX) {
-          attack(playerAddress, x - 1, y);
-        }
+
+        setTimeout(() => {
+          onOpenBattleModal(character);
+        }, 500);
       }
     };
 
     window.addEventListener('keydown', listener);
     return () => window.removeEventListener('keydown', listener);
-  }, [attack, characterClass, moveBy, playerAddress, Position]);
+  }, [
+    character,
+    characterClass,
+    moveBy,
+    onOpenBattleModal,
+    playerAddress,
+    Position,
+  ]);
 
   useEffect(() => {
     if (!actionRunning) return;

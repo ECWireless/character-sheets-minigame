@@ -5,7 +5,7 @@ import { EquippedItem, Stats } from '../utils/types';
 
 type CharacterStatsProps = {
   characterStats: Stats | null;
-  equippedWeapons: EquippedItem[] | null;
+  equippedWeapons?: EquippedItem[] | null;
   equippedWearable: EquippedItem | null;
   avatarClassId: string;
   wearableBonuses: Omit<Stats, 'health'> | null;
@@ -23,7 +23,9 @@ export const CharacterStats: React.FC<CharacterStatsProps> = ({
       <VStack border="2px solid rgba(219, 211, 139, 0.75)" mt={4} p={4}>
         <Text>Stats</Text>
         {avatarClassId === '-1' && (
-          <Text color="orange">(choose a non-villager class to see stats)</Text>
+          <Text color="orange">
+            (you are using the base villager class, so stats are bad)
+          </Text>
         )}
         <HStack justify="space-around" mt={2} w="100%">
           <VStack align="flex-start">
@@ -82,12 +84,14 @@ export const CharacterStats: React.FC<CharacterStatsProps> = ({
           </VStack>
         )}
       </VStack>
-      <VStack border="2px solid rgba(219, 211, 139, 0.75)" mt={4} p={4}>
-        <Text>Moves</Text>
-        {avatarClassId === '-1' && (
-          <Text color="orange">(choose a non-villager class to see moves)</Text>
-        )}
-        {equippedWeapons && (
+      {equippedWeapons && (
+        <VStack border="2px solid rgba(219, 211, 139, 0.75)" mt={4} p={4}>
+          <Text>Moves</Text>
+          {equippedWeapons.length === 0 && (
+            <Text color="orange">
+              (you must equip an non-wearable item to learn a move)
+            </Text>
+          )}
           <HStack justify="center" mt={2} spacing={4}>
             {equippedWeapons.map(e => {
               return (
@@ -123,8 +127,8 @@ export const CharacterStats: React.FC<CharacterStatsProps> = ({
               );
             })}
           </HStack>
-        )}
-      </VStack>
+        </VStack>
+      )}
     </>
   );
 };
