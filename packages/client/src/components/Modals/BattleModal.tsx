@@ -1,4 +1,12 @@
-import { Box, Button, Grid, GridItem, HStack, Text } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  Grid,
+  GridItem,
+  HStack,
+  Text,
+  VStack,
+} from '@chakra-ui/react';
 import { useMemo, useState } from 'react';
 
 import { useGame } from '../../contexts/GameContext';
@@ -7,6 +15,7 @@ import { useGame } from '../../contexts/GameContext';
 import { useRaidParty } from '../../contexts/RaidPartyContext';
 import { CharacterCardSmall } from '../CharacterCard';
 import { CharacterStats } from '../CharacterStats';
+import { HealthBar } from '../HealthBar';
 import { MolochCardSmall } from '../MolochCard';
 
 export const BattleModal: React.FC = () => {
@@ -78,18 +87,19 @@ export const BattleModal: React.FC = () => {
           <Text>Your character cards:</Text>
           <HStack alignItems="flex-start" mt={4} spacing={4}>
             {myParty?.map(({ character }, i) => (
-              <Box
+              <VStack
                 key={`${character.id}-${i}`}
                 onClick={() => setSelectedCard(i + 1)}
                 w="250px"
               >
+                <HealthBar currentHealth={9} startingHealth={10} />
                 <CharacterCardSmall
                   character={character}
                   isSelected={i + 1 === selectedCard}
                   primary={i === 0}
                   selectedClassId={myParty ? myParty[i].class : '-1'}
                 />
-              </Box>
+              </VStack>
             ))}
           </HStack>
         </GridItem>
@@ -132,9 +142,10 @@ export const BattleModal: React.FC = () => {
         <GridItem colSpan={1}>
           <Text>Moloch Soldier:</Text>
           <HStack alignItems="flex-start" mt={4} spacing={4}>
-            <Box w="250px">
+            <VStack w="250px">
+              <HealthBar currentHealth={2} startingHealth={10} />
               <MolochCardSmall />
-            </Box>
+            </VStack>
           </HStack>
         </GridItem>
       </Grid>
