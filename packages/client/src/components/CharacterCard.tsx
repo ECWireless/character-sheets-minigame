@@ -33,7 +33,7 @@ export const CharacterCardSmall: React.FC<{
   }, [heldItems]);
 
   return (
-    <VStack spacing={3} w="100%">
+    <VStack spacing={3} h="100%" w="100%">
       <Box
         border="2px solid"
         borderColor={isSelected ? 'white' : 'rgba(219, 211, 139, 0.75)'}
@@ -51,7 +51,6 @@ export const CharacterCardSmall: React.FC<{
               }
         }
         w="100%"
-        h="100%"
       >
         <Box pos="relative">
           <AspectRatio ratio={10 / 13} w="full">

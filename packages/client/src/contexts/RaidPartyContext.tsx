@@ -29,12 +29,15 @@ type RaidPartyContextType = {
     [characterId: string]: Character['equippedItems'][0] | null;
   } | null;
   getCharacterStats: (character: Character, classValue: string) => Stats;
+  isBattleModalOpen: boolean;
   isMyCharacterSelected: boolean;
   isRaidPartyModalOpen: boolean;
   isTradeTableModalOpen: boolean;
   myParty: [Slot, Slot, Slot] | null;
+  onCloseBattleModal: () => void;
   onCloseRaidPartyModal: () => void;
   onCloseTradeTableModal: () => void;
+  onOpenBattleModal: () => void;
   onOpenRaidPartyModal: (character: Character | null) => void;
   onOpenTradeTableModal: (character: Character) => void;
   resetSelectedCharacter: () => void;
@@ -55,12 +58,15 @@ const RaidPartyContext = createContext<RaidPartyContextType>({
     specialAttack: 0,
     specialDefense: 0,
   }),
+  isBattleModalOpen: false,
   isMyCharacterSelected: false,
   isRaidPartyModalOpen: false,
   isTradeTableModalOpen: false,
   myParty: null,
+  onCloseBattleModal: () => {},
   onCloseRaidPartyModal: () => {},
   onCloseTradeTableModal: () => {},
+  onOpenBattleModal: () => {},
   onOpenRaidPartyModal: () => {},
   onOpenTradeTableModal: () => {},
   resetSelectedCharacter: () => {},
@@ -82,6 +88,7 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
   const { character, game } = useGame();
   const toast = useToast();
 
+  const battleModalControls = useDisclosure();
   const raidPartyModalControls = useDisclosure();
   const tradeTableModalControls = useDisclosure();
 
@@ -371,12 +378,15 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
         equippedWeapons,
         equippedWearable,
         getCharacterStats,
+        isBattleModalOpen: battleModalControls.isOpen,
         isMyCharacterSelected,
         isRaidPartyModalOpen: raidPartyModalControls.isOpen,
         isTradeTableModalOpen: tradeTableModalControls.isOpen,
         myParty,
+        onCloseBattleModal: battleModalControls.onClose,
         onCloseRaidPartyModal: raidPartyModalControls.onClose,
         onCloseTradeTableModal: tradeTableModalControls.onClose,
+        onOpenBattleModal: battleModalControls.onOpen,
         onOpenRaidPartyModal,
         onOpenTradeTableModal,
         resetSelectedCharacter,
