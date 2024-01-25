@@ -21,6 +21,7 @@ import { AttackModal } from './AttackModal';
 export const BattleModal: React.FC = () => {
   const { character } = useGame();
   const {
+    battleInfo,
     equippedWeapons,
     equippedWearable,
     getCharacterStats,
@@ -107,7 +108,10 @@ export const BattleModal: React.FC = () => {
                 onClick={() => setSelectedCard(i + 1)}
                 w="250px"
               >
-                <HealthBar currentHealth={9} startingHealth={10} />
+                <HealthBar
+                  currentHealth={battleInfo?.healthBySlots[i] ?? 0}
+                  startingHealth={characterStats[i]?.health ?? 0}
+                />
                 <CharacterCardSmall
                   character={character}
                   isSelected={i + 1 === selectedCard}
@@ -169,7 +173,10 @@ export const BattleModal: React.FC = () => {
           <Text>Moloch Soldier:</Text>
           <HStack alignItems="flex-start" mt={4} spacing={4}>
             <VStack w="250px">
-              <HealthBar currentHealth={2} startingHealth={10} />
+              <HealthBar
+                currentHealth={battleInfo?.molochHealth ?? 0}
+                startingHealth={20}
+              />
               <MolochCardSmall />
             </VStack>
           </HStack>

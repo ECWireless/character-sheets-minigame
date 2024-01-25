@@ -23,6 +23,13 @@ type Slot = {
 };
 
 type RaidPartyContextType = {
+  battleInfo: {
+    active: boolean;
+    healthBySlots: [number, number, number];
+    molochId: string;
+    molochHealth: number;
+    molochDefeated: boolean;
+  } | null;
   equippedWeapons: {
     [characterId: string]: Character['equippedItems'];
   } | null;
@@ -57,6 +64,7 @@ type RaidPartyContextType = {
 };
 
 const RaidPartyContext = createContext<RaidPartyContextType>({
+  battleInfo: null,
   equippedWeapons: null,
   equippedWearable: null,
   getCharacterStats: () => ({
@@ -98,7 +106,7 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
 }) => {
   const { address } = useAccount();
   const {
-    components: { PartyInfo, Position },
+    components: { BattleInfo, PartyInfo, Position },
     systemCalls: { initiateBattle, runFromBattle },
   } = useMUD();
   const { character, game } = useGame();
@@ -465,9 +473,38 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
     }
   }, [address, battleModalControls, renderError, runFromBattle]);
 
+  const battleInfo = useMemo(() => {
+    if (!playerEntity) return null;
+
+    const info = getComponentValue(BattleInfo, playerEntity);
+    if (!info) return null;
+
+    const {
+      active,
+      slotOneHealth,
+      slotTwoHealth,
+      slotThreeHealth,
+      molochId,
+      molochHealth,
+      molochDefeated,
+    } = info;
+    return {
+      active,
+      healthBySlots: [slotOneHealth, slotTwoHealth, slotThreeHealth] as [
+        number,
+        number,
+        number,
+      ],
+      molochId,
+      molochHealth,
+      molochDefeated,
+    };
+  }, [BattleInfo, playerEntity]);
+
   return (
     <RaidPartyContext.Provider
       value={{
+        battleInfo,
         equippedWeapons,
         equippedWearable,
         getCharacterStats,
