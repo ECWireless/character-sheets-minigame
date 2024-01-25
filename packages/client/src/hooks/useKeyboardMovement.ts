@@ -1,4 +1,3 @@
-import { useToast } from '@chakra-ui/react';
 import {
   getComponentValueStrict,
   Has,
@@ -11,6 +10,7 @@ import { useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
 import { useRaidParty } from '../contexts/RaidPartyContext';
 import { getPlayerEntity } from '../utils/helpers';
+import { useToast } from './useToast';
 
 const classesWithAttackAbility = [
   'warrior',
@@ -35,7 +35,7 @@ export const useKeyboardMovement = (
   } = useMUD();
   const { character } = useGame();
   const { onOpenBattleInitiationModal } = useRaidParty();
-  const toast = useToast();
+  const { renderWarning } = useToast();
 
   const [actionRunning, setActionRunning] = useState(false);
 
@@ -95,13 +95,7 @@ export const useKeyboardMovement = (
           }
         }
         if (!classesWithAttackAbility.includes(characterClass)) {
-          toast({
-            description: 'You must select a non-villager class to attack.',
-            status: 'warning',
-            position: 'top',
-            duration: 9000,
-            isClosable: true,
-          });
+          renderWarning('You must select a non-villager class to attack.');
           return;
         }
         setActionRunning(true);
@@ -122,7 +116,7 @@ export const useKeyboardMovement = (
     onOpenBattleInitiationModal,
     playerAddress,
     Position,
-    toast,
+    renderWarning,
   ]);
 
   useEffect(() => {

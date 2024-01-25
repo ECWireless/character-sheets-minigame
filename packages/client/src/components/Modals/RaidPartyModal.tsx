@@ -10,7 +10,6 @@ import {
   ModalOverlay,
   Text,
   useRadioGroup,
-  useToast,
   VStack,
   Wrap,
   WrapItem,
@@ -27,6 +26,7 @@ import { ClassTag } from '../../components/ClassTag';
 import { RadioOption } from '../../components/RadioOption';
 import { useMUD } from '../../contexts/MUDContext';
 import { useRaidParty } from '../../contexts/RaidPartyContext';
+import { useToast } from '../../hooks/useToast';
 import { CLASS_STATS, WEARABLE_STATS } from '../../utils/constants';
 import { EquippableTraitType } from '../../utils/types';
 
@@ -46,7 +46,7 @@ export const RaidPartyModal: React.FC = () => {
     selectedCharacter,
     selectedCharacterParty,
   } = useRaidParty();
-  const toast = useToast();
+  const { renderError, renderSuccess } = useToast();
 
   const party = useMemo(() => {
     if (!(myParty && selectedCharacter)) return null;
@@ -201,35 +201,16 @@ export const RaidPartyModal: React.FC = () => {
       const success = await setPartyClasses(address, newClasses);
 
       if (!success) {
-        toast({
-          title: 'Error updating Raid Party',
-          status: 'error',
-          position: 'top',
-          duration: 5000,
-          isClosable: true,
-        });
+        renderError('Error updating Raid Party');
         return;
       }
 
-      toast({
-        title: 'Raid Party updated!',
-        status: 'success',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
+      renderSuccess('Raid Party updated!');
 
       resetSelectedCharacter();
       onClose();
     } catch (e) {
-      console.error(e);
-      toast({
-        title: 'Error updating Raid Party',
-        status: 'error',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
+      renderError(e, 'Error updating Raid Party');
     } finally {
       setIsSaving(false);
     }
@@ -238,11 +219,12 @@ export const RaidPartyModal: React.FC = () => {
     classes,
     party,
     onClose,
+    renderError,
+    renderSuccess,
     resetSelectedCharacter,
     selectedCard,
     selectedCharacter,
     setPartyClasses,
-    toast,
     value,
   ]);
 

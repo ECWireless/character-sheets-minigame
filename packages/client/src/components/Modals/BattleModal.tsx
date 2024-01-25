@@ -64,7 +64,7 @@ export const BattleModal: React.FC = () => {
       wearableBonuses
     )
   )
-    return <div>Test</div>;
+    return null;
 
   const isDisabled = isRunning;
 

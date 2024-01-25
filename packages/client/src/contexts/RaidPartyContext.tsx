@@ -1,4 +1,4 @@
-import { useDisclosure, useToast } from '@chakra-ui/react';
+import { useDisclosure } from '@chakra-ui/react';
 import { useComponentValue } from '@latticexyz/react';
 import { getComponentValue, getComponentValueStrict } from '@latticexyz/recs';
 import {
@@ -12,6 +12,7 @@ import { useAccount } from 'wagmi';
 
 import { useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
+import { useToast } from '../hooks/useToast';
 import { CLASS_STATS, WEARABLE_STATS } from '../utils/constants';
 import { getPlayerEntity } from '../utils/helpers';
 import { Character, EquippableTraitType, Stats } from '../utils/types';
@@ -101,7 +102,7 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
     systemCalls: { initiateBattle, runFromBattle },
   } = useMUD();
   const { character, game } = useGame();
-  const toast = useToast();
+  const { renderError, renderWarning } = useToast();
 
   const battleInitiationModalControls = useDisclosure();
   const battleModalControls = useDisclosure();
@@ -131,13 +132,7 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
   const onOpenRaidPartyModal = useCallback(
     (_character: Character | null) => {
       if (!(address && gamePlayers.includes(address.toLowerCase()))) {
-        toast({
-          title: "You aren't a part of this game!",
-          status: 'warning',
-          position: 'top',
-          duration: 5000,
-          isClosable: true,
-        });
+        renderWarning(`You aren't a part of this game!`);
         return;
       }
 
@@ -148,7 +143,7 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
       }
       raidPartyModalControls.onOpen();
     },
-    [address, character, gamePlayers, raidPartyModalControls, toast],
+    [address, character, gamePlayers, raidPartyModalControls, renderWarning],
   );
 
   const isMyCharacterSelected = useMemo(() => {
@@ -430,18 +425,17 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
 
       battleInitiationModalControls.onClose();
     } catch (e) {
-      console.error(e);
-      toast({
-        title: 'An error occurred while initiating battle!',
-        status: 'error',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
+      renderError(e, 'Error initiating battle!');
     } finally {
       setIsInitiatingBattle(false);
     }
-  }, [address, battleInitiationModalControls, initiateBattle, Position, toast]);
+  }, [
+    address,
+    battleInitiationModalControls,
+    initiateBattle,
+    Position,
+    renderError,
+  ]);
 
   const onRunFromBattle = useCallback(async () => {
     try {
@@ -463,18 +457,11 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
 
       battleModalControls.onClose();
     } catch (e) {
-      console.error(e);
-      toast({
-        title: 'An error occurred while running from battle!',
-        status: 'error',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
+      renderError(e, 'Error running from battle!');
     } finally {
       setIsRunning(false);
     }
-  }, [address, battleModalControls, runFromBattle, toast]);
+  }, [address, battleModalControls, renderError, runFromBattle]);
 
   return (
     <RaidPartyContext.Provider

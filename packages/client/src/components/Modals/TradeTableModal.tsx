@@ -10,7 +10,6 @@ import {
   ModalOverlay,
   Text,
   useRadioGroup,
-  useToast,
   VStack,
   Wrap,
   WrapItem,
@@ -31,6 +30,7 @@ import { RadioOption } from '../../components/RadioOption';
 import { useGame } from '../../contexts/GameContext';
 import { useMUD } from '../../contexts/MUDContext';
 import { useRaidParty } from '../../contexts/RaidPartyContext';
+import { useToast } from '../../hooks/useToast';
 
 const reversePartyIndex = (index: number): number => {
   switch (index) {
@@ -63,7 +63,7 @@ export const TradeTableModal: React.FC = () => {
     components: { TradeInfo },
     systemCalls: { acceptOffer, cancelOffer, makeOffer, rejectOffer },
   } = useMUD();
-  const toast = useToast();
+  const { renderError, renderSuccess } = useToast();
 
   const [mySelectedCard, setMySelectedCard] = useState(1);
   const [otherSelectedCard, setOtherSelectedCard] = useState(1);
@@ -213,13 +213,7 @@ export const TradeTableModal: React.FC = () => {
       ) {
         setMySelectedCard(1);
         setOtherSelectedCard(1);
-        toast({
-          title: 'Error loading trade offer!',
-          status: 'error',
-          position: 'top',
-          duration: 5000,
-          isClosable: true,
-        });
+        renderError('Error loading trade offer!');
         return;
       }
 
@@ -263,13 +257,7 @@ export const TradeTableModal: React.FC = () => {
       ) {
         setMySelectedCard(1);
         setOtherSelectedCard(1);
-        toast({
-          title: 'Error loading trade request!',
-          status: 'error',
-          position: 'top',
-          duration: 5000,
-          isClosable: true,
-        });
+        renderError('Error loading trade request!');
         return;
       }
 
@@ -298,10 +286,10 @@ export const TradeTableModal: React.FC = () => {
     isTradeOfferActive,
     isTradeRequestActive,
     myParty,
+    renderError,
     selectedCharacterParty,
     setMyClassValue,
     setOtherClassValue,
-    toast,
     tradeOffers,
     tradeRequests,
   ]);
@@ -415,25 +403,10 @@ export const TradeTableModal: React.FC = () => {
         throw new Error('Error making offer');
       }
 
-      toast({
-        title: 'Trade offer made!',
-        status: 'success',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
-
+      renderSuccess('Trade offer made!');
       onClose();
-    } catch (error) {
-      console.error(error);
-
-      toast({
-        title: 'Error offering trade!',
-        status: 'error',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
+    } catch (e) {
+      renderError(e, 'Error making offer');
     } finally {
       setIsPending(false);
     }
@@ -445,8 +418,9 @@ export const TradeTableModal: React.FC = () => {
     onClose,
     otherSelectedCard,
     partyCharacters,
+    renderError,
+    renderSuccess,
     selectedCharacter,
-    toast,
   ]);
 
   const onAcceptOffer = useCallback(async () => {
@@ -463,29 +437,22 @@ export const TradeTableModal: React.FC = () => {
         throw new Error('Error making offer');
       }
 
-      toast({
-        title: 'Trade accepted!',
-        status: 'success',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
+      renderSuccess('Trade accepted!');
 
       onClose();
-    } catch (error) {
-      console.error(error);
-
-      toast({
-        title: 'Error accepting trade!',
-        status: 'error',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
+    } catch (e) {
+      renderError(e, 'Error accepting offer');
     } finally {
       setIsPending(false);
     }
-  }, [acceptOffer, address, onClose, selectedCharacter, toast]);
+  }, [
+    acceptOffer,
+    address,
+    onClose,
+    renderError,
+    renderSuccess,
+    selectedCharacter,
+  ]);
 
   const onCancelOffer = useCallback(async () => {
     setIsPending(true);
@@ -501,29 +468,22 @@ export const TradeTableModal: React.FC = () => {
         throw new Error('Error canceling offer');
       }
 
-      toast({
-        title: 'Trade canceled!',
-        status: 'success',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
+      renderSuccess('Trade canceled!');
 
       onClose();
-    } catch (error) {
-      console.error(error);
-
-      toast({
-        title: 'Error canceling trade!',
-        status: 'error',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
+    } catch (e) {
+      renderError(e, 'Error canceling offer');
     } finally {
       setIsPending(false);
     }
-  }, [address, cancelOffer, onClose, selectedCharacter, toast]);
+  }, [
+    address,
+    cancelOffer,
+    onClose,
+    renderError,
+    renderSuccess,
+    selectedCharacter,
+  ]);
 
   const onRejectOffer = useCallback(async () => {
     setIsRejecting(true);
@@ -539,29 +499,22 @@ export const TradeTableModal: React.FC = () => {
         throw new Error('Error rejecting offer');
       }
 
-      toast({
-        title: 'Trade rejected!',
-        status: 'success',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
+      renderSuccess('Trade rejected!');
 
       onClose();
-    } catch (error) {
-      console.error(error);
-
-      toast({
-        title: 'Error rejecting trade!',
-        status: 'error',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
+    } catch (e) {
+      renderError(e, 'Error rejecting offer');
     } finally {
       setIsRejecting(false);
     }
-  }, [address, onClose, rejectOffer, selectedCharacter, toast]);
+  }, [
+    address,
+    onClose,
+    rejectOffer,
+    renderError,
+    renderSuccess,
+    selectedCharacter,
+  ]);
 
   if (
     !(
