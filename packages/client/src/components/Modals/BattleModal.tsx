@@ -53,13 +53,22 @@ export const BattleModal: React.FC = () => {
     };
   }, [cardClass, character, getCharacterStats]);
 
+  const allPartyWeapons = useMemo(() => {
+    if (!(equippedWeapons && myParty)) return [];
+    return myParty
+      .map(({ character }) => {
+        return equippedWeapons[character.id];
+      })
+      .flat()
+      .filter((item, i, ar) => ar.findIndex(t => t.id === item.id) === i);
+  }, [equippedWeapons, myParty]);
+
   if (
     !(
       isOpen &&
       cardClass &&
       character &&
       characterStats &&
-      equippedWeapons &&
       equippedWearable &&
       wearableBonuses
     )
@@ -175,7 +184,7 @@ export const BattleModal: React.FC = () => {
       />
 
       <AttackModal
-        equippedWeapons={equippedWeapons[character.id]}
+        equippedWeapons={allPartyWeapons}
         isOpen={isAttackModalOpen}
         onClose={onCloseAttackModal}
       />

@@ -290,13 +290,15 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
   }, []);
 
   const equippedWeapons = useMemo(() => {
-    if (!(character && selectedCharacter)) return null;
+    if (!(myParty && selectedCharacter)) return null;
 
     return {
-      [character.id]: getEquippedWeapons(character),
+      [myParty[0].character.id]: getEquippedWeapons(myParty[0].character),
+      [myParty[1].character.id]: getEquippedWeapons(myParty[1].character),
+      [myParty[2].character.id]: getEquippedWeapons(myParty[2].character),
       [selectedCharacter.id]: getEquippedWeapons(selectedCharacter),
     };
-  }, [character, getEquippedWeapons, selectedCharacter]);
+  }, [getEquippedWeapons, myParty, selectedCharacter]);
 
   const getEquippedWearable = useCallback((_character: Character) => {
     const { equippedItems } = _character;

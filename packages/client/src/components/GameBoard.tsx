@@ -77,7 +77,7 @@ export const GameBoard: React.FC = () => {
       avatarClassName,
       avatarClassSrc,
       position,
-      actionRunning,
+      !!actionRunning && characterByPlayer?.id === character?.id,
     );
     const transform = 'scale(1.5)';
 
