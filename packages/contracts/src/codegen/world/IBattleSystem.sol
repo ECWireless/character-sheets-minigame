@@ -8,7 +8,7 @@ pragma solidity >=0.8.21;
  * @dev This interface is automatically generated from the corresponding system contract. Do not edit manually.
  */
 interface IBattleSystem {
-  function attack(address playerAddress, bytes32 molochSoldier, uint32 power) external;
+  function attack(address playerAddress, bytes32 molochSoldier, uint32 damage) external;
 
   function initiateBattle(address playerAddress, uint32 x, uint32 y) external;
 

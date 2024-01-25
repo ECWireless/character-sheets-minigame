@@ -124,7 +124,7 @@ export const WEARABLE_STATS: { [key: string]: { [key: string]: number } } = {
   },
 };
 
-enum POWER_TYPE {
+export enum POWER_TYPE {
   ATTACK = 'attack',
   SPECIAL_ATTACK = 'special attack',
 }
@@ -156,4 +156,12 @@ export const WEAPON_STATS: {
     type: POWER_TYPE.SPECIAL_ATTACK,
     color: 'blue',
   },
+};
+
+export const MOLOCH_SOLDIER_STATS = {
+  heath: 20,
+  attack: 7,
+  defense: 5,
+  specialAttack: 8,
+  specialDefense: 5,
 };

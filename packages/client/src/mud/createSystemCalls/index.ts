@@ -49,7 +49,7 @@ export function createSystemCalls(
     waitForTransaction,
   } as SetupNetworkResult);
 
-  const { initiateBattle, runFromBattle } = createBattleSystemCalls(
+  const { attack, initiateBattle, runFromBattle } = createBattleSystemCalls(
     { worldContract, waitForTransaction } as SetupNetworkResult,
     {
       BattleInfo,
@@ -64,6 +64,7 @@ export function createSystemCalls(
 
   return {
     acceptOffer,
+    attack,
     cancelOffer,
     initiateBattle,
     login,

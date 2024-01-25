@@ -22,6 +22,7 @@ export const HealthBar: React.FC<{
             background={healthColor}
             h="100%"
             style={{ width: `${(currentHealth / startingHealth) * 100}%` }}
+            transition="all 1s ease-out"
           />
         </Box>
       </HStack>

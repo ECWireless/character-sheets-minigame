@@ -6,24 +6,102 @@ import {
   ModalContent,
   ModalHeader,
   ModalOverlay,
+  Spinner,
   Text,
   VStack,
 } from '@chakra-ui/react';
+import { useCallback, useState } from 'react';
+import { useAccount } from 'wagmi';
 
-import { WEAPON_STATS } from '../../utils/constants';
-import { EquippedItem } from '../../utils/types';
+import { useMUD } from '../../contexts/MUDContext';
+import { useToast } from '../../hooks/useToast';
+import {
+  MOLOCH_SOLDIER_STATS,
+  POWER_TYPE,
+  WEAPON_STATS,
+} from '../../utils/constants';
+import { EquippedItem, Stats } from '../../utils/types';
+
+const calculateDamage = (
+  itemId: string,
+  characterStats: Stats,
+  wearableBonuses: Omit<Stats, 'health'>,
+) => {
+  const { power, type } = WEAPON_STATS[itemId];
+
+  if (type === POWER_TYPE.ATTACK) {
+    const attackStat = characterStats['attack'];
+    const attackBonus = wearableBonuses['attack'];
+    const molochDefense = MOLOCH_SOLDIER_STATS['attack'];
+
+    return attackStat + attackBonus + Number(power) - molochDefense;
+  } else if (power === POWER_TYPE.SPECIAL_ATTACK) {
+    const attackStat = characterStats['specialAttack'];
+    const attackBonus = wearableBonuses['specialAttack'];
+    const molochDefense = MOLOCH_SOLDIER_STATS['specialAttack'];
+
+    return attackStat + attackBonus + Number(power) - molochDefense;
+  } else {
+    return 0;
+  }
+};
 
 type AttackModalProps = {
+  characterStats: Stats;
   equippedWeapons: EquippedItem[];
   isOpen: boolean;
   onClose: () => void;
+  wearableBonuses: Omit<Stats, 'health'>;
 };
 
 export const AttackModal: React.FC<AttackModalProps> = ({
+  characterStats,
   equippedWeapons,
   isOpen,
   onClose,
+  wearableBonuses,
 }) => {
+  const { address } = useAccount();
+  const {
+    systemCalls: { attack },
+  } = useMUD();
+  const { renderError, renderSuccess } = useToast();
+
+  const [isAttacking, setIsAttacking] = useState(false);
+
+  const onAttack = useCallback(
+    async (itemId: string) => {
+      try {
+        if (!address) throw new Error('No address found');
+
+        setIsAttacking(true);
+
+        const damage = calculateDamage(itemId, characterStats, wearableBonuses);
+
+        const success = await attack(address, damage);
+        if (!success) {
+          throw new Error('Attack failed');
+        }
+
+        renderSuccess('Moloch Soldier hit with ' + damage + ' damage!');
+        onClose();
+      } catch (e) {
+        renderError(e, 'Error attacking Moloch Soldier!');
+      } finally {
+        setIsAttacking(false);
+      }
+    },
+    [
+      address,
+      attack,
+      characterStats,
+      onClose,
+      renderError,
+      renderSuccess,
+      wearableBonuses,
+    ],
+  );
+
   return (
     <Modal closeOnEsc closeOnOverlayClick isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
@@ -41,43 +119,60 @@ export const AttackModal: React.FC<AttackModalProps> = ({
             </Text>
           )}
           <HStack justify="center" mt={2} spacing={4}>
-            {equippedWeapons.map(e => {
-              return (
-                <VStack
-                  align="flex-start"
-                  border="2px solid rgba(219, 211, 139, 0.75)"
-                  key={e.id}
-                  p={4}
-                  _hover={{
-                    cursor: 'pointer',
-                    border: '2px solid white',
-                  }}
-                >
-                  <Text fontSize="sm" textAlign="left">
-                    {e.name}
-                  </Text>
-                  <Text fontSize="xs">
-                    Type:{' '}
-                    <Text
-                      as="span"
-                      color={String(WEAPON_STATS[e.itemId].color)}
-                    >
-                      {WEAPON_STATS[e.itemId].type}
+            {isAttacking ? (
+              <VStack spacing={8}>
+                <Text>Attacking...</Text>
+                <Spinner size="xl" />
+              </VStack>
+            ) : (
+              equippedWeapons.map(e => {
+                return (
+                  <VStack
+                    align="flex-start"
+                    as="button"
+                    border="2px solid rgba(219, 211, 139, 0.75)"
+                    key={e.id}
+                    onClick={() =>
+                      isAttacking ? undefined : onAttack(e.itemId)
+                    }
+                    p={4}
+                    _hover={
+                      isAttacking
+                        ? {
+                            cursor: 'not-allowed',
+                          }
+                        : {
+                            cursor: 'pointer',
+                            border: '2px solid white',
+                          }
+                    }
+                  >
+                    <Text fontSize="sm" textAlign="left">
+                      {e.name}
                     </Text>
-                  </Text>
-                  <Text fontSize="xs">
-                    Power:{' '}
-                    <Text
-                      as="span"
-                      color="rgba(219, 211, 139, 0.75)"
-                      fontWeight={500}
-                    >
-                      {WEAPON_STATS[e.itemId].power}
+                    <Text fontSize="xs">
+                      Type:{' '}
+                      <Text
+                        as="span"
+                        color={String(WEAPON_STATS[e.itemId].color)}
+                      >
+                        {WEAPON_STATS[e.itemId].type}
+                      </Text>
                     </Text>
-                  </Text>
-                </VStack>
-              );
-            })}
+                    <Text fontSize="xs">
+                      Power:{' '}
+                      <Text
+                        as="span"
+                        color="rgba(219, 211, 139, 0.75)"
+                        fontWeight={500}
+                      >
+                        {WEAPON_STATS[e.itemId].power}
+                      </Text>
+                    </Text>
+                  </VStack>
+                );
+              })
+            )}
           </HStack>
         </ModalBody>
       </ModalContent>

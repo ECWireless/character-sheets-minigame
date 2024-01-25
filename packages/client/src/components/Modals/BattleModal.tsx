@@ -191,9 +191,11 @@ export const BattleModal: React.FC = () => {
       />
 
       <AttackModal
+        characterStats={characterStats[character.id]}
         equippedWeapons={allPartyWeapons}
         isOpen={isAttackModalOpen}
         onClose={onCloseAttackModal}
+        wearableBonuses={wearableBonuses[character.id]}
       />
     </Box>
   );

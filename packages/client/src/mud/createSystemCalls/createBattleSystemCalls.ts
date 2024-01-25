@@ -10,6 +10,35 @@ export const createBattleSystemCalls = (
   { BattleInfo, MolochSoldier, Position }: ClientComponents,
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 ) => {
+  const attack = async (playerAddress: string, power: number) => {
+    try {
+      const playerEntity = getPlayerEntity(playerAddress);
+      if (!playerEntity) {
+        throw new Error('No player entity');
+      }
+
+      const battleInfo = getComponentValue(BattleInfo, playerEntity);
+      if (!battleInfo?.active) {
+        throw new Error('No active battle');
+      }
+
+      if (battleInfo?.molochHealth === 0 || battleInfo?.molochDefeated) {
+        throw new Error('Moloch soldier already dead');
+      }
+
+      const tx = await worldContract.write.attack([
+        playerAddress as Address,
+        battleInfo.molochId as Address,
+        power,
+      ]);
+      await waitForTransaction(tx);
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
   const initiateBattle = async (
     playerAddress: string,
     x: number,
@@ -77,6 +106,7 @@ export const createBattleSystemCalls = (
   };
 
   return {
+    attack,
     initiateBattle,
     runFromBattle,
   };

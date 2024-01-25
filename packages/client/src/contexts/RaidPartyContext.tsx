@@ -473,11 +473,11 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
     }
   }, [address, battleModalControls, renderError, runFromBattle]);
 
+  const _battleInfo = useComponentValue(BattleInfo, playerEntity);
+
   const battleInfo = useMemo(() => {
     if (!playerEntity) return null;
-
-    const info = getComponentValue(BattleInfo, playerEntity);
-    if (!info) return null;
+    if (!_battleInfo) return null;
 
     const {
       active,
@@ -487,7 +487,7 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
       molochId,
       molochHealth,
       molochDefeated,
-    } = info;
+    } = _battleInfo;
     return {
       active,
       healthBySlots: [slotOneHealth, slotTwoHealth, slotThreeHealth] as [
@@ -499,7 +499,7 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
       molochHealth,
       molochDefeated,
     };
-  }, [BattleInfo, playerEntity]);
+  }, [playerEntity, _battleInfo]);
 
   return (
     <RaidPartyContext.Provider

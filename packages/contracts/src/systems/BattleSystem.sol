@@ -11,13 +11,22 @@ import {
 } from "../codegen/index.sol";
 
 contract BattleSystem is System {
-  function attack(address playerAddress, bytes32 molochSoldier, uint32 power) public {
+  function attack(address playerAddress, bytes32 molochSoldier, uint32 damage) public {
     bytes32 player = addressToEntityKey(playerAddress);
     require(attackChecks(player, molochSoldier), "attack checks failed");
 
     (, uint32 playerHealth, uint32 playerPower, uint32 playerDefense,, uint32 molochHealth,) = BattleInfo.get(player);
 
-    BattleInfo.set(player, true, playerHealth, playerPower, playerDefense, molochSoldier, molochHealth - power, molochHealth - power <= 0);
+    uint32 newMolochHealth = molochHealth;
+    bool molochDefeated = false;
+    
+    if (damage >= molochHealth) {
+      newMolochHealth = 0;
+      molochDefeated = true;
+    } else {
+      newMolochHealth = molochHealth - damage;
+    }
+    BattleInfo.set(player, true, playerHealth, playerPower, playerDefense, molochSoldier, newMolochHealth, molochDefeated);
   }
 
   function attackChecks(bytes32 player, bytes32 molochSoldier) internal view returns (bool) {
