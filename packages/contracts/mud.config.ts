@@ -13,6 +13,7 @@ export default mudConfig({
         nonce: "uint256",
       },
     },
+    BattleCounter: "uint32",
     BattleInfo: {
       dataStruct: false,
       valueSchema: {

@@ -14,6 +14,7 @@ export type SystemCalls = ReturnType<typeof createSystemCalls>;
 export function createSystemCalls(
   { worldContract, waitForTransaction }: SetupNetworkResult,
   {
+    BattleCounter,
     BattleInfo,
     MapConfig,
     MolochSoldier,
@@ -52,12 +53,9 @@ export function createSystemCalls(
   const { attack, initiateBattle, runFromBattle } = createBattleSystemCalls(
     { worldContract, waitForTransaction } as SetupNetworkResult,
     {
+      BattleCounter,
       BattleInfo,
-      MapConfig,
       MolochSoldier,
-      Movable,
-      Obstruction,
-      Player,
       Position,
     } as ClientComponents,
   );

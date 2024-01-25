@@ -7,7 +7,7 @@ import { SetupNetworkResult } from '../setupNetwork';
 
 export const createBattleSystemCalls = (
   { worldContract, waitForTransaction }: SetupNetworkResult,
-  { BattleInfo, MolochSoldier, Position }: ClientComponents,
+  { BattleCounter, BattleInfo, MolochSoldier, Position }: ClientComponents,
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 ) => {
   const attack = async (playerAddress: string, power: number) => {
@@ -24,6 +24,11 @@ export const createBattleSystemCalls = (
 
       if (battleInfo?.molochHealth === 0 || battleInfo?.molochDefeated) {
         throw new Error('Moloch soldier already dead');
+      }
+
+      const battleCounter = getComponentValue(BattleCounter, playerEntity);
+      if (!battleCounter?.value || battleCounter.value % 2 === 0) {
+        throw new Error('Not your turn to attack');
       }
 
       const tx = await worldContract.write.attack([

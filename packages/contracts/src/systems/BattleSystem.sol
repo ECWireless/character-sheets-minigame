@@ -5,6 +5,7 @@ import { addressToEntityKey } from "../lib/addressToEntityKey.sol";
 import { positionToEntityKey } from "../lib/positionToEntityKey.sol";
 import {
   AccountInfo,
+  BattleCounter,
   BattleInfo,
   MolochSoldier,
   Player
@@ -27,6 +28,7 @@ contract BattleSystem is System {
       newMolochHealth = molochHealth - damage;
     }
     BattleInfo.set(player, true, playerHealth, playerPower, playerDefense, molochSoldier, newMolochHealth, molochDefeated);
+    BattleCounter.set(player, BattleCounter.get(player) + 1);
   }
 
   function attackChecks(bytes32 player, bytes32 molochSoldier) internal view returns (bool) {
@@ -41,6 +43,8 @@ contract BattleSystem is System {
     require(molochId == molochSoldier, "moloch ID does not match moloch soldier");
     require(!molochDefeated, "moloch already defeated");
 
+    uint32 battleCounter = BattleCounter.get(player);
+    require(battleCounter % 2 == 1, "it is not your turn to attack");
     return true;
   }
 
@@ -64,6 +68,7 @@ contract BattleSystem is System {
     require(!molochDefeated, "moloch already defeated");
     
     BattleInfo.set(player, true, 10, 10, 10, molochSoldier, 20, false);
+    BattleCounter.set(player, 1);
   }
 
   function runFromBattle(address playerAddress) public {
@@ -77,5 +82,6 @@ contract BattleSystem is System {
     require(active, "battle not active");
 
     BattleInfo.set(player, false, 10, 10, 10, bytes32(0), 20, false);
+    BattleCounter.set(player, 1);
   }
 }
