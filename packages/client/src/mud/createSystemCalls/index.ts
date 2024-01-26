@@ -50,15 +50,16 @@ export function createSystemCalls(
     waitForTransaction,
   } as SetupNetworkResult);
 
-  const { attack, initiateBattle, runFromBattle } = createBattleSystemCalls(
-    { worldContract, waitForTransaction } as SetupNetworkResult,
-    {
-      BattleCounter,
-      BattleInfo,
-      MolochSoldier,
-      Position,
-    } as ClientComponents,
-  );
+  const { attack, initiateBattle, molochAttack, runFromBattle } =
+    createBattleSystemCalls(
+      { worldContract, waitForTransaction } as SetupNetworkResult,
+      {
+        BattleCounter,
+        BattleInfo,
+        MolochSoldier,
+        Position,
+      } as ClientComponents,
+    );
 
   return {
     acceptOffer,
@@ -68,6 +69,7 @@ export function createSystemCalls(
     login,
     logout,
     makeOffer,
+    molochAttack,
     moveTo,
     moveBy,
     updateBurnerWallet,

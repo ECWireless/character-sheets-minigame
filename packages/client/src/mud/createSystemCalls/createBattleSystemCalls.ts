@@ -10,7 +10,7 @@ export const createBattleSystemCalls = (
   { BattleCounter, BattleInfo, MolochSoldier, Position }: ClientComponents,
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 ) => {
-  const attack = async (playerAddress: string, power: number) => {
+  const attack = async (playerAddress: string, damage: number) => {
     try {
       const playerEntity = getPlayerEntity(playerAddress);
       if (!playerEntity) {
@@ -34,7 +34,7 @@ export const createBattleSystemCalls = (
       const tx = await worldContract.write.attack([
         playerAddress as Address,
         battleInfo.molochId as Address,
-        power,
+        damage,
       ]);
       await waitForTransaction(tx);
       return true;
@@ -87,6 +87,40 @@ export const createBattleSystemCalls = (
     }
   };
 
+  const molochAttack = async (playerAddress: string, damage: number) => {
+    try {
+      const playerEntity = getPlayerEntity(playerAddress);
+      if (!playerEntity) {
+        throw new Error('No player entity');
+      }
+
+      const battleInfo = getComponentValue(BattleInfo, playerEntity);
+      if (!battleInfo?.active) {
+        throw new Error('No active battle');
+      }
+
+      if (battleInfo?.molochHealth === 0 || battleInfo?.molochDefeated) {
+        throw new Error('Moloch soldier already dead');
+      }
+
+      const battleCounter = getComponentValue(BattleCounter, playerEntity);
+      if (!battleCounter?.value || battleCounter.value % 2 !== 0) {
+        throw new Error('Not your turn to attack');
+      }
+
+      const tx = await worldContract.write.molochAttack([
+        playerAddress as Address,
+        battleInfo.molochId as Address,
+        damage,
+      ]);
+      await waitForTransaction(tx);
+      return true;
+    } catch (e) {
+      console.error(e);
+      return false;
+    }
+  };
+
   const runFromBattle = async (playerAddress: string) => {
     try {
       const playerEntity = getPlayerEntity(playerAddress);
@@ -113,6 +147,7 @@ export const createBattleSystemCalls = (
   return {
     attack,
     initiateBattle,
+    molochAttack,
     runFromBattle,
   };
 };

@@ -3,6 +3,7 @@ pragma solidity >=0.8.0;
 import { System } from "@latticexyz/world/src/System.sol";
 import { addressToEntityKey } from "../lib/addressToEntityKey.sol";
 import { positionToEntityKey } from "../lib/positionToEntityKey.sol";
+import { getRandomSlotNumber } from "../lib/randomNumberGenerator.sol";
 import {
   AccountInfo,
   BattleCounter,
@@ -15,6 +16,9 @@ contract BattleSystem is System {
   function attack(address playerAddress, bytes32 molochSoldier, uint32 damage) public {
     bytes32 player = addressToEntityKey(playerAddress);
     require(attackChecks(player, molochSoldier), "attack checks failed");
+
+    uint32 battleCounter = BattleCounter.get(player);
+    require(battleCounter % 2 == 1, "it is not your turn to attack");
 
     (, uint32 playerHealth, uint32 playerPower, uint32 playerDefense,, uint32 molochHealth,) = BattleInfo.get(player);
 
@@ -43,8 +47,6 @@ contract BattleSystem is System {
     require(molochId == molochSoldier, "moloch ID does not match moloch soldier");
     require(!molochDefeated, "moloch already defeated");
 
-    uint32 battleCounter = BattleCounter.get(player);
-    require(battleCounter % 2 == 1, "it is not your turn to attack");
     return true;
   }
 
@@ -69,6 +71,61 @@ contract BattleSystem is System {
     
     BattleInfo.set(player, true, 10, 10, 10, molochSoldier, 20, false);
     BattleCounter.set(player, 1);
+  }
+
+  function molochAttack(address playerAddress, bytes32 molochSoldier, uint32 damage) public {
+    bytes32 player = addressToEntityKey(playerAddress);
+    require(attackChecks(player, molochSoldier), "attack checks failed");
+
+    uint32 battleCounter = BattleCounter.get(player);
+    require(battleCounter % 2 == 0, "it is not the moloch's turn to attack");
+
+    (, uint32 slotOneHealth, uint32 slotTwoHealth, uint32 slotThreeHealth,, uint32 molochHealth,) = BattleInfo.get(player);
+
+    uint32 newSlotHealth = slotOneHealth;
+
+    uint8 slot = getRandomSlotNumber();
+
+    if (slot == 1) {
+      if (slotOneHealth == 0) {
+        slot = 2;
+      } else {
+        if (damage >= slotOneHealth) {
+          newSlotHealth = 0;
+        } else {
+          newSlotHealth = slotOneHealth - damage;
+        }
+        BattleInfo.set(player, true, newSlotHealth, slotTwoHealth, slotThreeHealth, molochSoldier, molochHealth, false);
+      }
+    }
+
+    if (slot == 2) {
+      if (slotTwoHealth == 0) {
+        slot = 3;
+      } else {
+        if (damage >= slotTwoHealth) {
+          newSlotHealth = 0;
+        } else {
+          newSlotHealth = slotTwoHealth - damage;
+        }
+        BattleInfo.set(player, true, slotOneHealth, newSlotHealth, slotThreeHealth, molochSoldier, molochHealth, false);
+      }
+    }
+
+    if (slot == 3) {
+      if (slotThreeHealth == 0) {
+        slot = 1;
+      } else {
+        if (damage >= slotThreeHealth) {
+          newSlotHealth = 0;
+        } else {
+          newSlotHealth = slotThreeHealth - damage;
+        }
+        BattleInfo.set(player, true, slotOneHealth, slotTwoHealth, newSlotHealth, molochSoldier, molochHealth, false);
+      }
+    }
+
+    BattleCounter.set(player, BattleCounter.get(player) + 1);
   }
 
   function runFromBattle(address playerAddress) public {
