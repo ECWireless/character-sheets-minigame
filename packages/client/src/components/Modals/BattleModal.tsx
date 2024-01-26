@@ -26,6 +26,7 @@ export const BattleModal: React.FC = () => {
     equippedWearable,
     getCharacterStats,
     isBattleModalOpen: isOpen,
+    isMyTurn,
     isRunning,
     myParty,
     onRunFromBattle,
@@ -76,7 +77,7 @@ export const BattleModal: React.FC = () => {
   )
     return null;
 
-  const isDisabled = isRunning;
+  const isDisabled = isRunning || !isMyTurn;
 
   return (
     <Box
@@ -92,11 +93,13 @@ export const BattleModal: React.FC = () => {
       <Text
         fontSize="2xl"
         fontWeight="500"
-        mb={8}
         textAlign="center"
         textTransform="initial"
       >
         BATTLE
+      </Text>
+      <Text color="orange" mb={8} textAlign="center">
+        It is {!isMyTurn && 'not'} your turn
       </Text>
       <Grid gap={6} templateColumns="repeat(5, 1fr)">
         <GridItem colSpan={3}>

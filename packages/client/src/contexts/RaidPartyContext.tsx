@@ -41,6 +41,7 @@ type RaidPartyContextType = {
   isBattleModalOpen: boolean;
   isInitiatingBattle: boolean;
   isMyCharacterSelected: boolean;
+  isMyTurn: boolean;
   isRaidPartyModalOpen: boolean;
   isRunning: boolean;
   isTradeTableModalOpen: boolean;
@@ -78,6 +79,7 @@ const RaidPartyContext = createContext<RaidPartyContextType>({
   isBattleInitiationModalOpen: false,
   isInitiatingBattle: false,
   isMyCharacterSelected: false,
+  isMyTurn: false,
   isRaidPartyModalOpen: false,
   isRunning: false,
   isTradeTableModalOpen: false,
@@ -106,7 +108,7 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
 }) => {
   const { address } = useAccount();
   const {
-    components: { BattleInfo, PartyInfo, Position },
+    components: { BattleCounter, BattleInfo, PartyInfo, Position },
     systemCalls: { initiateBattle, runFromBattle },
   } = useMUD();
   const { character, game } = useGame();
@@ -501,6 +503,13 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
     };
   }, [playerEntity, _battleInfo]);
 
+  const battleCounter = useComponentValue(BattleCounter, playerEntity);
+
+  const isMyTurn = useMemo(() => {
+    if (!battleCounter) return false;
+    return battleCounter.value % 2 === 1;
+  }, [battleCounter]);
+
   return (
     <RaidPartyContext.Provider
       value={{
@@ -512,6 +521,7 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
         isBattleModalOpen: battleModalControls.isOpen,
         isInitiatingBattle,
         isMyCharacterSelected,
+        isMyTurn,
         isRaidPartyModalOpen: raidPartyModalControls.isOpen,
         isRunning,
         isTradeTableModalOpen: tradeTableModalControls.isOpen,
