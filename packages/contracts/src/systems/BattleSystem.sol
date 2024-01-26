@@ -3,7 +3,6 @@ pragma solidity >=0.8.0;
 import { System } from "@latticexyz/world/src/System.sol";
 import { addressToEntityKey } from "../lib/addressToEntityKey.sol";
 import { positionToEntityKey } from "../lib/positionToEntityKey.sol";
-import { getRandomSlotNumber } from "../lib/randomNumberGenerator.sol";
 import {
   AccountInfo,
   BattleCounter,
@@ -73,7 +72,7 @@ contract BattleSystem is System {
     BattleCounter.set(player, 1);
   }
 
-  function molochAttack(address playerAddress, bytes32 molochSoldier, uint32 damage) public {
+  function molochAttack(address playerAddress, bytes32 molochSoldier, uint8 slotIndex, uint32 damage) public {
     bytes32 player = addressToEntityKey(playerAddress);
     require(attackChecks(player, molochSoldier), "attack checks failed");
 
@@ -84,11 +83,9 @@ contract BattleSystem is System {
 
     uint32 newSlotHealth = slotOneHealth;
 
-    uint8 slot = getRandomSlotNumber();
-
-    if (slot == 1) {
+    if (slotIndex == 0) {
       if (slotOneHealth == 0) {
-        slot = 2;
+        slotIndex = 1;
       } else {
         if (damage >= slotOneHealth) {
           newSlotHealth = 0;
@@ -99,9 +96,9 @@ contract BattleSystem is System {
       }
     }
 
-    if (slot == 2) {
+    if (slotIndex == 1) {
       if (slotTwoHealth == 0) {
-        slot = 3;
+        slotIndex = 2;
       } else {
         if (damage >= slotTwoHealth) {
           newSlotHealth = 0;
@@ -112,9 +109,9 @@ contract BattleSystem is System {
       }
     }
 
-    if (slot == 3) {
+    if (slotIndex == 2) {
       if (slotThreeHealth == 0) {
-        slot = 1;
+        slotIndex = 0;
       } else {
         if (damage >= slotThreeHealth) {
           newSlotHealth = 0;

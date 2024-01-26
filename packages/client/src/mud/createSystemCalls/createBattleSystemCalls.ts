@@ -87,7 +87,11 @@ export const createBattleSystemCalls = (
     }
   };
 
-  const molochAttack = async (playerAddress: string, damage: number) => {
+  const molochAttack = async (
+    playerAddress: string,
+    slotIndex: number,
+    damage: number,
+  ) => {
     try {
       const playerEntity = getPlayerEntity(playerAddress);
       if (!playerEntity) {
@@ -111,6 +115,7 @@ export const createBattleSystemCalls = (
       const tx = await worldContract.write.molochAttack([
         playerAddress as Address,
         battleInfo.molochId as Address,
+        slotIndex,
         damage,
       ]);
       await waitForTransaction(tx);

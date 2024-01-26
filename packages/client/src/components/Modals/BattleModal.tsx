@@ -8,17 +8,61 @@ import {
   useDisclosure,
   VStack,
 } from '@chakra-ui/react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { useAccount } from 'wagmi';
 
 import { useGame } from '../../contexts/GameContext';
+import { useMUD } from '../../contexts/MUDContext';
 import { useRaidParty } from '../../contexts/RaidPartyContext';
+import { useToast } from '../../hooks/useToast';
+import {
+  MOLOCH_SOLDIER_MOVES,
+  MOLOCH_SOLDIER_STATS,
+  POWER_TYPE,
+} from '../../utils/constants';
+import { generateRandomNumber } from '../../utils/helpers';
+import { Stats } from '../../utils/types';
 import { CharacterCardSmall } from '../CharacterCard';
 import { CharacterStats } from '../CharacterStats';
 import { HealthBar } from '../HealthBar';
 import { MolochCardSmall } from '../MolochCard';
 import { AttackModal } from './AttackModal';
 
+const calculatePlayerDamage = (
+  cardStats: Stats,
+  moveId: number,
+  wearableBonuses: Omit<Stats, 'health'>,
+) => {
+  const move = MOLOCH_SOLDIER_MOVES[moveId];
+  if (!move) return 0;
+
+  const { power, type } = move;
+
+  if (type === POWER_TYPE.ATTACK) {
+    const attackStat = MOLOCH_SOLDIER_STATS['attack'];
+    const cardDefense = cardStats['attack'];
+    const wearableBonus = wearableBonuses['attack'];
+
+    const damage = attackStat + Number(power) - cardDefense - wearableBonus;
+    return damage > 0 ? damage : 0;
+  } else if (type === POWER_TYPE.SPECIAL_ATTACK) {
+    const attackStat = MOLOCH_SOLDIER_STATS['specialAttack'];
+    const cardDefense = cardStats['specialAttack'];
+    const wearableBonus = wearableBonuses['specialAttack'];
+
+    const damage = attackStat + Number(power) - cardDefense - wearableBonus;
+    return damage > 0 ? damage : 0;
+  } else {
+    return 0;
+  }
+};
+
 export const BattleModal: React.FC = () => {
+  const { address } = useAccount();
+  const {
+    systemCalls: { molochAttack },
+  } = useMUD();
+
   const { character } = useGame();
   const {
     battleInfo,
@@ -38,7 +82,9 @@ export const BattleModal: React.FC = () => {
     onClose: onCloseAttackModal,
     onOpen: onOpenAttackModal,
   } = useDisclosure();
+  const { renderError, renderWarning } = useToast();
 
+  const [isMolochAttacking, setIsMolochAttacking] = useState(false);
   const [selectedCard, setSelectedCard] = useState(1);
 
   const cardClass = useMemo(() => {
@@ -65,6 +111,46 @@ export const BattleModal: React.FC = () => {
       .filter((item, i, ar) => ar.findIndex(t => t.id === item.id) === i);
   }, [equippedWeapons, myParty]);
 
+  const onMolochAttack = useCallback(async () => {
+    try {
+      if (!address) throw new Error('No address found');
+      if (!myParty) throw new Error('No party found');
+      if (!characterStats) throw new Error('No character stats found');
+      if (!wearableBonuses) throw new Error('No wearable bonuses found');
+
+      setIsMolochAttacking(true);
+
+      const moveId = generateRandomNumber(1, 4);
+      const slotIndex = generateRandomNumber(0, 2);
+      const damage = calculatePlayerDamage(
+        characterStats[myParty[slotIndex].character.id],
+        moveId,
+        wearableBonuses[myParty[slotIndex].character.id],
+      );
+
+      const success = await molochAttack(address, slotIndex, damage);
+      if (!success) {
+        throw new Error('Attack failed');
+      }
+
+      renderWarning(
+        `Moloch Soldier used ${MOLOCH_SOLDIER_MOVES[moveId].name}! You received ${damage} damage!`,
+      );
+    } catch (e) {
+      renderError(e, 'Error with Moloch Soldier attack!');
+    } finally {
+      setIsMolochAttacking(false);
+    }
+  }, [
+    address,
+    characterStats,
+    molochAttack,
+    myParty,
+    renderError,
+    renderWarning,
+    wearableBonuses,
+  ]);
+
   if (
     !(
       isOpen &&
@@ -77,7 +163,7 @@ export const BattleModal: React.FC = () => {
   )
     return null;
 
-  const isDisabled = isRunning || !isMyTurn;
+  const isDisabled = isRunning || isMolochAttacking;
 
   return (
     <Box
@@ -113,7 +199,7 @@ export const BattleModal: React.FC = () => {
               >
                 <HealthBar
                   currentHealth={battleInfo?.healthBySlots[i] ?? 0}
-                  startingHealth={characterStats[i]?.health ?? 0}
+                  startingHealth={characterStats[character.id]?.health ?? 0}
                 />
                 <CharacterCardSmall
                   character={character}
@@ -145,14 +231,27 @@ export const BattleModal: React.FC = () => {
               transform="translateX(-50%)"
               w="100%"
             >
-              <Button
-                isDisabled={isDisabled}
-                onClick={onOpenAttackModal}
-                variant="solid"
-                w="100%"
-              >
-                Attack
-              </Button>
+              {isMyTurn ? (
+                <Button
+                  isDisabled={isDisabled}
+                  onClick={onOpenAttackModal}
+                  variant="solid"
+                  w="100%"
+                >
+                  Attack
+                </Button>
+              ) : (
+                <Button
+                  isDisabled={isDisabled}
+                  isLoading={isMolochAttacking}
+                  loadingText="Moloch attacking..."
+                  onClick={onMolochAttack}
+                  variant="solid"
+                  w="100%"
+                >
+                  Next
+                </Button>
+              )}
             </Box>
             <Box
               bottom={0}

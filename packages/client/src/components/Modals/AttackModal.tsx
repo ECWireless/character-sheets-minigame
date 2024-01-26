@@ -34,13 +34,15 @@ const calculateDamage = (
     const attackBonus = wearableBonuses['attack'];
     const molochDefense = MOLOCH_SOLDIER_STATS['attack'];
 
-    return attackStat + attackBonus + Number(power) - molochDefense;
+    const damage = attackStat + attackBonus + Number(power) - molochDefense;
+    return damage > 0 ? damage : 0;
   } else if (power === POWER_TYPE.SPECIAL_ATTACK) {
     const attackStat = characterStats['specialAttack'];
     const attackBonus = wearableBonuses['specialAttack'];
     const molochDefense = MOLOCH_SOLDIER_STATS['specialAttack'];
 
-    return attackStat + attackBonus + Number(power) - molochDefense;
+    const damage = attackStat + attackBonus + Number(power) - molochDefense;
+    return damage > 0 ? damage : 0;
   } else {
     return 0;
   }
