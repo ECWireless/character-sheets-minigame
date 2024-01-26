@@ -240,7 +240,13 @@ export const GameViewInner: React.FC = () => {
   if (loading) {
     return (
       <VStack pos="relative" spacing={8}>
-        <Image alt="loading" h="100vh" src={loadingImage} />
+        <Image
+          alt="loading"
+          h="100vh"
+          objectFit="cover"
+          src={loadingImage}
+          w="100%"
+        />
         <Box pos="absolute" left="50%" top={4} transform="translateX(-50%)">
           <Spinner size="xl" />
         </Box>
@@ -266,7 +272,13 @@ export const GameViewInner: React.FC = () => {
   if (syncProgress.step !== SyncStep.LIVE) {
     return (
       <VStack pos="relative" spacing={8}>
-        <Image alt="loading" h="100vh" src={loadingImage} />
+        <Image
+          alt="loading"
+          h="100vh"
+          objectFit="cover"
+          src={loadingImage}
+          w="100%"
+        />
         <Text pos="absolute" left="50%" top={4}>
           {syncProgress.message} {Math.round(syncProgress.percentage)}%
         </Text>
