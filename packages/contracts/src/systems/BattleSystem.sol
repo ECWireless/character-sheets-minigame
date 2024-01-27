@@ -30,7 +30,7 @@ contract BattleSystem is System {
     } else {
       newMolochHealth = molochHealth - damage;
     }
-    BattleInfo.set(player, true, playerHealth, playerPower, playerDefense, molochSoldier, newMolochHealth, molochDefeated);
+    BattleInfo.set(player, !molochDefeated, playerHealth, playerPower, playerDefense, molochSoldier, newMolochHealth, molochDefeated);
     BattleCounter.set(player, BattleCounter.get(player) + 1);
   }
 
@@ -65,8 +65,8 @@ contract BattleSystem is System {
 
     (bool active,,,,,, bool molochDefeated) = BattleInfo.get(player);
 
-    require(!active, "battle already active");
-    require(!molochDefeated, "moloch already defeated");
+    require(!active, "you already have an active battle");
+    require(!molochDefeated, "you have already defeated at least one moloch soldier");
     
     BattleInfo.set(player, true, 10, 10, 10, molochSoldier, 20, false);
     BattleCounter.set(player, 1);

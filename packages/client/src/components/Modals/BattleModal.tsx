@@ -103,13 +103,16 @@ export const BattleModal: React.FC = () => {
 
   const allPartyWeapons = useMemo(() => {
     if (!(equippedWeapons && myParty)) return [];
-    return myParty
+    const myAliveParty = myParty.filter(
+      (_, i) => battleInfo?.healthBySlots[i] ?? 0 > 0,
+    );
+    return myAliveParty
       .map(({ character }) => {
         return equippedWeapons[character.id];
       })
       .flat()
       .filter((item, i, ar) => ar.findIndex(t => t.id === item.id) === i);
-  }, [equippedWeapons, myParty]);
+  }, [battleInfo, equippedWeapons, myParty]);
 
   const onMolochAttack = useCallback(async () => {
     try {
@@ -191,24 +194,28 @@ export const BattleModal: React.FC = () => {
         <GridItem colSpan={3}>
           <Text>Your character cards:</Text>
           <HStack alignItems="flex-start" mt={4} spacing={4}>
-            {myParty?.map(({ character }, i) => (
-              <VStack
-                key={`${character.id}-${i}`}
-                onClick={() => setSelectedCard(i + 1)}
-                w="250px"
-              >
-                <HealthBar
-                  currentHealth={battleInfo?.healthBySlots[i] ?? 0}
-                  startingHealth={characterStats[character.id]?.health ?? 0}
-                />
-                <CharacterCardSmall
-                  character={character}
-                  isSelected={i + 1 === selectedCard}
-                  primary={i === 0}
-                  selectedClassId={myParty ? myParty[i].class : '-1'}
-                />
-              </VStack>
-            ))}
+            {myParty?.map(({ character }, i) => {
+              const locked = battleInfo?.healthBySlots[i] === 0;
+              return (
+                <VStack
+                  key={`${character.id}-${i}`}
+                  onClick={() => (locked ? undefined : setSelectedCard(i + 1))}
+                  w="250px"
+                >
+                  <HealthBar
+                    currentHealth={battleInfo?.healthBySlots[i] ?? 0}
+                    startingHealth={characterStats[character.id]?.health ?? 0}
+                  />
+                  <CharacterCardSmall
+                    character={character}
+                    isSelected={i + 1 === selectedCard}
+                    locked={locked}
+                    primary={i === 0}
+                    selectedClassId={myParty ? myParty[i].class : '-1'}
+                  />
+                </VStack>
+              );
+            })}
           </HStack>
         </GridItem>
         <GridItem colSpan={1}>
