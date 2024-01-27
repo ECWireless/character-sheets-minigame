@@ -1,6 +1,6 @@
-import { useDisclosure, useToast } from '@chakra-ui/react';
+import { useDisclosure } from '@chakra-ui/react';
 import { useComponentValue } from '@latticexyz/react';
-import { getComponentValue } from '@latticexyz/recs';
+import { getComponentValue, getComponentValueStrict } from '@latticexyz/recs';
 import {
   createContext,
   useCallback,
@@ -12,37 +12,92 @@ import { useAccount } from 'wagmi';
 
 import { useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
+import { useToast } from '../hooks/useToast';
+import { CLASS_STATS, WEARABLE_STATS } from '../utils/constants';
 import { getPlayerEntity } from '../utils/helpers';
-import { Character } from '../utils/types';
+import { Character, EquippableTraitType, Stats } from '../utils/types';
+
+type Slot = {
+  character: Character;
+  class: string;
+};
 
 type RaidPartyContextType = {
+  battleInfo: {
+    active: boolean;
+    healthBySlots: [number, number, number];
+    molochId: string;
+    molochHealth: number;
+    molochDefeated: boolean;
+  } | null;
+  equippedWeapons: {
+    [characterId: string]: Character['equippedItems'];
+  } | null;
+  equippedWearable: {
+    [characterId: string]: Character['equippedItems'][0] | null;
+  } | null;
+  getCharacterStats: (character: Character, classValue: string) => Stats;
+  isBattleInitiationModalOpen: boolean;
+  isBattleModalOpen: boolean;
+  isInitiatingBattle: boolean;
   isMyCharacterSelected: boolean;
+  isMyTurn: boolean;
   isRaidPartyModalOpen: boolean;
+  isRunning: boolean;
   isTradeTableModalOpen: boolean;
-  myAvatarClassId: string;
-  myPartyCharacters: [Character, Character, Character] | null;
+  myParty: [Slot, Slot, Slot] | null;
+  onCloseBattleInitiationModal: () => void;
+  onCloseBattleModal: () => void;
   onCloseRaidPartyModal: () => void;
   onCloseTradeTableModal: () => void;
+  onInitiateBattle: () => void;
+  onOpenBattleInitiationModal: () => void;
+  onOpenBattleModal: (character: Character | null) => void;
   onOpenRaidPartyModal: (character: Character | null) => void;
   onOpenTradeTableModal: (character: Character) => void;
+  onRunFromBattle: () => void;
+  resetSelectedCharacter: () => void;
   selectedCharacter: Character | null;
-  selectedCharacterAvatarClassId: string;
-  selectedCharacterPartyCharacters: [Character, Character, Character] | null;
+  selectedCharacterParty: [Slot, Slot, Slot] | null;
+  wearableBonuses: {
+    [characterId: string]: Omit<Stats, 'health'>;
+  } | null;
 };
 
 const RaidPartyContext = createContext<RaidPartyContextType>({
+  battleInfo: null,
+  equippedWeapons: null,
+  equippedWearable: null,
+  getCharacterStats: () => ({
+    health: 0,
+    attack: 0,
+    defense: 0,
+    specialAttack: 0,
+    specialDefense: 0,
+  }),
+  isBattleModalOpen: false,
+  isBattleInitiationModalOpen: false,
+  isInitiatingBattle: false,
   isMyCharacterSelected: false,
+  isMyTurn: false,
   isRaidPartyModalOpen: false,
+  isRunning: false,
   isTradeTableModalOpen: false,
-  myAvatarClassId: '-1',
-  myPartyCharacters: null,
+  myParty: null,
+  onCloseBattleInitiationModal: () => {},
+  onCloseBattleModal: () => {},
   onCloseRaidPartyModal: () => {},
   onCloseTradeTableModal: () => {},
+  onInitiateBattle: () => {},
+  onOpenBattleInitiationModal: () => {},
+  onOpenBattleModal: () => {},
   onOpenRaidPartyModal: () => {},
   onOpenTradeTableModal: () => {},
+  onRunFromBattle: () => {},
+  resetSelectedCharacter: () => {},
   selectedCharacter: null,
-  selectedCharacterAvatarClassId: '-1',
-  selectedCharacterPartyCharacters: null,
+  selectedCharacterParty: null,
+  wearableBonuses: null,
 });
 
 export const useRaidParty = (): RaidPartyContextType =>
@@ -53,33 +108,41 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
 }) => {
   const { address } = useAccount();
   const {
-    components: { AvatarClass, PartyInfo },
+    components: { BattleCounter, BattleInfo, PartyInfo, Position },
+    systemCalls: { initiateBattle, runFromBattle },
   } = useMUD();
   const { character, game } = useGame();
-  const toast = useToast();
+  const { renderError, renderWarning } = useToast();
 
+  const battleInitiationModalControls = useDisclosure();
+  const battleModalControls = useDisclosure();
   const raidPartyModalControls = useDisclosure();
   const tradeTableModalControls = useDisclosure();
 
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(
     null,
   );
+  const [isInitiatingBattle, setIsInitiatingBattle] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
 
   const gamePlayers = useMemo(() => {
     const characters = game?.characters.map(c => c) ?? [];
     return characters.map(c => c.player.toLowerCase());
   }, [game]);
 
+  const onOpenBattleModal = useCallback(
+    (_character: Character | null) => {
+      if (!_character) return;
+      setSelectedCharacter(_character);
+      battleModalControls.onOpen();
+    },
+    [battleModalControls],
+  );
+
   const onOpenRaidPartyModal = useCallback(
     (_character: Character | null) => {
       if (!(address && gamePlayers.includes(address.toLowerCase()))) {
-        toast({
-          title: "You aren't a part of this game!",
-          status: 'warning',
-          position: 'top',
-          duration: 5000,
-          isClosable: true,
-        });
+        renderWarning(`You aren't a part of this game!`);
         return;
       }
 
@@ -90,7 +153,7 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
       }
       raidPartyModalControls.onOpen();
     },
-    [address, character, gamePlayers, raidPartyModalControls, toast],
+    [address, character, gamePlayers, raidPartyModalControls, renderWarning],
   );
 
   const isMyCharacterSelected = useMemo(() => {
@@ -105,71 +168,112 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
     return getPlayerEntity(selectedCharacter?.player);
   }, [selectedCharacter]);
 
-  const myAvatarClassId =
-    useComponentValue(AvatarClass, playerEntity)?.value?.toString() ?? '-1';
-  const selectedCharacterAvatarClassId =
-    useComponentValue(
-      AvatarClass,
-      selectedCharacterEntity,
-    )?.value?.toString() ?? '-1';
-
   const partyInfo = useComponentValue(PartyInfo, playerEntity);
 
-  const myPartyCharacters = useMemo(() => {
+  const myParty = useMemo(() => {
     if (!(character && playerEntity)) return null;
+
+    const defaultSlot = { character: character, class: '-1' };
     if (!partyInfo)
-      return [character, character, character] as [
-        Character,
-        Character,
-        Character,
-      ];
+      return [defaultSlot, defaultSlot, defaultSlot] as [Slot, Slot, Slot];
+
     const allGameCharacters = game?.characters.map(c => c) ?? [];
+
     const slotOneCharacter = allGameCharacters.find(
       c => c.player.toLowerCase() === partyInfo.slotOne.toLowerCase(),
     );
+    const slotOneClass = partyInfo ? partyInfo.slotOneClass.toString() : '-1';
+
     const slotTwoCharacter = allGameCharacters.find(
       c => c.player.toLowerCase() === partyInfo.slotTwo.toLowerCase(),
     );
+    const slotTwoClass = partyInfo ? partyInfo.slotTwoClass.toString() : '-1';
+
     const slotThreeCharacter = allGameCharacters.find(
       c => c.player.toLowerCase() === partyInfo.slotThree.toLowerCase(),
     );
+    const slotThreeClass = partyInfo
+      ? partyInfo.slotThreeClass.toString()
+      : '-1';
 
     const party = [];
-    if (slotOneCharacter) party.push(slotOneCharacter);
-    if (slotTwoCharacter) party.push(slotTwoCharacter);
-    if (slotThreeCharacter) party.push(slotThreeCharacter);
+    if (slotOneCharacter) {
+      party.push({
+        character: slotOneCharacter,
+        class: slotOneClass,
+      });
+    }
+    if (slotTwoCharacter) {
+      party.push({
+        character: slotTwoCharacter,
+        class: slotTwoClass,
+      });
+    }
+    if (slotThreeCharacter) {
+      party.push({
+        character: slotThreeCharacter,
+        class: slotThreeClass,
+      });
+    }
 
     if (party.length !== 3) return null;
 
-    return party as [Character, Character, Character];
+    return party as [Slot, Slot, Slot];
   }, [character, game, partyInfo, playerEntity]);
 
-  const selectedCharacterPartyCharacters = useMemo(() => {
+  const selectedCharacterParty = useMemo(() => {
     if (!(selectedCharacter && selectedCharacterEntity)) return null;
 
     const partyInfo = getComponentValue(PartyInfo, selectedCharacterEntity);
     if (!partyInfo) return null;
 
     const allGameCharacters = game?.characters.map(c => c) ?? [];
+
     const slotOneCharacter = allGameCharacters.find(
       c => c.player.toLowerCase() === partyInfo.slotOne.toLowerCase(),
     );
+    const slotOneClass = partyInfo ? partyInfo.slotOneClass.toString() : '-1';
+
     const slotTwoCharacter = allGameCharacters.find(
       c => c.player.toLowerCase() === partyInfo.slotTwo.toLowerCase(),
     );
+    const slotTwoClass = partyInfo ? partyInfo.slotTwoClass.toString() : '-1';
+
     const slotThreeCharacter = allGameCharacters.find(
       c => c.player.toLowerCase() === partyInfo.slotThree.toLowerCase(),
     );
+    const slotThreeClass = partyInfo
+      ? partyInfo.slotThreeClass.toString()
+      : '-1';
 
     const party = [];
-    if (slotOneCharacter) party.push(slotOneCharacter);
-    if (slotTwoCharacter) party.push(slotTwoCharacter);
-    if (slotThreeCharacter) party.push(slotThreeCharacter);
+    if (slotOneCharacter) {
+      party.push({
+        character: slotOneCharacter,
+        class: slotOneClass,
+      });
+    }
+    if (slotTwoCharacter) {
+      party.push({
+        character: slotTwoCharacter,
+        class: slotTwoClass,
+      });
+    }
+    if (slotThreeCharacter) {
+      party.push({
+        character: slotThreeCharacter,
+        class: slotThreeClass,
+      });
+    }
 
     if (party.length !== 3) return null;
 
-    return party as [Character, Character, Character];
+    return party as [Slot, Slot, Slot];
   }, [game, PartyInfo, selectedCharacter, selectedCharacterEntity]);
+
+  const resetSelectedCharacter = useCallback(() => {
+    setSelectedCharacter(null);
+  }, []);
 
   const onOpenTradeTableModal = useCallback(
     (_character: Character) => {
@@ -180,21 +284,262 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
     [raidPartyModalControls, tradeTableModalControls],
   );
 
+  const getEquippedWeapons = useCallback((_character: Character) => {
+    const { equippedItems } = _character;
+
+    const equippedWeapons = equippedItems.filter(
+      item =>
+        item.attributes.find(
+          a =>
+            a.value === EquippableTraitType.EQUIPPED_ITEM_1 ||
+            a.value === EquippableTraitType.EQUIPPED_ITEM_2,
+        ) !== undefined,
+    );
+
+    return equippedWeapons;
+  }, []);
+
+  const equippedWeapons = useMemo(() => {
+    if (!(myParty && selectedCharacter)) return null;
+
+    return {
+      [myParty[0].character.id]: getEquippedWeapons(myParty[0].character),
+      [myParty[1].character.id]: getEquippedWeapons(myParty[1].character),
+      [myParty[2].character.id]: getEquippedWeapons(myParty[2].character),
+      [selectedCharacter.id]: getEquippedWeapons(selectedCharacter),
+    };
+  }, [getEquippedWeapons, myParty, selectedCharacter]);
+
+  const getEquippedWearable = useCallback((_character: Character) => {
+    const { equippedItems } = _character;
+
+    const equippedWearable = equippedItems.find(
+      item =>
+        item.attributes.find(
+          a => a.value === EquippableTraitType.EQUIPPED_WEARABLE,
+        ) !== undefined,
+    );
+
+    return equippedWearable ?? null;
+  }, []);
+
+  const equippedWearable = useMemo(() => {
+    if (!(character && selectedCharacter)) return null;
+
+    return {
+      [character.id]: getEquippedWearable(character),
+      [selectedCharacter.id]: getEquippedWearable(selectedCharacter),
+    };
+  }, [character, getEquippedWearable, selectedCharacter]);
+
+  const getWearableBonuses = useCallback(
+    (_character: Character) => {
+      const defaultValues = {
+        attack: 0,
+        defense: 0,
+        specialAttack: 0,
+        specialDefense: 0,
+      };
+
+      const { itemId } = equippedWearable?.[_character.id] ?? {};
+      if (!itemId) return defaultValues;
+
+      const numberId = Number(itemId);
+      const wearable = WEARABLE_STATS[numberId];
+      if (!wearable) return defaultValues;
+
+      return {
+        attack: wearable.attack,
+        defense: wearable.defense,
+        specialAttack: wearable.specialAttack,
+        specialDefense: wearable.specialDefense,
+      };
+    },
+    [equippedWearable],
+  );
+
+  const wearableBonuses = useMemo(() => {
+    if (!(character && selectedCharacter)) return null;
+
+    return {
+      [character.id]: getWearableBonuses(character),
+      [selectedCharacter.id]: getWearableBonuses(selectedCharacter),
+    };
+  }, [character, getWearableBonuses, selectedCharacter]);
+
+  const getCharacterStats = useCallback(
+    (_character: Character, classValue: string): Stats => {
+      if (classValue === '-1') {
+        return {
+          health: 10,
+          attack: 1,
+          defense: 1,
+          specialAttack: 1,
+          specialDefense: 1,
+        };
+      }
+
+      const selectedClass = Number(classValue);
+      const classStats = CLASS_STATS[selectedClass];
+      const { attack, defense, specialAttack, specialDefense } = classStats;
+
+      if (wearableBonuses && wearableBonuses[_character.id]) {
+        return {
+          health: 10,
+          attack: attack + wearableBonuses[_character.id].attack,
+          defense: defense + wearableBonuses[_character.id].defense,
+          specialAttack:
+            specialAttack + wearableBonuses[_character.id].specialAttack,
+          specialDefense:
+            specialDefense + wearableBonuses[_character.id].specialDefense,
+        };
+      } else {
+        return {
+          health: 10,
+          attack,
+          defense,
+          specialAttack,
+          specialDefense,
+        };
+      }
+    },
+    [wearableBonuses],
+  );
+
+  const onInitiateBattle = useCallback(async () => {
+    try {
+      setIsInitiatingBattle(true);
+      if (!address) {
+        throw new Error('No player address');
+      }
+
+      const playerEntity = getPlayerEntity(address);
+      if (!playerEntity) {
+        throw new Error('No player entity');
+      }
+
+      const playerPosition = getComponentValueStrict(Position, playerEntity);
+      const { x, y, previousX } = playerPosition;
+
+      if (x > previousX) {
+        const success = await initiateBattle(address, x + 1, y);
+
+        if (!success) {
+          throw new Error('Initiate battle transaction failed');
+        }
+      } else if (x < previousX) {
+        const success = await initiateBattle(address, x - 1, y);
+
+        if (!success) {
+          throw new Error('Initiate battle transaction failed');
+        }
+      }
+
+      battleInitiationModalControls.onClose();
+    } catch (e) {
+      renderError(e, 'Error initiating battle!');
+    } finally {
+      setIsInitiatingBattle(false);
+    }
+  }, [
+    address,
+    battleInitiationModalControls,
+    initiateBattle,
+    Position,
+    renderError,
+  ]);
+
+  const onRunFromBattle = useCallback(async () => {
+    try {
+      setIsRunning(true);
+
+      if (!address) {
+        throw new Error('No player address');
+      }
+
+      const playerEntity = getPlayerEntity(address);
+      if (!playerEntity) {
+        throw new Error('No player entity');
+      }
+
+      const success = await runFromBattle(address);
+      if (!success) {
+        throw new Error('Run from battle transaction failed');
+      }
+
+      battleModalControls.onClose();
+    } catch (e) {
+      renderError(e, 'Error running from battle!');
+    } finally {
+      setIsRunning(false);
+    }
+  }, [address, battleModalControls, renderError, runFromBattle]);
+
+  const _battleInfo = useComponentValue(BattleInfo, playerEntity);
+
+  const battleInfo = useMemo(() => {
+    if (!playerEntity) return null;
+    if (!_battleInfo) return null;
+
+    const {
+      active,
+      slotOneHealth,
+      slotTwoHealth,
+      slotThreeHealth,
+      molochId,
+      molochHealth,
+      molochDefeated,
+    } = _battleInfo;
+    return {
+      active,
+      healthBySlots: [slotOneHealth, slotTwoHealth, slotThreeHealth] as [
+        number,
+        number,
+        number,
+      ],
+      molochId,
+      molochHealth,
+      molochDefeated,
+    };
+  }, [playerEntity, _battleInfo]);
+
+  const battleCounter = useComponentValue(BattleCounter, playerEntity);
+
+  const isMyTurn = useMemo(() => {
+    if (!battleCounter) return false;
+    return battleCounter.value % 2 === 1;
+  }, [battleCounter]);
+
   return (
     <RaidPartyContext.Provider
       value={{
+        battleInfo,
+        equippedWeapons,
+        equippedWearable,
+        getCharacterStats,
+        isBattleInitiationModalOpen: battleInitiationModalControls.isOpen,
+        isBattleModalOpen: battleModalControls.isOpen,
+        isInitiatingBattle,
         isMyCharacterSelected,
+        isMyTurn,
         isRaidPartyModalOpen: raidPartyModalControls.isOpen,
+        isRunning,
         isTradeTableModalOpen: tradeTableModalControls.isOpen,
-        myAvatarClassId,
-        myPartyCharacters,
+        myParty,
+        onCloseBattleInitiationModal: battleInitiationModalControls.onClose,
+        onCloseBattleModal: battleModalControls.onClose,
         onCloseRaidPartyModal: raidPartyModalControls.onClose,
         onCloseTradeTableModal: tradeTableModalControls.onClose,
+        onInitiateBattle,
+        onOpenBattleInitiationModal: battleInitiationModalControls.onOpen,
+        onOpenBattleModal,
         onOpenRaidPartyModal,
         onOpenTradeTableModal,
+        onRunFromBattle,
+        resetSelectedCharacter,
         selectedCharacter,
-        selectedCharacterAvatarClassId,
-        selectedCharacterPartyCharacters,
+        selectedCharacterParty,
+        wearableBonuses,
       }}
     >
       {children}

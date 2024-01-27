@@ -21,15 +21,15 @@ import { ResourceId } from "@latticexyz/store/src/ResourceId.sol";
 import { RESOURCE_TABLE, RESOURCE_OFFCHAIN_TABLE } from "@latticexyz/store/src/storeResourceTypes.sol";
 
 ResourceId constant _tableId = ResourceId.wrap(
-  bytes32(abi.encodePacked(RESOURCE_TABLE, bytes14(""), bytes16("PartyInfo")))
+  bytes32(abi.encodePacked(RESOURCE_TABLE, bytes14(""), bytes16("BattleInfo")))
 );
-ResourceId constant PartyInfoTableId = _tableId;
+ResourceId constant BattleInfoTableId = _tableId;
 
 FieldLayout constant _fieldLayout = FieldLayout.wrap(
-  0x009c060014201420142000000000000000000000000000000000000000000000
+  0x0032070001040404200401000000000000000000000000000000000000000000
 );
 
-library PartyInfo {
+library BattleInfo {
   /**
    * @notice Get the table values' field layout.
    * @return _fieldLayout The field layout for the table.
@@ -54,13 +54,14 @@ library PartyInfo {
    * @return _valueSchema The value schema for the table.
    */
   function getValueSchema() internal pure returns (Schema) {
-    SchemaType[] memory _valueSchema = new SchemaType[](6);
-    _valueSchema[0] = SchemaType.ADDRESS;
-    _valueSchema[1] = SchemaType.INT256;
-    _valueSchema[2] = SchemaType.ADDRESS;
-    _valueSchema[3] = SchemaType.INT256;
-    _valueSchema[4] = SchemaType.ADDRESS;
-    _valueSchema[5] = SchemaType.INT256;
+    SchemaType[] memory _valueSchema = new SchemaType[](7);
+    _valueSchema[0] = SchemaType.BOOL;
+    _valueSchema[1] = SchemaType.UINT32;
+    _valueSchema[2] = SchemaType.UINT32;
+    _valueSchema[3] = SchemaType.UINT32;
+    _valueSchema[4] = SchemaType.BYTES32;
+    _valueSchema[5] = SchemaType.UINT32;
+    _valueSchema[6] = SchemaType.BOOL;
 
     return SchemaLib.encode(_valueSchema);
   }
@@ -79,13 +80,14 @@ library PartyInfo {
    * @return fieldNames An array of strings with the names of value fields.
    */
   function getFieldNames() internal pure returns (string[] memory fieldNames) {
-    fieldNames = new string[](6);
-    fieldNames[0] = "slotOne";
-    fieldNames[1] = "slotOneClass";
-    fieldNames[2] = "slotTwo";
-    fieldNames[3] = "slotTwoClass";
-    fieldNames[4] = "slotThree";
-    fieldNames[5] = "slotThreeClass";
+    fieldNames = new string[](7);
+    fieldNames[0] = "active";
+    fieldNames[1] = "slotOneHealth";
+    fieldNames[2] = "slotTwoHealth";
+    fieldNames[3] = "slotThreeHealth";
+    fieldNames[4] = "molochId";
+    fieldNames[5] = "molochHealth";
+    fieldNames[6] = "molochDefeated";
   }
 
   /**
@@ -103,255 +105,297 @@ library PartyInfo {
   }
 
   /**
-   * @notice Get slotOne.
+   * @notice Get active.
    */
-  function getSlotOne(bytes32 key) internal view returns (address slotOne) {
+  function getActive(bytes32 key) internal view returns (bool active) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 0, _fieldLayout);
-    return (address(bytes20(_blob)));
+    return (_toBool(uint8(bytes1(_blob))));
   }
 
   /**
-   * @notice Get slotOne.
+   * @notice Get active.
    */
-  function _getSlotOne(bytes32 key) internal view returns (address slotOne) {
+  function _getActive(bytes32 key) internal view returns (bool active) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 0, _fieldLayout);
-    return (address(bytes20(_blob)));
+    return (_toBool(uint8(bytes1(_blob))));
   }
 
   /**
-   * @notice Set slotOne.
+   * @notice Set active.
    */
-  function setSlotOne(bytes32 key, address slotOne) internal {
+  function setActive(bytes32 key, bool active) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    StoreSwitch.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((slotOne)), _fieldLayout);
+    StoreSwitch.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((active)), _fieldLayout);
   }
 
   /**
-   * @notice Set slotOne.
+   * @notice Set active.
    */
-  function _setSlotOne(bytes32 key, address slotOne) internal {
+  function _setActive(bytes32 key, bool active) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    StoreCore.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((slotOne)), _fieldLayout);
+    StoreCore.setStaticField(_tableId, _keyTuple, 0, abi.encodePacked((active)), _fieldLayout);
   }
 
   /**
-   * @notice Get slotOneClass.
+   * @notice Get slotOneHealth.
    */
-  function getSlotOneClass(bytes32 key) internal view returns (int256 slotOneClass) {
+  function getSlotOneHealth(bytes32 key) internal view returns (uint32 slotOneHealth) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 1, _fieldLayout);
-    return (int256(uint256(bytes32(_blob))));
+    return (uint32(bytes4(_blob)));
   }
 
   /**
-   * @notice Get slotOneClass.
+   * @notice Get slotOneHealth.
    */
-  function _getSlotOneClass(bytes32 key) internal view returns (int256 slotOneClass) {
+  function _getSlotOneHealth(bytes32 key) internal view returns (uint32 slotOneHealth) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 1, _fieldLayout);
-    return (int256(uint256(bytes32(_blob))));
+    return (uint32(bytes4(_blob)));
   }
 
   /**
-   * @notice Set slotOneClass.
+   * @notice Set slotOneHealth.
    */
-  function setSlotOneClass(bytes32 key, int256 slotOneClass) internal {
+  function setSlotOneHealth(bytes32 key, uint32 slotOneHealth) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    StoreSwitch.setStaticField(_tableId, _keyTuple, 1, abi.encodePacked((slotOneClass)), _fieldLayout);
+    StoreSwitch.setStaticField(_tableId, _keyTuple, 1, abi.encodePacked((slotOneHealth)), _fieldLayout);
   }
 
   /**
-   * @notice Set slotOneClass.
+   * @notice Set slotOneHealth.
    */
-  function _setSlotOneClass(bytes32 key, int256 slotOneClass) internal {
+  function _setSlotOneHealth(bytes32 key, uint32 slotOneHealth) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    StoreCore.setStaticField(_tableId, _keyTuple, 1, abi.encodePacked((slotOneClass)), _fieldLayout);
+    StoreCore.setStaticField(_tableId, _keyTuple, 1, abi.encodePacked((slotOneHealth)), _fieldLayout);
   }
 
   /**
-   * @notice Get slotTwo.
+   * @notice Get slotTwoHealth.
    */
-  function getSlotTwo(bytes32 key) internal view returns (address slotTwo) {
+  function getSlotTwoHealth(bytes32 key) internal view returns (uint32 slotTwoHealth) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 2, _fieldLayout);
-    return (address(bytes20(_blob)));
+    return (uint32(bytes4(_blob)));
   }
 
   /**
-   * @notice Get slotTwo.
+   * @notice Get slotTwoHealth.
    */
-  function _getSlotTwo(bytes32 key) internal view returns (address slotTwo) {
+  function _getSlotTwoHealth(bytes32 key) internal view returns (uint32 slotTwoHealth) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 2, _fieldLayout);
-    return (address(bytes20(_blob)));
+    return (uint32(bytes4(_blob)));
   }
 
   /**
-   * @notice Set slotTwo.
+   * @notice Set slotTwoHealth.
    */
-  function setSlotTwo(bytes32 key, address slotTwo) internal {
+  function setSlotTwoHealth(bytes32 key, uint32 slotTwoHealth) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    StoreSwitch.setStaticField(_tableId, _keyTuple, 2, abi.encodePacked((slotTwo)), _fieldLayout);
+    StoreSwitch.setStaticField(_tableId, _keyTuple, 2, abi.encodePacked((slotTwoHealth)), _fieldLayout);
   }
 
   /**
-   * @notice Set slotTwo.
+   * @notice Set slotTwoHealth.
    */
-  function _setSlotTwo(bytes32 key, address slotTwo) internal {
+  function _setSlotTwoHealth(bytes32 key, uint32 slotTwoHealth) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    StoreCore.setStaticField(_tableId, _keyTuple, 2, abi.encodePacked((slotTwo)), _fieldLayout);
+    StoreCore.setStaticField(_tableId, _keyTuple, 2, abi.encodePacked((slotTwoHealth)), _fieldLayout);
   }
 
   /**
-   * @notice Get slotTwoClass.
+   * @notice Get slotThreeHealth.
    */
-  function getSlotTwoClass(bytes32 key) internal view returns (int256 slotTwoClass) {
+  function getSlotThreeHealth(bytes32 key) internal view returns (uint32 slotThreeHealth) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 3, _fieldLayout);
-    return (int256(uint256(bytes32(_blob))));
+    return (uint32(bytes4(_blob)));
   }
 
   /**
-   * @notice Get slotTwoClass.
+   * @notice Get slotThreeHealth.
    */
-  function _getSlotTwoClass(bytes32 key) internal view returns (int256 slotTwoClass) {
+  function _getSlotThreeHealth(bytes32 key) internal view returns (uint32 slotThreeHealth) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 3, _fieldLayout);
-    return (int256(uint256(bytes32(_blob))));
+    return (uint32(bytes4(_blob)));
   }
 
   /**
-   * @notice Set slotTwoClass.
+   * @notice Set slotThreeHealth.
    */
-  function setSlotTwoClass(bytes32 key, int256 slotTwoClass) internal {
+  function setSlotThreeHealth(bytes32 key, uint32 slotThreeHealth) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    StoreSwitch.setStaticField(_tableId, _keyTuple, 3, abi.encodePacked((slotTwoClass)), _fieldLayout);
+    StoreSwitch.setStaticField(_tableId, _keyTuple, 3, abi.encodePacked((slotThreeHealth)), _fieldLayout);
   }
 
   /**
-   * @notice Set slotTwoClass.
+   * @notice Set slotThreeHealth.
    */
-  function _setSlotTwoClass(bytes32 key, int256 slotTwoClass) internal {
+  function _setSlotThreeHealth(bytes32 key, uint32 slotThreeHealth) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    StoreCore.setStaticField(_tableId, _keyTuple, 3, abi.encodePacked((slotTwoClass)), _fieldLayout);
+    StoreCore.setStaticField(_tableId, _keyTuple, 3, abi.encodePacked((slotThreeHealth)), _fieldLayout);
   }
 
   /**
-   * @notice Get slotThree.
+   * @notice Get molochId.
    */
-  function getSlotThree(bytes32 key) internal view returns (address slotThree) {
+  function getMolochId(bytes32 key) internal view returns (bytes32 molochId) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 4, _fieldLayout);
-    return (address(bytes20(_blob)));
+    return (bytes32(_blob));
   }
 
   /**
-   * @notice Get slotThree.
+   * @notice Get molochId.
    */
-  function _getSlotThree(bytes32 key) internal view returns (address slotThree) {
+  function _getMolochId(bytes32 key) internal view returns (bytes32 molochId) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 4, _fieldLayout);
-    return (address(bytes20(_blob)));
+    return (bytes32(_blob));
   }
 
   /**
-   * @notice Set slotThree.
+   * @notice Set molochId.
    */
-  function setSlotThree(bytes32 key, address slotThree) internal {
+  function setMolochId(bytes32 key, bytes32 molochId) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    StoreSwitch.setStaticField(_tableId, _keyTuple, 4, abi.encodePacked((slotThree)), _fieldLayout);
+    StoreSwitch.setStaticField(_tableId, _keyTuple, 4, abi.encodePacked((molochId)), _fieldLayout);
   }
 
   /**
-   * @notice Set slotThree.
+   * @notice Set molochId.
    */
-  function _setSlotThree(bytes32 key, address slotThree) internal {
+  function _setMolochId(bytes32 key, bytes32 molochId) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    StoreCore.setStaticField(_tableId, _keyTuple, 4, abi.encodePacked((slotThree)), _fieldLayout);
+    StoreCore.setStaticField(_tableId, _keyTuple, 4, abi.encodePacked((molochId)), _fieldLayout);
   }
 
   /**
-   * @notice Get slotThreeClass.
+   * @notice Get molochHealth.
    */
-  function getSlotThreeClass(bytes32 key) internal view returns (int256 slotThreeClass) {
+  function getMolochHealth(bytes32 key) internal view returns (uint32 molochHealth) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 5, _fieldLayout);
-    return (int256(uint256(bytes32(_blob))));
+    return (uint32(bytes4(_blob)));
   }
 
   /**
-   * @notice Get slotThreeClass.
+   * @notice Get molochHealth.
    */
-  function _getSlotThreeClass(bytes32 key) internal view returns (int256 slotThreeClass) {
+  function _getMolochHealth(bytes32 key) internal view returns (uint32 molochHealth) {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
     bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 5, _fieldLayout);
-    return (int256(uint256(bytes32(_blob))));
+    return (uint32(bytes4(_blob)));
   }
 
   /**
-   * @notice Set slotThreeClass.
+   * @notice Set molochHealth.
    */
-  function setSlotThreeClass(bytes32 key, int256 slotThreeClass) internal {
+  function setMolochHealth(bytes32 key, uint32 molochHealth) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    StoreSwitch.setStaticField(_tableId, _keyTuple, 5, abi.encodePacked((slotThreeClass)), _fieldLayout);
+    StoreSwitch.setStaticField(_tableId, _keyTuple, 5, abi.encodePacked((molochHealth)), _fieldLayout);
   }
 
   /**
-   * @notice Set slotThreeClass.
+   * @notice Set molochHealth.
    */
-  function _setSlotThreeClass(bytes32 key, int256 slotThreeClass) internal {
+  function _setMolochHealth(bytes32 key, uint32 molochHealth) internal {
     bytes32[] memory _keyTuple = new bytes32[](1);
     _keyTuple[0] = key;
 
-    StoreCore.setStaticField(_tableId, _keyTuple, 5, abi.encodePacked((slotThreeClass)), _fieldLayout);
+    StoreCore.setStaticField(_tableId, _keyTuple, 5, abi.encodePacked((molochHealth)), _fieldLayout);
+  }
+
+  /**
+   * @notice Get molochDefeated.
+   */
+  function getMolochDefeated(bytes32 key) internal view returns (bool molochDefeated) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    bytes32 _blob = StoreSwitch.getStaticField(_tableId, _keyTuple, 6, _fieldLayout);
+    return (_toBool(uint8(bytes1(_blob))));
+  }
+
+  /**
+   * @notice Get molochDefeated.
+   */
+  function _getMolochDefeated(bytes32 key) internal view returns (bool molochDefeated) {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    bytes32 _blob = StoreCore.getStaticField(_tableId, _keyTuple, 6, _fieldLayout);
+    return (_toBool(uint8(bytes1(_blob))));
+  }
+
+  /**
+   * @notice Set molochDefeated.
+   */
+  function setMolochDefeated(bytes32 key, bool molochDefeated) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    StoreSwitch.setStaticField(_tableId, _keyTuple, 6, abi.encodePacked((molochDefeated)), _fieldLayout);
+  }
+
+  /**
+   * @notice Set molochDefeated.
+   */
+  function _setMolochDefeated(bytes32 key, bool molochDefeated) internal {
+    bytes32[] memory _keyTuple = new bytes32[](1);
+    _keyTuple[0] = key;
+
+    StoreCore.setStaticField(_tableId, _keyTuple, 6, abi.encodePacked((molochDefeated)), _fieldLayout);
   }
 
   /**
@@ -363,12 +407,13 @@ library PartyInfo {
     internal
     view
     returns (
-      address slotOne,
-      int256 slotOneClass,
-      address slotTwo,
-      int256 slotTwoClass,
-      address slotThree,
-      int256 slotThreeClass
+      bool active,
+      uint32 slotOneHealth,
+      uint32 slotTwoHealth,
+      uint32 slotThreeHealth,
+      bytes32 molochId,
+      uint32 molochHealth,
+      bool molochDefeated
     )
   {
     bytes32[] memory _keyTuple = new bytes32[](1);
@@ -391,12 +436,13 @@ library PartyInfo {
     internal
     view
     returns (
-      address slotOne,
-      int256 slotOneClass,
-      address slotTwo,
-      int256 slotTwoClass,
-      address slotThree,
-      int256 slotThreeClass
+      bool active,
+      uint32 slotOneHealth,
+      uint32 slotTwoHealth,
+      uint32 slotThreeHealth,
+      bytes32 molochId,
+      uint32 molochHealth,
+      bool molochDefeated
     )
   {
     bytes32[] memory _keyTuple = new bytes32[](1);
@@ -415,14 +461,23 @@ library PartyInfo {
    */
   function set(
     bytes32 key,
-    address slotOne,
-    int256 slotOneClass,
-    address slotTwo,
-    int256 slotTwoClass,
-    address slotThree,
-    int256 slotThreeClass
+    bool active,
+    uint32 slotOneHealth,
+    uint32 slotTwoHealth,
+    uint32 slotThreeHealth,
+    bytes32 molochId,
+    uint32 molochHealth,
+    bool molochDefeated
   ) internal {
-    bytes memory _staticData = encodeStatic(slotOne, slotOneClass, slotTwo, slotTwoClass, slotThree, slotThreeClass);
+    bytes memory _staticData = encodeStatic(
+      active,
+      slotOneHealth,
+      slotTwoHealth,
+      slotThreeHealth,
+      molochId,
+      molochHealth,
+      molochDefeated
+    );
 
     PackedCounter _encodedLengths;
     bytes memory _dynamicData;
@@ -438,14 +493,23 @@ library PartyInfo {
    */
   function _set(
     bytes32 key,
-    address slotOne,
-    int256 slotOneClass,
-    address slotTwo,
-    int256 slotTwoClass,
-    address slotThree,
-    int256 slotThreeClass
+    bool active,
+    uint32 slotOneHealth,
+    uint32 slotTwoHealth,
+    uint32 slotThreeHealth,
+    bytes32 molochId,
+    uint32 molochHealth,
+    bool molochDefeated
   ) internal {
-    bytes memory _staticData = encodeStatic(slotOne, slotOneClass, slotTwo, slotTwoClass, slotThree, slotThreeClass);
+    bytes memory _staticData = encodeStatic(
+      active,
+      slotOneHealth,
+      slotTwoHealth,
+      slotThreeHealth,
+      molochId,
+      molochHealth,
+      molochDefeated
+    );
 
     PackedCounter _encodedLengths;
     bytes memory _dynamicData;
@@ -465,25 +529,28 @@ library PartyInfo {
     internal
     pure
     returns (
-      address slotOne,
-      int256 slotOneClass,
-      address slotTwo,
-      int256 slotTwoClass,
-      address slotThree,
-      int256 slotThreeClass
+      bool active,
+      uint32 slotOneHealth,
+      uint32 slotTwoHealth,
+      uint32 slotThreeHealth,
+      bytes32 molochId,
+      uint32 molochHealth,
+      bool molochDefeated
     )
   {
-    slotOne = (address(Bytes.slice20(_blob, 0)));
+    active = (_toBool(uint8(Bytes.slice1(_blob, 0))));
 
-    slotOneClass = (int256(uint256(Bytes.slice32(_blob, 20))));
+    slotOneHealth = (uint32(Bytes.slice4(_blob, 1)));
 
-    slotTwo = (address(Bytes.slice20(_blob, 52)));
+    slotTwoHealth = (uint32(Bytes.slice4(_blob, 5)));
 
-    slotTwoClass = (int256(uint256(Bytes.slice32(_blob, 72))));
+    slotThreeHealth = (uint32(Bytes.slice4(_blob, 9)));
 
-    slotThree = (address(Bytes.slice20(_blob, 104)));
+    molochId = (Bytes.slice32(_blob, 13));
 
-    slotThreeClass = (int256(uint256(Bytes.slice32(_blob, 124))));
+    molochHealth = (uint32(Bytes.slice4(_blob, 45)));
+
+    molochDefeated = (_toBool(uint8(Bytes.slice1(_blob, 49))));
   }
 
   /**
@@ -500,15 +567,18 @@ library PartyInfo {
     internal
     pure
     returns (
-      address slotOne,
-      int256 slotOneClass,
-      address slotTwo,
-      int256 slotTwoClass,
-      address slotThree,
-      int256 slotThreeClass
+      bool active,
+      uint32 slotOneHealth,
+      uint32 slotTwoHealth,
+      uint32 slotThreeHealth,
+      bytes32 molochId,
+      uint32 molochHealth,
+      bool molochDefeated
     )
   {
-    (slotOne, slotOneClass, slotTwo, slotTwoClass, slotThree, slotThreeClass) = decodeStatic(_staticData);
+    (active, slotOneHealth, slotTwoHealth, slotThreeHealth, molochId, molochHealth, molochDefeated) = decodeStatic(
+      _staticData
+    );
   }
 
   /**
@@ -536,14 +606,16 @@ library PartyInfo {
    * @return The static data, encoded into a sequence of bytes.
    */
   function encodeStatic(
-    address slotOne,
-    int256 slotOneClass,
-    address slotTwo,
-    int256 slotTwoClass,
-    address slotThree,
-    int256 slotThreeClass
+    bool active,
+    uint32 slotOneHealth,
+    uint32 slotTwoHealth,
+    uint32 slotThreeHealth,
+    bytes32 molochId,
+    uint32 molochHealth,
+    bool molochDefeated
   ) internal pure returns (bytes memory) {
-    return abi.encodePacked(slotOne, slotOneClass, slotTwo, slotTwoClass, slotThree, slotThreeClass);
+    return
+      abi.encodePacked(active, slotOneHealth, slotTwoHealth, slotThreeHealth, molochId, molochHealth, molochDefeated);
   }
 
   /**
@@ -553,14 +625,23 @@ library PartyInfo {
    * @return The dyanmic (variable length) data, encoded into a sequence of bytes.
    */
   function encode(
-    address slotOne,
-    int256 slotOneClass,
-    address slotTwo,
-    int256 slotTwoClass,
-    address slotThree,
-    int256 slotThreeClass
+    bool active,
+    uint32 slotOneHealth,
+    uint32 slotTwoHealth,
+    uint32 slotThreeHealth,
+    bytes32 molochId,
+    uint32 molochHealth,
+    bool molochDefeated
   ) internal pure returns (bytes memory, PackedCounter, bytes memory) {
-    bytes memory _staticData = encodeStatic(slotOne, slotOneClass, slotTwo, slotTwoClass, slotThree, slotThreeClass);
+    bytes memory _staticData = encodeStatic(
+      active,
+      slotOneHealth,
+      slotTwoHealth,
+      slotThreeHealth,
+      molochId,
+      molochHealth,
+      molochDefeated
+    );
 
     PackedCounter _encodedLengths;
     bytes memory _dynamicData;
@@ -576,5 +657,17 @@ library PartyInfo {
     _keyTuple[0] = key;
 
     return _keyTuple;
+  }
+}
+
+/**
+ * @notice Cast a value to a bool.
+ * @dev Boolean values are encoded as uint8 (1 = true, 0 = false), but Solidity doesn't allow casting between uint8 and bool.
+ * @param value The uint8 value to convert.
+ * @return result The boolean value.
+ */
+function _toBool(uint8 value) pure returns (bool result) {
+  assembly {
+    result := value
   }
 }

@@ -41,7 +41,4 @@ export const redstoneTestnet = {
  * See https://mud.dev/tutorials/minimal/deploy#run-the-user-interface
  * for instructions on how to add networks.
  */
-export const supportedChains: MUDChain[] = [
-  { ...mudFoundry, faucetUrl: 'http://localhost:3002/trpc' },
-  redstoneTestnet,
-];
+export const supportedChains: MUDChain[] = [{ ...mudFoundry }, redstoneTestnet];

@@ -5,6 +5,7 @@ import {
   getComponentValueStrict,
   Has,
   HasValue,
+  runQuery,
 } from '@latticexyz/recs';
 import { singletonEntity } from '@latticexyz/store-sync/recs';
 import { hexToArray } from '@latticexyz/utils';
@@ -25,23 +26,23 @@ import { GameMap } from './GameMap';
 export const GameBoard: React.FC = () => {
   const {
     components: {
-      AvatarClass,
+      BattleInfo,
       CharacterSheetInfo,
-      Health,
       MapConfig,
       MolochSoldier,
+      PartyInfo,
       Player,
       Position,
     },
   } = useMUD();
   const { address } = useAccount();
   const { character, game } = useGame();
-  const { myAvatarClassId, onOpenRaidPartyModal } = useRaidParty();
+  const { myParty, onOpenRaidPartyModal } = useRaidParty();
 
   const { actionRunning } = useKeyboardMovement(
     address?.toLowerCase(),
     character?.classes
-      .find(c => c.classId === myAvatarClassId)
+      .find(c => c.classId === myParty?.[0]?.class)
       ?.name?.toLowerCase() ?? 'villager',
   );
 
@@ -55,7 +56,6 @@ export const GameBoard: React.FC = () => {
       CharacterSheetInfo,
       entity,
     );
-    const avatarClassId = getComponentValue(AvatarClass, entity);
 
     const characterByPlayer = game?.characters?.find(
       c => c.player === characterSheetInfo.playerAddress.toLowerCase(),
@@ -64,9 +64,12 @@ export const GameBoard: React.FC = () => {
     let avatarClassName = 'villager';
     let avatarClassSrc = '';
 
-    if (avatarClassId) {
+    const partyInfo = getComponentValue(PartyInfo, entity);
+
+    if (partyInfo) {
+      const avatarClassId = partyInfo.slotOneClass.toString();
       const avatarClass = characterByPlayer?.classes.find(
-        c => c.classId === avatarClassId?.value.toString(),
+        c => c.classId === avatarClassId,
       );
       avatarClassName = avatarClass?.name.toLowerCase() ?? 'villager';
       avatarClassSrc = avatarClass?.image ?? '';
@@ -76,7 +79,7 @@ export const GameBoard: React.FC = () => {
       avatarClassName,
       avatarClassSrc,
       position,
-      actionRunning,
+      !!actionRunning && characterByPlayer?.id === character?.id,
     );
     const transform = 'scale(1.5)';
 
@@ -115,7 +118,23 @@ export const GameBoard: React.FC = () => {
     Has(Position),
   ]).map(entity => {
     const position = getComponentValueStrict(Position, entity);
-    const health = getComponentValueStrict(Health, entity).value ?? 0;
+    const battlesWithThisMoloch = runQuery([
+      Has(BattleInfo),
+      HasValue(BattleInfo, { molochId: entity }),
+    ]);
+
+    let isMolochSoldierDead = false;
+    const battlesWithThisMolochArray = Array.from(battlesWithThisMoloch);
+    if (battlesWithThisMolochArray.length > 0) {
+      const battleInfo = getComponentValueStrict(
+        BattleInfo,
+        battlesWithThisMolochArray[0],
+      );
+
+      if (battleInfo.molochDefeated) {
+        isMolochSoldierDead = true;
+      }
+    }
 
     const direction = position.x % 2 === 0 ? 'left' : 'right';
     const molochSoldier =
@@ -131,14 +150,14 @@ export const GameBoard: React.FC = () => {
         <Tooltip
           aria-label="moloch soldier"
           key={entity}
-          label="Moloch Soldier"
+          label={`Moloch Soldier${isMolochSoldierDead ? ' (dead)' : ''}`}
           placement="top"
         >
           <Image
             alt="moloch soldier"
             height="100%"
             position="absolute"
-            src={health > 0 ? molochSoldier : molochSoldierDead}
+            src={isMolochSoldierDead ? molochSoldierDead : molochSoldier}
             transform="scale(1.5) translateY(-8px)"
             zIndex={3}
           />

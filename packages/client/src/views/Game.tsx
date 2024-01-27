@@ -1,13 +1,12 @@
 import {
   Box,
   Button,
-  Flex,
   Heading,
   HStack,
+  Image,
   Spinner,
   Text,
   useDisclosure,
-  useToast,
   VStack,
 } from '@chakra-ui/react';
 import { useComponentValue, useEntityQuery } from '@latticexyz/react';
@@ -23,10 +22,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { getAddress, isAddress } from 'viem';
 import { useAccount, useDisconnect, useWalletClient } from 'wagmi';
 
+import loadingImage from '../assets/loading.png';
 import { Alert } from '../components/Alert';
 import { ConnectWalletButton } from '../components/ConnectWalletButton';
 import { GameBoard } from '../components/GameBoard';
 import { Leaderboard } from '../components/Leaderboard';
+import { BattleInitiationModal } from '../components/Modals/BattleInitiationModal';
+import { BattleModal } from '../components/Modals/BattleModal';
 import { RaidPartyModal } from '../components/Modals/RaidPartyModal';
 import { RulesModal } from '../components/Modals/RulesModal';
 import { TradeTableModal } from '../components/Modals/TradeTableModal';
@@ -34,6 +36,7 @@ import { TradeOffers } from '../components/TradeOffers';
 import { GameProvider, useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
 import { RaidPartyProvider, useRaidParty } from '../contexts/RaidPartyContext';
+import { useToast } from '../hooks/useToast';
 import { getChainIdFromLabel, getSignatureDetails } from '../lib/web3';
 import { getPlayerEntity } from '../utils/helpers';
 
@@ -69,18 +72,18 @@ export const GameView: React.FC = () => {
 
 export const GameViewInner: React.FC = () => {
   const { data: walletClient } = useWalletClient();
-  const { address, isConnected } = useAccount();
+  const { isConnected } = useAccount();
   const { disconnect } = useDisconnect();
-  const { onOpenRaidPartyModal } = useRaidParty();
-  const toast = useToast();
+  const { onOpenBattleModal, onOpenRaidPartyModal } = useRaidParty();
+  const { renderError, renderSuccess } = useToast();
   const navigate = useNavigate();
 
-  const { game, loading } = useGame();
+  const { character, game, loading } = useGame();
 
   const rulesModalControls = useDisclosure();
 
   const {
-    components: { AccountInfo, CharacterSheetInfo, SyncProgress },
+    components: { AccountInfo, BattleInfo, CharacterSheetInfo, SyncProgress },
     network: { playerEntity: burnerPlayerEntity },
     systemCalls: { login, updateBurnerWallet },
   } = useMUD();
@@ -98,10 +101,12 @@ export const GameViewInner: React.FC = () => {
   ]);
 
   const playerEntity = useMemo(() => {
+    const address = walletClient?.account.address;
     return getPlayerEntity(address);
-  }, [address]);
+  }, [walletClient?.account.address]);
 
   const onLogin = useCallback(async () => {
+    const address = walletClient?.account.address;
     try {
       if (!(address && walletClient)) {
         throw new Error('No address or wallet client');
@@ -133,37 +138,29 @@ export const GameViewInner: React.FC = () => {
       })) as `0x${string}`;
       await login(chainId, game.id, address, signature);
     } catch (e) {
-      console.error(e);
-      toast({
-        title: 'Error logging in',
-        status: 'error',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
+      renderError(e, 'Error logging in');
       disconnect();
     }
   }, [
     AccountInfo,
-    address,
     burnerPlayerEntity,
     disconnect,
     game,
     login,
     playerEntity,
-    toast,
+    renderError,
     walletClient,
   ]);
 
   useEffect(() => {
     if (!game) return;
-    if (address && playerEntity && walletClient) {
+    if (playerEntity && walletClient && walletClient.account.address) {
       const accountInfo = getComponentValue(AccountInfo, playerEntity);
       if (!accountInfo) {
         onLogin();
       }
     }
-  }, [AccountInfo, address, game, onLogin, playerEntity, walletClient]);
+  }, [AccountInfo, game, onLogin, playerEntity, walletClient]);
 
   const needsBurnerAddressUpdate = useMemo(() => {
     if (!walletClient?.account) return false;
@@ -193,13 +190,7 @@ export const GameViewInner: React.FC = () => {
   const onUpdateBurnerWallet = useCallback(async () => {
     const address = walletClient?.account.address;
     if (!address) {
-      toast({
-        title: 'Error spawning player',
-        status: 'error',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
+      renderError('Error updating burner wallet!');
       return;
     }
     try {
@@ -223,38 +214,42 @@ export const GameViewInner: React.FC = () => {
 
       await updateBurnerWallet(address, signature);
 
-      toast({
-        title: 'Burner wallet updated',
-        status: 'success',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
+      renderSuccess('Burner wallet updated!');
       setUpdateCounter(prev => prev + 1);
     } catch (e) {
-      console.error(e);
-      toast({
-        title: 'Error spawning player',
-        status: 'error',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
+      renderError(e, 'Error updating burner wallet!');
     }
   }, [
     AccountInfo,
     burnerPlayerEntity,
     otherLoggedInAccounts,
-    toast,
+    renderError,
+    renderSuccess,
     updateBurnerWallet,
     walletClient,
   ]);
 
+  const battleActive = useComponentValue(BattleInfo, playerEntity)?.active;
+
+  useEffect(() => {
+    if (battleActive && character) {
+      onOpenBattleModal(character);
+    }
+  }, [battleActive, character, onOpenBattleModal]);
+
   if (loading) {
     return (
-      <VStack py={12} spacing={8}>
-        <Heading>Loading...</Heading>
-        <Spinner size="lg" />
+      <VStack pos="relative" spacing={8}>
+        <Image
+          alt="loading"
+          h="100vh"
+          objectFit="cover"
+          src={loadingImage}
+          w="100%"
+        />
+        <Box pos="absolute" left="50%" top={4} transform="translateX(-50%)">
+          <Spinner size="xl" />
+        </Box>
       </VStack>
     );
   }
@@ -275,11 +270,19 @@ export const GameViewInner: React.FC = () => {
   }
 
   if (syncProgress.step !== SyncStep.LIVE) {
-    const formattedPercentage = syncProgress.percentage;
     return (
-      <Flex alignItems="center" h="100vh" justifyContent="center">
-        {syncProgress.message} {Math.round(formattedPercentage)}%
-      </Flex>
+      <VStack pos="relative" spacing={8}>
+        <Image
+          alt="loading"
+          h="100vh"
+          objectFit="cover"
+          src={loadingImage}
+          w="100%"
+        />
+        <Text pos="absolute" left="50%" top={4}>
+          {syncProgress.message} {Math.round(syncProgress.percentage)}%
+        </Text>
+      </VStack>
     );
   }
 
@@ -324,6 +327,8 @@ export const GameViewInner: React.FC = () => {
       <Leaderboard />
       <RaidPartyModal />
       <TradeTableModal />
+      <BattleInitiationModal />
+      <BattleModal />
       <RulesModal {...rulesModalControls} />
     </VStack>
   );

@@ -1,4 +1,4 @@
-import { Box, Image, Spinner, useToast } from '@chakra-ui/react';
+import { Box, Image, Spinner } from '@chakra-ui/react';
 import { useComponentValue } from '@latticexyz/react';
 import { Entity } from '@latticexyz/recs';
 import { useCallback, useMemo, useState } from 'react';
@@ -7,6 +7,7 @@ import { useAccount, useWalletClient } from 'wagmi';
 import grass1 from '../assets/map/grass1.svg';
 import { useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
+import { useToast } from '../hooks/useToast';
 import { getPlayerEntity } from '../utils/helpers';
 
 type GameMapProps = {
@@ -48,7 +49,7 @@ export const GameMap = ({
     systemCalls: { spawn },
   } = useMUD();
   const { game } = useGame();
-  const toast = useToast();
+  const { renderError, renderWarning } = useToast();
 
   const [isSpawning, setIsSpawning] = useState<{ x: number; y: number } | null>(
     null,
@@ -78,21 +79,9 @@ export const GameMap = ({
   const onTileClick = useCallback(
     async (x: number, y: number) => {
       if (!(address && walletClient)) {
-        toast({
-          title: 'Login to play',
-          status: 'warning',
-          position: 'top',
-          duration: 5000,
-          isClosable: true,
-        });
+        renderWarning('Login to play');
       } else if (!gamePlayers.includes(address.toLowerCase())) {
-        toast({
-          title: "You aren't a part of this game!",
-          status: 'warning',
-          position: 'top',
-          duration: 5000,
-          isClosable: true,
-        });
+        renderWarning(`You aren't a part of this game!`);
       } else if (!isMyPlayerSpawned) {
         if (!playerEntity) return;
         setIsSpawning({ x, y });
@@ -100,14 +89,7 @@ export const GameMap = ({
         try {
           await spawn(address, x, y);
         } catch (e) {
-          console.error(e);
-          toast({
-            title: 'Error spawning player',
-            status: 'error',
-            position: 'top',
-            duration: 5000,
-            isClosable: true,
-          });
+          renderError(e, 'Error spawning player');
         } finally {
           setIsSpawning(null);
         }
@@ -118,8 +100,9 @@ export const GameMap = ({
       gamePlayers,
       isMyPlayerSpawned,
       playerEntity,
+      renderError,
+      renderWarning,
       spawn,
-      toast,
       walletClient,
     ],
   );

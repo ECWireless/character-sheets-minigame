@@ -6,9 +6,7 @@ import { positionToEntityKey } from "../lib/positionToEntityKey.sol";
 import { verifyEIP712Signature } from "../lib/signature.sol";
 import {
   AccountInfo,
-  AvatarClass,
   CharacterSheetInfo,
-  Health,
   MapConfig,
   MolochSoldier,
   Movable,
@@ -19,26 +17,6 @@ import {
 } from "../codegen/index.sol";
 
 contract MapSystem is System {
-  function attack(address playerAddress, uint32 x, uint32 y) public {
-    bytes32 player = addressToEntityKey(playerAddress);
-    bytes32 molochSoldier = positionToEntityKey(x, y);
-    require(Player.get(player), "not a player");
-    require(MolochSoldier.get(molochSoldier), "not a moloch soldier");
-
-    (address burnerAddress,,) = AccountInfo.get(player);
-    require(burnerAddress == address(_msgSender()), "not the burner address for this character");
-
-    // (uint32 playerX, uint32 playerY, ,) = Position.get(player);
-    // (uint32 molochSoldierX, uint32 molochSoldierY, ,) = Position.get(molochSoldier);
-    
-    // require(distance(playerX, playerY, molochSoldierX, molochSoldierY) == 1, "can only attack adjacent spaces");
-
-    uint32 molochSoldierHealth = Health.get(molochSoldier);
-    require(molochSoldierHealth > 0, "moloch soldier is already dead");
-
-    Health.set(molochSoldier, molochSoldierHealth - 1);
-  }
-
   function login(uint256 chainId, address gameAddress, address playerAddress, bytes calldata signature) public {
     bytes32 player = addressToEntityKey(playerAddress);
 
@@ -50,7 +28,7 @@ contract MapSystem is System {
     Player.set(player, true);
     AccountInfo.set(player, address(_msgSender()), chainId, nonce);
     CharacterSheetInfo.set(player, chainId, gameAddress, playerAddress);
-    PartyInfo.set(player, playerAddress, playerAddress, playerAddress);
+    PartyInfo.set(player, playerAddress, -1, playerAddress, -1, playerAddress, -1);
   }
 
   function logout(address playerAddress) public {
@@ -81,14 +59,14 @@ contract MapSystem is System {
     Position.set(player, x, y, previousX, previousY);
   }
 
-  function removeAvatarClass(address playerAddress) public {
+  function setPartyClasses(address playerAddress, int256[] calldata classIds) public {
     bytes32 player = addressToEntityKey(playerAddress);
-    AvatarClass.deleteRecord(player);
-  }
 
-  function setAvatarClass(address playerAddress,  uint256 classId) public {
-    bytes32 player = addressToEntityKey(playerAddress);
-    AvatarClass.set(player, classId);
+    (address burnerAddress,,) = AccountInfo.get(player);
+    require(burnerAddress == address(_msgSender()), "not the burner address for this character");
+
+    (,, address slotTwo,, address slotThree,) = PartyInfo.get(player);
+    PartyInfo.set(player, playerAddress, classIds[0], slotTwo, classIds[1], slotThree, classIds[2]);
   }
 
   function spawn(address playerAddress, uint32 x, uint32 y) public {

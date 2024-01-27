@@ -1,8 +1,18 @@
-import { getComponentValueStrict } from '@latticexyz/recs';
-import { useEffect, useState } from 'react';
+import {
+  Entity,
+  getComponentValue,
+  getComponentValueStrict,
+  Has,
+  HasValue,
+  runQuery,
+} from '@latticexyz/recs';
+import { useCallback, useEffect, useState } from 'react';
 
+import { useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
+import { useRaidParty } from '../contexts/RaidPartyContext';
 import { getPlayerEntity } from '../utils/helpers';
+import { useToast } from './useToast';
 
 const classesWithAttackAbility = [
   'warrior',
@@ -22,11 +32,40 @@ export const useKeyboardMovement = (
   actionRunning: boolean;
 } => {
   const {
-    components: { Position },
-    systemCalls: { attack, moveBy },
+    components: { BattleInfo, MolochSoldier, Position },
+    systemCalls: { moveBy },
   } = useMUD();
+  const { character } = useGame();
+  const { onOpenBattleInitiationModal } = useRaidParty();
+  const { renderWarning } = useToast();
 
   const [actionRunning, setActionRunning] = useState(false);
+
+  const getIsMolochSoldierDead = useCallback(
+    (molochEntity: Entity) => {
+      const battlesWithThisMoloch = runQuery([
+        Has(BattleInfo),
+        HasValue(BattleInfo, {
+          molochId: molochEntity,
+        }),
+      ]);
+
+      const battlesWithThisMolochArray = Array.from(battlesWithThisMoloch);
+      if (battlesWithThisMolochArray.length > 0) {
+        const battleInfo = getComponentValueStrict(
+          BattleInfo,
+          battlesWithThisMolochArray[0],
+        );
+
+        if (battleInfo.molochDefeated) {
+          return true;
+        }
+      }
+
+      return false;
+    },
+    [BattleInfo],
+  );
 
   useEffect(() => {
     const listener = (e: KeyboardEvent) => {
@@ -58,23 +97,92 @@ export const useKeyboardMovement = (
       }
 
       if (e.key === 'e') {
-        if (!classesWithAttackAbility.includes(characterClass)) return;
         const playerEntity = getPlayerEntity(playerAddress);
         if (!playerEntity) return;
-        setActionRunning(true);
+
         const playerPosition = getComponentValueStrict(Position, playerEntity);
         const { x, y, previousX } = playerPosition;
+
         if (x > previousX) {
-          attack(playerAddress, x + 1, y);
+          const molochSoldierEntities = runQuery([
+            Has(MolochSoldier),
+            HasValue(Position, { x: x + 1, y }),
+          ]);
+
+          if (molochSoldierEntities.size === 0) {
+            return;
+          }
+
+          const battleInfo = getComponentValue(BattleInfo, playerEntity);
+
+          if (battleInfo?.molochDefeated) {
+            renderWarning(
+              'You have already defeated at least one Moloch Soldier.',
+            );
+            return;
+          }
+
+          const isMolochSoldierDead = getIsMolochSoldierDead(
+            Array.from(molochSoldierEntities)[0],
+          );
+          if (isMolochSoldierDead) {
+            renderWarning('This Moloch Soldier has already been defeated.');
+            return;
+          }
         } else if (x < previousX) {
-          attack(playerAddress, x - 1, y);
+          const molochSoldierEntities = runQuery([
+            Has(MolochSoldier),
+            HasValue(Position, { x: x - 1, y }),
+          ]);
+
+          if (molochSoldierEntities.size === 0) {
+            return;
+          }
+
+          const battleInfo = getComponentValue(BattleInfo, playerEntity);
+
+          if (battleInfo?.molochDefeated) {
+            renderWarning(
+              'You have already defeated at least one Moloch Soldier.',
+            );
+            return;
+          }
+
+          const isMolochSoldierDead = getIsMolochSoldierDead(
+            Array.from(molochSoldierEntities)[0],
+          );
+          if (isMolochSoldierDead) {
+            renderWarning('This Moloch Soldier has already been defeated.');
+            return;
+          }
         }
+
+        if (!classesWithAttackAbility.includes(characterClass)) {
+          renderWarning('You must select a non-villager class to attack.');
+          return;
+        }
+        setActionRunning(true);
+
+        setTimeout(() => {
+          onOpenBattleInitiationModal();
+        }, 500);
       }
     };
 
     window.addEventListener('keydown', listener);
     return () => window.removeEventListener('keydown', listener);
-  }, [attack, characterClass, moveBy, playerAddress, Position]);
+  }, [
+    BattleInfo,
+    character,
+    characterClass,
+    getIsMolochSoldierDead,
+    MolochSoldier,
+    moveBy,
+    onOpenBattleInitiationModal,
+    playerAddress,
+    Position,
+    renderWarning,
+  ]);
 
   useEffect(() => {
     if (!actionRunning) return;

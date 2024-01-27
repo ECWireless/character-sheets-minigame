@@ -124,7 +124,7 @@ export const WEARABLE_STATS: { [key: string]: { [key: string]: number } } = {
   },
 };
 
-enum POWER_TYPE {
+export enum POWER_TYPE {
   ATTACK = 'attack',
   SPECIAL_ATTACK = 'special attack',
 }
@@ -132,27 +132,64 @@ enum POWER_TYPE {
 export const WEAPON_STATS: {
   [key: string]: { [key: string]: number | string };
 } = {
-  // Sword of Undhur
   1: {
+    name: 'Sword of Undhur',
     power: 3,
     type: POWER_TYPE.ATTACK,
     color: 'red',
   },
-  // Hunter's Dagger
   4: {
+    name: "Hunter's Dagger",
     power: 1,
     type: POWER_TYPE.ATTACK,
     color: 'red',
   },
-  // The Ghoul Slayer
   6: {
+    name: 'The Ghoul Slayer',
     power: 4,
     type: POWER_TYPE.ATTACK,
     color: 'red',
   },
-  // Wooden Staff
   7: {
+    name: 'Wooden Staff',
     power: 3,
+    type: POWER_TYPE.SPECIAL_ATTACK,
+    color: 'blue',
+  },
+};
+
+export const MOLOCH_SOLDIER_STATS = {
+  heath: 20,
+  attack: 7,
+  defense: 5,
+  specialAttack: 8,
+  specialDefense: 5,
+};
+
+export const MOLOCH_SOLDIER_MOVES: {
+  [key: string]: { [key: string]: number | string };
+} = {
+  1: {
+    name: 'Fireball',
+    power: 10,
+    type: POWER_TYPE.SPECIAL_ATTACK,
+    color: 'blue',
+  },
+  2: {
+    name: 'Stomp',
+    power: 7,
+    type: POWER_TYPE.ATTACK,
+    color: 'red',
+  },
+  3: {
+    name: 'Bite',
+    power: 8,
+    type: POWER_TYPE.ATTACK,
+    color: 'red',
+  },
+  4: {
+    name: 'Coordination Failure',
+    power: 14,
     type: POWER_TYPE.SPECIAL_ATTACK,
     color: 'blue',
   },

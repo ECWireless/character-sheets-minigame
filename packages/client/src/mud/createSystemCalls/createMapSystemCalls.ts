@@ -1,77 +1,17 @@
-/*
- * Create the system calls that the client can use to ask
- * for changes in the World state (using the System contracts).
- */
-
 import { getComponentValue, Has, HasValue, runQuery } from '@latticexyz/recs';
 import { singletonEntity } from '@latticexyz/store-sync/recs';
 import { uuid } from '@latticexyz/utils';
 import { Address } from 'viem';
 
-import { getPlayerEntity } from '../utils/helpers';
-import { ClientComponents } from './createClientComponents';
-import { SetupNetworkResult } from './setupNetwork';
+import { getPlayerEntity } from '../../utils/helpers';
+import { ClientComponents } from '../createClientComponents';
+import { SetupNetworkResult } from '../setupNetwork';
 
-export type SystemCalls = ReturnType<typeof createSystemCalls>;
-
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export function createSystemCalls(
+export const createMapSystemCalls = (
   { worldContract, waitForTransaction }: SetupNetworkResult,
-  {
-    Health,
-    MapConfig,
-    MolochSoldier,
-    Movable,
-    Obstruction,
-    Player,
-    Position,
-  }: ClientComponents,
-) {
-  /**
-   * MAP SYSTEMS
-   */
-  const attack = async (playerAddress: string, x: number, y: number) => {
-    const playerEntity = getPlayerEntity(playerAddress);
-    if (!playerEntity) {
-      throw new Error('No player entity');
-    }
-
-    const molochSoldierEntities = runQuery([
-      Has(MolochSoldier),
-      HasValue(Position, { x, y }),
-    ]);
-    const molochSoldierEntity = Array.from(molochSoldierEntities)[0];
-    if (!molochSoldierEntity) {
-      // eslint-disable-next-line no-console
-      console.warn('No moloch soldier to attack');
-      return;
-    }
-
-    const molochHealth = getComponentValue(Health, molochSoldierEntity);
-    if (molochHealth?.value === 0) {
-      // eslint-disable-next-line no-console
-      console.warn('Moloch soldier already dead');
-      return;
-    }
-
-    const healthId = uuid();
-    Health.addOverride(healthId, {
-      entity: molochSoldierEntity,
-      value: { value: 0 },
-    });
-
-    try {
-      const tx = await worldContract.write.attack([
-        playerAddress as Address,
-        x,
-        y,
-      ]);
-      await waitForTransaction(tx);
-    } finally {
-      Health.removeOverride(healthId);
-    }
-  };
-
+  { MapConfig, Movable, Obstruction, Player, Position }: ClientComponents,
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+) => {
   const isObstructed = (x: number, y: number) => {
     return runQuery([Has(Obstruction), HasValue(Position, { x, y })]).size > 0;
   };
@@ -144,10 +84,10 @@ export function createSystemCalls(
 
     try {
       const tx = await worldContract.write.makeOffer([
-        initiatedBy,
-        initiatedWith,
-        offeredCardPlayer,
-        requestedCardPlayer,
+        initiatedBy as Address,
+        initiatedWith as Address,
+        offeredCardPlayer as Address,
+        requestedCardPlayer as Address,
       ]);
       await waitForTransaction(tx);
       return true;
@@ -246,29 +186,17 @@ export function createSystemCalls(
     }
   };
 
-  const removeAvatarClass = async (playerAddress: string) => {
+  const setPartyClasses = async (playerAddress: string, classIds: string[]) => {
     try {
-      const tx = await worldContract.write.removeAvatarClass([
+      const tx = await worldContract.write.setPartyClasses([
         playerAddress.toLowerCase() as Address,
+        classIds.map(id => BigInt(id)),
       ]);
       await waitForTransaction(tx);
+      return true;
     } catch (e) {
       console.error(e);
-    }
-  };
-
-  const setAvatarClass = async (
-    playerAddress: string,
-    avatarClassId: string,
-  ) => {
-    try {
-      const tx = await worldContract.write.setAvatarClass([
-        playerAddress.toLowerCase() as Address,
-        avatarClassId,
-      ]);
-      await waitForTransaction(tx);
-    } catch (e) {
-      console.error(e);
+      return false;
     }
   };
 
@@ -317,94 +245,14 @@ export function createSystemCalls(
     ];
   };
 
-  /**
-   * TRADE SYSTEMS
-   */
-  const acceptOffer = async (initiatedBy: string, initiatedWith: string) => {
-    const playerEntity = getPlayerEntity(initiatedBy);
-    if (!playerEntity) {
-      throw new Error('No player entity');
-    }
-
-    const initiatedWithEntity = getPlayerEntity(initiatedWith);
-    if (!initiatedWithEntity) {
-      throw new Error('No initiatedWith player entity');
-    }
-
-    try {
-      const tx = await worldContract.write.acceptOffer([
-        initiatedBy,
-        initiatedWith,
-      ]);
-      await waitForTransaction(tx);
-      return true;
-    } catch (e) {
-      console.error(e);
-      return false;
-    }
-  };
-
-  const cancelOffer = async (initiatedBy: string, initiatedWith: string) => {
-    const playerEntity = getPlayerEntity(initiatedBy);
-    if (!playerEntity) {
-      throw new Error('No player entity');
-    }
-
-    const initiatedWithEntity = getPlayerEntity(initiatedWith);
-    if (!initiatedWithEntity) {
-      throw new Error('No initiatedWith player entity');
-    }
-
-    try {
-      const tx = await worldContract.write.cancelOffer([
-        initiatedBy,
-        initiatedWith,
-      ]);
-      await waitForTransaction(tx);
-      return true;
-    } catch (e) {
-      console.error(e);
-      return false;
-    }
-  };
-
-  const rejectOffer = async (initiatedBy: string, initiatedWith: string) => {
-    const playerEntity = getPlayerEntity(initiatedWith);
-    if (!playerEntity) {
-      throw new Error('No player entity');
-    }
-
-    const initiatedByEntity = getPlayerEntity(initiatedBy);
-    if (!initiatedByEntity) {
-      throw new Error('No initiatedBy player entity');
-    }
-
-    try {
-      const tx = await worldContract.write.rejectOffer([
-        initiatedBy,
-        initiatedWith,
-      ]);
-      await waitForTransaction(tx);
-      return true;
-    } catch (e) {
-      console.error(e);
-      return false;
-    }
-  };
-
   return {
-    acceptOffer,
-    cancelOffer,
-    attack,
     login,
     logout,
     makeOffer,
     moveTo,
     moveBy,
     updateBurnerWallet,
-    removeAvatarClass,
-    rejectOffer,
-    setAvatarClass,
+    setPartyClasses,
     spawn,
   };
-}
+};

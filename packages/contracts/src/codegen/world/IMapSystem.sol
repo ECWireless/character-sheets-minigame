@@ -8,17 +8,13 @@ pragma solidity >=0.8.21;
  * @dev This interface is automatically generated from the corresponding system contract. Do not edit manually.
  */
 interface IMapSystem {
-  function attack(address playerAddress, uint32 x, uint32 y) external;
-
   function login(uint256 chainId, address gameAddress, address playerAddress, bytes calldata signature) external;
 
   function logout(address playerAddress) external;
 
   function move(address playerAddress, uint32 x, uint32 y) external;
 
-  function removeAvatarClass(address playerAddress) external;
-
-  function setAvatarClass(address playerAddress, uint256 classId) external;
+  function setPartyClasses(address playerAddress, int256[] calldata classIds) external;
 
   function spawn(address playerAddress, uint32 x, uint32 y) external;
 

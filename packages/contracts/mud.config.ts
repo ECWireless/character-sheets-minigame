@@ -5,15 +5,6 @@ export default mudConfig({
     TerrainType: ["None", "Tree", "Boulder", "Water", "MolochSoldier"],
   },
   tables: {
-    AvatarClass: "uint256",
-    CharacterSheetInfo: {
-      dataStruct: false,
-      valueSchema: {
-        chainId: "uint256",
-        gameAddress: "address",
-        playerAddress: "address",
-      },
-    },
     AccountInfo: {
       dataStruct: false,
       valueSchema: {
@@ -22,7 +13,29 @@ export default mudConfig({
         nonce: "uint256",
       },
     },
-    Health: "uint32",
+    BattleCounter: "uint32",
+    BattleInfo: {
+      dataStruct: false,
+      valueSchema: {
+        active: "bool",
+        // TODO: Not sure how to handle battle logic using cross-chain data
+        // In the future, maybe use a server to check cross-chain data
+        slotOneHealth: "uint32",
+        slotTwoHealth: "uint32",
+        slotThreeHealth: "uint32",
+        molochId: "bytes32",
+        molochHealth: "uint32",
+        molochDefeated: "bool",
+      },
+    },
+    CharacterSheetInfo: {
+      dataStruct: false,
+      valueSchema: {
+        chainId: "uint256",
+        gameAddress: "address",
+        playerAddress: "address",
+      },
+    },
     MapConfig: {
       keySchema: {},
       dataStruct: false,
@@ -39,8 +52,11 @@ export default mudConfig({
       dataStruct: false,
       valueSchema: {
         slotOne: "address",
+        slotOneClass: "int256",
         slotTwo: "address",
+        slotTwoClass: "int256",
         slotThree: "address",
+        slotThreeClass: "int256",
       },
     },
     Player: "bool",

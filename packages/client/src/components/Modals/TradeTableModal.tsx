@@ -10,7 +10,6 @@ import {
   ModalOverlay,
   Text,
   useRadioGroup,
-  useToast,
   VStack,
   Wrap,
   WrapItem,
@@ -31,8 +30,7 @@ import { RadioOption } from '../../components/RadioOption';
 import { useGame } from '../../contexts/GameContext';
 import { useMUD } from '../../contexts/MUDContext';
 import { useRaidParty } from '../../contexts/RaidPartyContext';
-import { CLASS_STATS, WEARABLE_STATS } from '../../utils/constants';
-import { Character, EquippableTraitType, Stats } from '../../utils/types';
+import { useToast } from '../../hooks/useToast';
 
 const reversePartyIndex = (index: number): number => {
   switch (index) {
@@ -51,19 +49,21 @@ export const TradeTableModal: React.FC = () => {
   const { address } = useAccount();
   const { character } = useGame();
   const {
+    equippedWeapons,
+    equippedWearable,
+    getCharacterStats,
     isTradeTableModalOpen: isOpen,
-    myAvatarClassId,
-    myPartyCharacters,
+    myParty,
     onCloseTradeTableModal: onClose,
     selectedCharacter,
-    selectedCharacterAvatarClassId: otherAvatarClassId,
-    selectedCharacterPartyCharacters: otherPartyCharacters,
+    selectedCharacterParty,
+    wearableBonuses,
   } = useRaidParty();
   const {
     components: { TradeInfo },
     systemCalls: { acceptOffer, cancelOffer, makeOffer, rejectOffer },
   } = useMUD();
-  const toast = useToast();
+  const { renderError, renderSuccess } = useToast();
 
   const [mySelectedCard, setMySelectedCard] = useState(1);
   const [otherSelectedCard, setOtherSelectedCard] = useState(1);
@@ -90,6 +90,23 @@ export const TradeTableModal: React.FC = () => {
     defaultValue: '-1',
   });
 
+  useEffect(() => {
+    const myAvatarClassId = myParty ? myParty[mySelectedCard - 1].class : '-1';
+    const otherAvatarClassId = selectedCharacterParty
+      ? selectedCharacterParty[otherSelectedCard - 1].class
+      : '-1';
+
+    setMyClassValue(myAvatarClassId);
+    setOtherClassValue(otherAvatarClassId);
+  }, [
+    myParty,
+    mySelectedCard,
+    otherSelectedCard,
+    selectedCharacterParty,
+    setMyClassValue,
+    setOtherClassValue,
+  ]);
+
   const tradeRequests = useMemo(() => {
     const entities = getEntitiesWithValue(TradeInfo, {
       initiatedBy: selectedCharacter
@@ -110,8 +127,7 @@ export const TradeTableModal: React.FC = () => {
         rejected: tradeInfo.rejected,
       };
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, isOpen, TradeInfo]);
+  }, [address, selectedCharacter, TradeInfo]);
 
   const tradeOffers = useMemo(() => {
     const entities = getEntitiesWithValue(TradeInfo, {
@@ -133,8 +149,7 @@ export const TradeTableModal: React.FC = () => {
         rejected: tradeInfo.rejected,
       };
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, isOpen, TradeInfo]);
+  }, [address, selectedCharacter, TradeInfo]);
 
   const isTradeRequestActive = useMemo(
     () => tradeRequests.filter(tr => tr.active).length > 0,
@@ -166,11 +181,18 @@ export const TradeTableModal: React.FC = () => {
   );
 
   const resetData = useCallback(() => {
+    const myAvatarClassId = myParty ? myParty[0].class : '-1';
+    const otherAvatarClassId = selectedCharacterParty
+      ? selectedCharacterParty[0].class
+      : '-1';
+
     setMyClassValue(myAvatarClassId);
     setOtherClassValue(otherAvatarClassId);
 
-    if (isTradeOfferActive) {
+    if (isTradeOfferActive && myParty && selectedCharacterParty) {
       const activeTradeOffers = tradeOffers.filter(t => t.active);
+      const myPartyCharacters = myParty.map(s => s.character);
+      const otherPartyCharacters = selectedCharacterParty.map(s => s.character);
 
       let _mySelectedCard = myPartyCharacters?.findIndex(
         c =>
@@ -191,13 +213,7 @@ export const TradeTableModal: React.FC = () => {
       ) {
         setMySelectedCard(1);
         setOtherSelectedCard(1);
-        toast({
-          title: 'Error loading trade offer!',
-          status: 'error',
-          position: 'top',
-          duration: 5000,
-          isClosable: true,
-        });
+        renderError('Error loading trade offer!');
         return;
       }
 
@@ -207,15 +223,27 @@ export const TradeTableModal: React.FC = () => {
       setMySelectedCard(_mySelectedCard);
       setOtherSelectedCard(_otherSelectedCard);
       setLockedCards([_mySelectedCard, _otherSelectedCard]);
-    } else if (isTradeRequestActive) {
-      const activeTradeRequests = tradeRequests.filter(t => t.active);
 
-      let _mySelectedCard = myPartyCharacters?.findIndex(
+      const myAvatarClassId = myParty
+        ? myParty[_mySelectedCard - 1].class
+        : '-1';
+      const otherAvatarClassId = selectedCharacterParty
+        ? selectedCharacterParty[_otherSelectedCard - 1].class
+        : '-1';
+
+      setMyClassValue(myAvatarClassId);
+      setOtherClassValue(otherAvatarClassId);
+    } else if (isTradeRequestActive && myParty && selectedCharacterParty) {
+      const activeTradeRequests = tradeRequests.filter(t => t.active);
+      const myPartyCards = myParty.map(s => s.character);
+      const otherPartyCards = selectedCharacterParty.map(s => s.character);
+
+      let _mySelectedCard = myPartyCards?.findIndex(
         c =>
           c.player.toLowerCase() ===
           activeTradeRequests[0]?.requestedCardPlayer.toLowerCase(),
       );
-      let _otherSelectedCard = otherPartyCharacters?.findIndex(
+      let _otherSelectedCard = otherPartyCards?.findIndex(
         c =>
           c.player.toLowerCase() ===
           activeTradeRequests[0]?.offeredCardPlayer.toLowerCase(),
@@ -229,13 +257,7 @@ export const TradeTableModal: React.FC = () => {
       ) {
         setMySelectedCard(1);
         setOtherSelectedCard(1);
-        toast({
-          title: 'Error loading trade request!',
-          status: 'error',
-          position: 'top',
-          duration: 5000,
-          isClosable: true,
-        });
+        renderError('Error loading trade request!');
         return;
       }
 
@@ -245,6 +267,16 @@ export const TradeTableModal: React.FC = () => {
       setMySelectedCard(_mySelectedCard);
       setOtherSelectedCard(_otherSelectedCard);
       setLockedCards([_mySelectedCard, _otherSelectedCard]);
+
+      const myAvatarClassId = myParty
+        ? myParty[_mySelectedCard - 1].class
+        : '-1';
+      const otherAvatarClassId = selectedCharacterParty
+        ? selectedCharacterParty[_otherSelectedCard - 1].class
+        : '-1';
+
+      setMyClassValue(myAvatarClassId);
+      setOtherClassValue(otherAvatarClassId);
     } else {
       setMySelectedCard(1);
       setOtherSelectedCard(1);
@@ -253,13 +285,11 @@ export const TradeTableModal: React.FC = () => {
   }, [
     isTradeOfferActive,
     isTradeRequestActive,
-    myAvatarClassId,
-    myPartyCharacters,
-    otherAvatarClassId,
-    otherPartyCharacters,
+    myParty,
+    renderError,
+    selectedCharacterParty,
     setMyClassValue,
     setOtherClassValue,
-    toast,
     tradeOffers,
     tradeRequests,
   ]);
@@ -274,134 +304,14 @@ export const TradeTableModal: React.FC = () => {
     if (!(character && selectedCharacter)) return null;
 
     return {
-      [character.id]: myPartyCharacters ?? [character, character, character],
-      [selectedCharacter.id]: otherPartyCharacters ?? [
-        selectedCharacter,
-        selectedCharacter,
-        selectedCharacter,
-      ],
+      [character.id]: myParty
+        ? myParty.map(m => m.character)
+        : [character, character, character],
+      [selectedCharacter.id]: selectedCharacterParty
+        ? selectedCharacterParty.map(s => s.character)
+        : [selectedCharacter, selectedCharacter, selectedCharacter],
     };
-  }, [character, myPartyCharacters, otherPartyCharacters, selectedCharacter]);
-
-  const getEquippedWeapons = useCallback((_character: Character) => {
-    const { equippedItems } = _character;
-
-    const equippedWeapons = equippedItems.filter(
-      item =>
-        item.attributes.find(
-          a =>
-            a.value === EquippableTraitType.EQUIPPED_ITEM_1 ||
-            a.value === EquippableTraitType.EQUIPPED_ITEM_2,
-        ) !== undefined,
-    );
-
-    return equippedWeapons;
-  }, []);
-
-  const equippedWeapons = useMemo(() => {
-    if (!(character && selectedCharacter)) return null;
-
-    return {
-      [character.id]: getEquippedWeapons(character),
-      [selectedCharacter.id]: getEquippedWeapons(selectedCharacter),
-    };
-  }, [character, getEquippedWeapons, selectedCharacter]);
-
-  const getEquippedWearable = useCallback((_character: Character) => {
-    const { equippedItems } = _character;
-
-    const equippedWearable = equippedItems.find(
-      item =>
-        item.attributes.find(
-          a => a.value === EquippableTraitType.EQUIPPED_WEARABLE,
-        ) !== undefined,
-    );
-
-    return equippedWearable ?? null;
-  }, []);
-
-  const equippedWearable = useMemo(() => {
-    if (!(character && selectedCharacter)) return null;
-
-    return {
-      [character.id]: getEquippedWearable(character),
-      [selectedCharacter.id]: getEquippedWearable(selectedCharacter),
-    };
-  }, [character, getEquippedWearable, selectedCharacter]);
-
-  const getWearableBonuses = useCallback(
-    (_character: Character) => {
-      const defaultValues = {
-        attack: 0,
-        defense: 0,
-        specialAttack: 0,
-        specialDefense: 0,
-      };
-
-      const { itemId } = equippedWearable?.[_character.id] ?? {};
-      if (!itemId) return defaultValues;
-
-      const numberId = Number(itemId);
-      const wearable = WEARABLE_STATS[numberId];
-      if (!wearable) return defaultValues;
-
-      return {
-        attack: wearable.attack,
-        defense: wearable.defense,
-        specialAttack: wearable.specialAttack,
-        specialDefense: wearable.specialDefense,
-      };
-    },
-    [equippedWearable],
-  );
-
-  const wearableBonuses = useMemo(() => {
-    if (!(character && selectedCharacter)) return null;
-
-    return {
-      [character.id]: getWearableBonuses(character),
-      [selectedCharacter.id]: getWearableBonuses(selectedCharacter),
-    };
-  }, [character, getWearableBonuses, selectedCharacter]);
-
-  const getCharacterStats = useCallback(
-    (_character: Character, classValue: string): Stats => {
-      if (classValue === '-1') {
-        return {
-          health: 0,
-          attack: 0,
-          defense: 0,
-          specialAttack: 0,
-          specialDefense: 0,
-        };
-      }
-
-      const selectedClass = Number(classValue);
-      const classStats = CLASS_STATS[selectedClass];
-      const { attack, defense, specialAttack, specialDefense } = classStats;
-
-      if (wearableBonuses && wearableBonuses[_character.id]) {
-        return {
-          health: 10,
-          attack: attack + wearableBonuses[_character.id].attack,
-          defense: defense + wearableBonuses[_character.id].defense,
-          specialAttack:
-            specialAttack + wearableBonuses[_character.id].specialAttack,
-          specialDefense:
-            specialDefense + wearableBonuses[_character.id].specialDefense,
-        };
-      } else {
-        return {
-          health: 10,
-          attack,
-          defense,
-          specialAttack,
-          specialDefense,
-        };
-      }
-    },
-    [wearableBonuses],
-  );
+  }, [character, myParty, selectedCharacter, selectedCharacterParty]);
 
   const characterStats = useMemo(() => {
     if (!(character && selectedCharacter)) return null;
@@ -493,25 +403,10 @@ export const TradeTableModal: React.FC = () => {
         throw new Error('Error making offer');
       }
 
-      toast({
-        title: 'Trade offer made!',
-        status: 'success',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
-
+      renderSuccess('Trade offer made!');
       onClose();
-    } catch (error) {
-      console.error(error);
-
-      toast({
-        title: 'Error offering trade!',
-        status: 'error',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
+    } catch (e) {
+      renderError(e, 'Error making offer');
     } finally {
       setIsPending(false);
     }
@@ -523,8 +418,9 @@ export const TradeTableModal: React.FC = () => {
     onClose,
     otherSelectedCard,
     partyCharacters,
+    renderError,
+    renderSuccess,
     selectedCharacter,
-    toast,
   ]);
 
   const onAcceptOffer = useCallback(async () => {
@@ -541,29 +437,22 @@ export const TradeTableModal: React.FC = () => {
         throw new Error('Error making offer');
       }
 
-      toast({
-        title: 'Trade accepted!',
-        status: 'success',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
+      renderSuccess('Trade accepted!');
 
       onClose();
-    } catch (error) {
-      console.error(error);
-
-      toast({
-        title: 'Error accepting trade!',
-        status: 'error',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
+    } catch (e) {
+      renderError(e, 'Error accepting offer');
     } finally {
       setIsPending(false);
     }
-  }, [acceptOffer, address, onClose, selectedCharacter, toast]);
+  }, [
+    acceptOffer,
+    address,
+    onClose,
+    renderError,
+    renderSuccess,
+    selectedCharacter,
+  ]);
 
   const onCancelOffer = useCallback(async () => {
     setIsPending(true);
@@ -579,29 +468,22 @@ export const TradeTableModal: React.FC = () => {
         throw new Error('Error canceling offer');
       }
 
-      toast({
-        title: 'Trade canceled!',
-        status: 'success',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
+      renderSuccess('Trade canceled!');
 
       onClose();
-    } catch (error) {
-      console.error(error);
-
-      toast({
-        title: 'Error canceling trade!',
-        status: 'error',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
+    } catch (e) {
+      renderError(e, 'Error canceling offer');
     } finally {
       setIsPending(false);
     }
-  }, [address, cancelOffer, onClose, selectedCharacter, toast]);
+  }, [
+    address,
+    cancelOffer,
+    onClose,
+    renderError,
+    renderSuccess,
+    selectedCharacter,
+  ]);
 
   const onRejectOffer = useCallback(async () => {
     setIsRejecting(true);
@@ -617,29 +499,22 @@ export const TradeTableModal: React.FC = () => {
         throw new Error('Error rejecting offer');
       }
 
-      toast({
-        title: 'Trade rejected!',
-        status: 'success',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
+      renderSuccess('Trade rejected!');
 
       onClose();
-    } catch (error) {
-      console.error(error);
-
-      toast({
-        title: 'Error rejecting trade!',
-        status: 'error',
-        position: 'top',
-        duration: 5000,
-        isClosable: true,
-      });
+    } catch (e) {
+      renderError(e, 'Error rejecting offer');
     } finally {
       setIsRejecting(false);
     }
-  }, [address, onClose, rejectOffer, selectedCharacter, toast]);
+  }, [
+    address,
+    onClose,
+    rejectOffer,
+    renderError,
+    renderSuccess,
+    selectedCharacter,
+  ]);
 
   if (
     !(
@@ -660,7 +535,7 @@ export const TradeTableModal: React.FC = () => {
   return (
     <Modal closeOnEsc closeOnOverlayClick isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
-      <ModalContent h="100vh" maxH="100vh" minW="100%" w="100%" m={0}>
+      <ModalContent h="100vh" m={0} maxH="100vh" minW="100%" w="100%">
         <ModalHeader>
           <Text textAlign="left" textTransform="initial" fontWeight="500">
             Trade Table
@@ -761,7 +636,7 @@ export const TradeTableModal: React.FC = () => {
           <HStack alignItems="flex-start" spacing={24}>
             <Box w="100%">
               <Text>Your character cards (max of 3):</Text>
-              <HStack mt={4} spacing={6}>
+              <HStack mt={4} spacing={4}>
                 {partyCharacters[character.id].map((character, i) => (
                   <Box
                     key={`${character.id}-${i}`}
@@ -774,7 +649,8 @@ export const TradeTableModal: React.FC = () => {
                       character={character}
                       isSelected={i + 1 === mySelectedCard}
                       locked={!!lockedCards[0] && lockedCards[0] !== i + 1}
-                      selectedClassId={String(myClassValue)}
+                      primary={i === 0}
+                      selectedClassId={myParty ? myParty[i].class : '-1'}
                     />
                   </Box>
                 ))}
@@ -782,11 +658,14 @@ export const TradeTableModal: React.FC = () => {
               {!pauseControls && (
                 <VStack my={8} spacing={4}>
                   <Text>
-                    {!!lockedCards[0]
-                      ? `You have ${character.name} locked for a trade.`
-                      : `Lock ${character.name} to make trade offer.`}
+                    {mySelectedCard === 1
+                      ? 'You cannot trade a primary card'
+                      : !!lockedCards[0]
+                        ? `You have ${character.name} locked for a trade.`
+                        : `Lock ${character.name} to make trade offer.`}
                   </Text>
                   <Button
+                    isDisabled={mySelectedCard === 1}
                     onClick={() =>
                       setLockedCards(prev =>
                         !!lockedCards[0]
@@ -832,7 +711,7 @@ export const TradeTableModal: React.FC = () => {
               <Text>
                 {selectedCharacter.name}&apos;s character cards (max of 3):
               </Text>
-              <HStack mt={4} spacing={6}>
+              <HStack mt={4} spacing={4}>
                 {partyCharacters[selectedCharacter.id].map((character, i) => (
                   <Box
                     key={`${character.id}-${i}`}
@@ -845,7 +724,12 @@ export const TradeTableModal: React.FC = () => {
                       character={character}
                       isSelected={i + 1 === otherSelectedCard}
                       locked={!!lockedCards[1] && lockedCards[1] !== i + 1}
-                      selectedClassId={String(otherClassValue)}
+                      primary={i === 0}
+                      selectedClassId={
+                        selectedCharacterParty
+                          ? selectedCharacterParty[i].class
+                          : '-1'
+                      }
                     />
                   </Box>
                 ))}
@@ -853,11 +737,14 @@ export const TradeTableModal: React.FC = () => {
               {!pauseControls && (
                 <VStack my={8} spacing={4}>
                   <Text>
-                    {!!lockedCards[1]
-                      ? `You have ${selectedCharacter.name} locked for a trade.`
-                      : `Lock ${selectedCharacter.name} to make trade offer.`}
+                    {otherSelectedCard === 1
+                      ? 'You cannot trade a primary card'
+                      : !!lockedCards[1]
+                        ? `You have ${selectedCharacter.name} locked for a trade.`
+                        : `Lock ${selectedCharacter.name} to make trade offer.`}
                   </Text>
                   <Button
+                    isDisabled={otherSelectedCard === 1}
                     onClick={() =>
                       setLockedCards(prev =>
                         !!lockedCards[1]
