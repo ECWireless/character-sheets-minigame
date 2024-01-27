@@ -100,15 +100,6 @@ export const useKeyboardMovement = (
         const playerEntity = getPlayerEntity(playerAddress);
         if (!playerEntity) return;
 
-        const battleInfo = getComponentValue(BattleInfo, playerEntity);
-
-        if (battleInfo?.molochDefeated) {
-          renderWarning(
-            'You have already defeated at least one Moloch Soldier.',
-          );
-          return;
-        }
-
         const playerPosition = getComponentValueStrict(Position, playerEntity);
         const { x, y, previousX } = playerPosition;
 
@@ -119,6 +110,15 @@ export const useKeyboardMovement = (
           ]);
 
           if (molochSoldierEntities.size === 0) {
+            return;
+          }
+
+          const battleInfo = getComponentValue(BattleInfo, playerEntity);
+
+          if (battleInfo?.molochDefeated) {
+            renderWarning(
+              'You have already defeated at least one Moloch Soldier.',
+            );
             return;
           }
 
@@ -136,6 +136,15 @@ export const useKeyboardMovement = (
           ]);
 
           if (molochSoldierEntities.size === 0) {
+            return;
+          }
+
+          const battleInfo = getComponentValue(BattleInfo, playerEntity);
+
+          if (battleInfo?.molochDefeated) {
+            renderWarning(
+              'You have already defeated at least one Moloch Soldier.',
+            );
             return;
           }
 
