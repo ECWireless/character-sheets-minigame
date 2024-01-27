@@ -5,13 +5,14 @@ import {
   getComponentValueStrict,
   Has,
   HasValue,
+  runQuery,
 } from '@latticexyz/recs';
 import { singletonEntity } from '@latticexyz/store-sync/recs';
 import { hexToArray } from '@latticexyz/utils';
 import { useAccount } from 'wagmi';
 
-// import molochSoldierDeadLeft from '../assets/moloch/moloch_dead_left.gif';
-// import molochSoldierDeadRight from '../assets/moloch/moloch_dead_right.gif';
+import molochSoldierDeadLeft from '../assets/moloch/moloch_dead_left.gif';
+import molochSoldierDeadRight from '../assets/moloch/moloch_dead_right.gif';
 import molochSoldierLeft from '../assets/moloch/moloch_left.gif';
 import molochSoldierRight from '../assets/moloch/moloch_right.gif';
 import { useGame } from '../contexts/GameContext';
@@ -25,6 +26,7 @@ import { GameMap } from './GameMap';
 export const GameBoard: React.FC = () => {
   const {
     components: {
+      BattleInfo,
       CharacterSheetInfo,
       MapConfig,
       MolochSoldier,
@@ -116,13 +118,29 @@ export const GameBoard: React.FC = () => {
     Has(Position),
   ]).map(entity => {
     const position = getComponentValueStrict(Position, entity);
-    // const health = getComponentValueStrict(Health, entity).value ?? 0;
+    const battlesWithThisMoloch = runQuery([
+      Has(BattleInfo),
+      HasValue(BattleInfo, { molochId: entity }),
+    ]);
+
+    let isMolochSoldierDead = false;
+    const battlesWithThisMolochArray = Array.from(battlesWithThisMoloch);
+    if (battlesWithThisMolochArray.length > 0) {
+      const battleInfo = getComponentValueStrict(
+        BattleInfo,
+        battlesWithThisMolochArray[0],
+      );
+
+      if (battleInfo.molochDefeated) {
+        isMolochSoldierDead = true;
+      }
+    }
 
     const direction = position.x % 2 === 0 ? 'left' : 'right';
     const molochSoldier =
       direction === 'left' ? molochSoldierLeft : molochSoldierRight;
-    // const molochSoldierDead =
-    //   direction === 'left' ? molochSoldierDeadLeft : molochSoldierDeadRight;
+    const molochSoldierDead =
+      direction === 'left' ? molochSoldierDeadLeft : molochSoldierDeadRight;
 
     return {
       entity,
@@ -132,15 +150,14 @@ export const GameBoard: React.FC = () => {
         <Tooltip
           aria-label="moloch soldier"
           key={entity}
-          label="Moloch Soldier"
+          label={`Moloch Soldier${isMolochSoldierDead ? ' (dead)' : ''}`}
           placement="top"
         >
           <Image
             alt="moloch soldier"
             height="100%"
             position="absolute"
-            // src={health > 0 ? molochSoldier : molochSoldierDead}
-            src={molochSoldier}
+            src={isMolochSoldierDead ? molochSoldierDead : molochSoldier}
             transform="scale(1.5) translateY(-8px)"
             zIndex={3}
           />

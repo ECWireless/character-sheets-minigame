@@ -28,6 +28,7 @@ import { HealthBar } from '../HealthBar';
 import { MolochCardSmall } from '../MolochCard';
 import { AttackModal } from './AttackModal';
 import { MolochDefeatedModal } from './MolochDefeatedModal';
+import { MolochWonModal } from './MolochWonModal';
 
 const calculatePlayerDamage = (
   cardStats: Stats,
@@ -84,6 +85,7 @@ export const BattleModal: React.FC = () => {
     onOpen: onOpenAttackModal,
   } = useDisclosure();
   const molochDefeatedModalControls = useDisclosure();
+  const molochWonModalControls = useDisclosure();
 
   const { renderError, renderWarning } = useToast();
 
@@ -160,11 +162,19 @@ export const BattleModal: React.FC = () => {
   useEffect(() => {
     if (!battleInfo) return;
     const molochHealth = battleInfo?.molochHealth ?? 0;
+    const totalSlotsHealth = battleInfo?.healthBySlots.reduce(
+      (acc, curr) => acc + curr,
+      0,
+    );
 
     if (molochHealth <= 0) {
       molochDefeatedModalControls.onOpen();
     }
-  }, [battleInfo, molochDefeatedModalControls]);
+
+    if (totalSlotsHealth <= 0) {
+      molochWonModalControls.onOpen();
+    }
+  }, [battleInfo, molochDefeatedModalControls, molochWonModalControls]);
 
   if (
     !(
@@ -322,6 +332,11 @@ export const BattleModal: React.FC = () => {
       <MolochDefeatedModal
         isOpen={molochDefeatedModalControls.isOpen}
         onClose={molochDefeatedModalControls.onClose}
+      />
+
+      <MolochWonModal
+        isOpen={molochWonModalControls.isOpen}
+        onClose={molochWonModalControls.onClose}
       />
     </Box>
   );

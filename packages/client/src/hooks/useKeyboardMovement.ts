@@ -1,10 +1,12 @@
 import {
+  Entity,
+  getComponentValue,
   getComponentValueStrict,
   Has,
   HasValue,
   runQuery,
 } from '@latticexyz/recs';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
@@ -30,7 +32,7 @@ export const useKeyboardMovement = (
   actionRunning: boolean;
 } => {
   const {
-    components: { MolochSoldier, Position },
+    components: { BattleInfo, MolochSoldier, Position },
     systemCalls: { moveBy },
   } = useMUD();
   const { character } = useGame();
@@ -38,6 +40,32 @@ export const useKeyboardMovement = (
   const { renderWarning } = useToast();
 
   const [actionRunning, setActionRunning] = useState(false);
+
+  const getIsMolochSoldierDead = useCallback(
+    (molochEntity: Entity) => {
+      const battlesWithThisMoloch = runQuery([
+        Has(BattleInfo),
+        HasValue(BattleInfo, {
+          molochId: molochEntity,
+        }),
+      ]);
+
+      const battlesWithThisMolochArray = Array.from(battlesWithThisMoloch);
+      if (battlesWithThisMolochArray.length > 0) {
+        const battleInfo = getComponentValueStrict(
+          BattleInfo,
+          battlesWithThisMolochArray[0],
+        );
+
+        if (battleInfo.molochDefeated) {
+          return true;
+        }
+      }
+
+      return false;
+    },
+    [BattleInfo],
+  );
 
   useEffect(() => {
     const listener = (e: KeyboardEvent) => {
@@ -72,6 +100,15 @@ export const useKeyboardMovement = (
         const playerEntity = getPlayerEntity(playerAddress);
         if (!playerEntity) return;
 
+        const battleInfo = getComponentValue(BattleInfo, playerEntity);
+
+        if (battleInfo?.molochDefeated) {
+          renderWarning(
+            'You have already defeated at least one Moloch Soldier.',
+          );
+          return;
+        }
+
         const playerPosition = getComponentValueStrict(Position, playerEntity);
         const { x, y, previousX } = playerPosition;
 
@@ -84,6 +121,14 @@ export const useKeyboardMovement = (
           if (molochSoldierEntities.size === 0) {
             return;
           }
+
+          const isMolochSoldierDead = getIsMolochSoldierDead(
+            Array.from(molochSoldierEntities)[0],
+          );
+          if (isMolochSoldierDead) {
+            renderWarning('This Moloch Soldier has already been defeated.');
+            return;
+          }
         } else if (x < previousX) {
           const molochSoldierEntities = runQuery([
             Has(MolochSoldier),
@@ -93,7 +138,16 @@ export const useKeyboardMovement = (
           if (molochSoldierEntities.size === 0) {
             return;
           }
+
+          const isMolochSoldierDead = getIsMolochSoldierDead(
+            Array.from(molochSoldierEntities)[0],
+          );
+          if (isMolochSoldierDead) {
+            renderWarning('This Moloch Soldier has already been defeated.');
+            return;
+          }
         }
+
         if (!classesWithAttackAbility.includes(characterClass)) {
           renderWarning('You must select a non-villager class to attack.');
           return;
@@ -109,8 +163,10 @@ export const useKeyboardMovement = (
     window.addEventListener('keydown', listener);
     return () => window.removeEventListener('keydown', listener);
   }, [
+    BattleInfo,
     character,
     characterClass,
+    getIsMolochSoldierDead,
     MolochSoldier,
     moveBy,
     onOpenBattleInitiationModal,

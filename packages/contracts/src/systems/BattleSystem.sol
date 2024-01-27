@@ -81,18 +81,15 @@ contract BattleSystem is System {
 
     (, uint32 slotOneHealth, uint32 slotTwoHealth, uint32 slotThreeHealth,, uint32 molochHealth,) = BattleInfo.get(player);
 
-    uint32 newSlotHealth = slotOneHealth;
-
     if (slotIndex == 0) {
       if (slotOneHealth == 0) {
         slotIndex = 1;
       } else {
         if (damage >= slotOneHealth) {
-          newSlotHealth = 0;
+          slotOneHealth = 0;
         } else {
-          newSlotHealth = slotOneHealth - damage;
+          slotOneHealth = slotOneHealth - damage;
         }
-        BattleInfo.set(player, true, newSlotHealth, slotTwoHealth, slotThreeHealth, molochSoldier, molochHealth, false);
       }
     }
 
@@ -101,11 +98,11 @@ contract BattleSystem is System {
         slotIndex = 2;
       } else {
         if (damage >= slotTwoHealth) {
-          newSlotHealth = 0;
+          slotTwoHealth = 0;
         } else {
-          newSlotHealth = slotTwoHealth - damage;
+          slotTwoHealth = slotTwoHealth - damage;
         }
-        BattleInfo.set(player, true, slotOneHealth, newSlotHealth, slotThreeHealth, molochSoldier, molochHealth, false);
+        BattleInfo.set(player, true, slotOneHealth, slotTwoHealth, slotThreeHealth, molochSoldier, molochHealth, false);
       }
     }
 
@@ -114,12 +111,20 @@ contract BattleSystem is System {
         slotIndex = 0;
       } else {
         if (damage >= slotThreeHealth) {
-          newSlotHealth = 0;
+          slotThreeHealth = 0;
         } else {
-          newSlotHealth = slotThreeHealth - damage;
+          slotThreeHealth = slotThreeHealth - damage;
         }
-        BattleInfo.set(player, true, slotOneHealth, slotTwoHealth, newSlotHealth, molochSoldier, molochHealth, false);
+        BattleInfo.set(player, true, slotOneHealth, slotTwoHealth, slotThreeHealth, molochSoldier, molochHealth, false);
       }
+    }
+
+    uint32 totalSlotHealth = slotOneHealth + slotTwoHealth + slotThreeHealth;
+
+    if (totalSlotHealth == 0) {
+      BattleInfo.set(player, false, slotOneHealth, slotTwoHealth, slotThreeHealth, molochSoldier, molochHealth, false);
+    } else {
+      BattleInfo.set(player, true, slotOneHealth, slotTwoHealth, slotThreeHealth, molochSoldier, molochHealth, false);
     }
 
     BattleCounter.set(player, BattleCounter.get(player) + 1);
