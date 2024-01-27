@@ -8,7 +8,7 @@ import {
   useDisclosure,
   VStack,
 } from '@chakra-ui/react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
 
 import { useGame } from '../../contexts/GameContext';
@@ -27,6 +27,7 @@ import { CharacterStats } from '../CharacterStats';
 import { HealthBar } from '../HealthBar';
 import { MolochCardSmall } from '../MolochCard';
 import { AttackModal } from './AttackModal';
+import { MolochDefeatedModal } from './MolochDefeatedModal';
 
 const calculatePlayerDamage = (
   cardStats: Stats,
@@ -82,6 +83,8 @@ export const BattleModal: React.FC = () => {
     onClose: onCloseAttackModal,
     onOpen: onOpenAttackModal,
   } = useDisclosure();
+  const molochDefeatedModalControls = useDisclosure();
+
   const { renderError, renderWarning } = useToast();
 
   const [isMolochAttacking, setIsMolochAttacking] = useState(false);
@@ -153,6 +156,15 @@ export const BattleModal: React.FC = () => {
     renderWarning,
     wearableBonuses,
   ]);
+
+  useEffect(() => {
+    if (!battleInfo) return;
+    const molochHealth = battleInfo?.molochHealth ?? 0;
+
+    if (molochHealth <= 0) {
+      molochDefeatedModalControls.onOpen();
+    }
+  }, [battleInfo, molochDefeatedModalControls]);
 
   if (
     !(
@@ -305,6 +317,11 @@ export const BattleModal: React.FC = () => {
         isOpen={isAttackModalOpen}
         onClose={onCloseAttackModal}
         wearableBonuses={wearableBonuses[character.id]}
+      />
+
+      <MolochDefeatedModal
+        isOpen={molochDefeatedModalControls.isOpen}
+        onClose={molochDefeatedModalControls.onClose}
       />
     </Box>
   );
