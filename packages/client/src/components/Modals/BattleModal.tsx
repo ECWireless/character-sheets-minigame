@@ -99,25 +99,23 @@ export const BattleModal: React.FC = () => {
   }, [myParty, selectedCard]);
 
   const characterStats = useMemo(() => {
-    if (!(cardClass && character)) return null;
+    if (!(cardClass && character && myParty)) return null;
 
     return {
-      [character.id]: getCharacterStats(character, cardClass),
+      [myParty[0].character.id]: getCharacterStats(
+        myParty[0].character,
+        cardClass,
+      ),
+      [myParty[1].character.id]: getCharacterStats(
+        myParty[1].character,
+        cardClass,
+      ),
+      [myParty[2].character.id]: getCharacterStats(
+        myParty[2].character,
+        cardClass,
+      ),
     };
-  }, [cardClass, character, getCharacterStats]);
-
-  const allPartyWeapons = useMemo(() => {
-    if (!(equippedWeapons && myParty)) return [];
-    const myAliveParty = myParty.filter(
-      (_, i) => battleInfo?.healthBySlots[i] ?? 0 > 0,
-    );
-    return myAliveParty
-      .map(({ character }) => {
-        return equippedWeapons[character.id];
-      })
-      .flat()
-      .filter((item, i, ar) => ar.findIndex(t => t.id === item.id) === i);
-  }, [battleInfo, equippedWeapons, myParty]);
+  }, [cardClass, character, getCharacterStats, myParty]);
 
   const onMolochAttack = useCallback(async () => {
     try {
@@ -173,6 +171,19 @@ export const BattleModal: React.FC = () => {
 
     if (totalSlotsHealth <= 0) {
       molochWonModalControls.onOpen();
+    } else {
+      setSelectedCard(prev => {
+        if (battleInfo.healthBySlots[prev - 1] <= 0 && prev === 1) {
+          return 2;
+        }
+        if (battleInfo.healthBySlots[prev - 1] <= 0 && prev === 2) {
+          return 3;
+        }
+        if (battleInfo.healthBySlots[prev - 1] <= 0 && prev === 3) {
+          return 1;
+        }
+        return prev;
+      });
     }
   }, [battleInfo, molochDefeatedModalControls, molochWonModalControls]);
 
@@ -182,7 +193,9 @@ export const BattleModal: React.FC = () => {
       cardClass &&
       character &&
       characterStats &&
+      equippedWeapons &&
       equippedWearable &&
+      myParty &&
       wearableBonuses
     )
   )
@@ -316,17 +329,25 @@ export const BattleModal: React.FC = () => {
 
       <CharacterStats
         avatarClassId={cardClass}
-        characterStats={characterStats[character.id]}
-        equippedWearable={equippedWearable[character.id]}
-        wearableBonuses={wearableBonuses[character.id]}
+        characterStats={characterStats[myParty[selectedCard - 1].character.id]}
+        equippedWearable={
+          equippedWearable[myParty[selectedCard - 1].character.id]
+        }
+        wearableBonuses={
+          wearableBonuses[myParty[selectedCard - 1].character.id]
+        }
       />
 
       <AttackModal
-        characterStats={characterStats[character.id]}
-        equippedWeapons={allPartyWeapons}
+        characterStats={characterStats[myParty[selectedCard - 1].character.id]}
+        equippedWeapons={
+          equippedWeapons[myParty[selectedCard - 1].character.id]
+        }
         isOpen={isAttackModalOpen}
         onClose={onCloseAttackModal}
-        wearableBonuses={wearableBonuses[character.id]}
+        wearableBonuses={
+          wearableBonuses[myParty[selectedCard - 1].character.id]
+        }
       />
 
       <MolochDefeatedModal

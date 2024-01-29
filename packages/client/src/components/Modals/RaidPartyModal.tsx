@@ -140,10 +140,10 @@ export const RaidPartyModal: React.FC = () => {
     if (cardClasses[selectedCard] === '-1') {
       return {
         health: 10,
-        attack: 0,
-        defense: 0,
-        specialAttack: 0,
-        specialDefense: 0,
+        attack: 1,
+        defense: 1,
+        specialAttack: 1,
+        specialDefense: 1,
       };
     }
 
