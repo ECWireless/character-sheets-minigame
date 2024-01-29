@@ -57,8 +57,31 @@ export const RaidPartyModal: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [selectedCard, setSelectedCard] = useState(0);
 
-  const { getRootProps, getRadioProps, setValue, value } = useRadioGroup({
-    name: 'card class',
+  const {
+    getRootProps: getCardOneRootProps,
+    getRadioProps: getCardOneRadioProps,
+    setValue: setCardOneClass,
+    value: cardOneClass,
+  } = useRadioGroup({
+    name: 'card one class',
+    defaultValue: '-1',
+  });
+  const {
+    getRootProps: getCardTwoRootProps,
+    getRadioProps: getCardTwoRadioProps,
+    setValue: setCardTwoClass,
+    value: cardTwoClass,
+  } = useRadioGroup({
+    name: 'card two class',
+    defaultValue: '-1',
+  });
+  const {
+    getRootProps: getCardThreeRootProps,
+    getRadioProps: getCardThreeRadioProps,
+    setValue: setCardThreeClass,
+    value: cardThreeClass,
+  } = useRadioGroup({
+    name: 'card three class',
     defaultValue: '-1',
   });
 
@@ -106,12 +129,17 @@ export const RaidPartyModal: React.FC = () => {
     }
   }, [equippedWearable]);
 
+  const cardClasses = useMemo(
+    () => [cardOneClass, cardTwoClass, cardThreeClass].map(c => String(c)),
+    [cardOneClass, cardThreeClass, cardTwoClass],
+  );
+
   const characterStats = useMemo(() => {
     if (!selectedCharacter) return null;
 
-    if (value === '-1') {
+    if (cardClasses[selectedCard] === '-1') {
       return {
-        health: 0,
+        health: 10,
         attack: 0,
         defense: 0,
         specialAttack: 0,
@@ -119,7 +147,7 @@ export const RaidPartyModal: React.FC = () => {
       };
     }
 
-    const selectedClass = Number(value);
+    const selectedClass = Number(cardClasses[selectedCard]);
     const classStats = CLASS_STATS[selectedClass];
     const { attack, defense, specialAttack, specialDefense } = classStats;
 
@@ -130,7 +158,7 @@ export const RaidPartyModal: React.FC = () => {
       specialAttack: specialAttack + (wearableBonuses?.specialAttack ?? 0),
       specialDefense: specialDefense + (wearableBonuses?.specialDefense ?? 0),
     };
-  }, [selectedCharacter, value, wearableBonuses]);
+  }, [cardClasses, selectedCard, selectedCharacter, wearableBonuses]);
 
   const classes = useMemo(() => {
     if (!party) return null;
@@ -161,18 +189,16 @@ export const RaidPartyModal: React.FC = () => {
 
   const resetData = useCallback(() => {
     if (party) {
-      const myAvatarClassId = party[0].class;
-      setValue(myAvatarClassId);
+      setCardOneClass(party[0].class);
+      setCardTwoClass(party[1].class);
+      setCardThreeClass(party[2].class);
     } else {
-      setValue('-1');
+      setCardOneClass('-1');
+      setCardTwoClass('-1');
+      setCardThreeClass('-1');
     }
     setSelectedCard(0);
-  }, [party, setValue]);
-
-  useEffect(() => {
-    const myAvatarClassId = party ? party[selectedCard].class : '-1';
-    setValue(myAvatarClassId);
-  }, [party, selectedCard, setValue]);
+  }, [party, setCardOneClass, setCardThreeClass, setCardTwoClass]);
 
   useEffect(() => {
     if (isOpen) {
@@ -181,24 +207,23 @@ export const RaidPartyModal: React.FC = () => {
   }, [resetData, isOpen]);
 
   const hasChanged = useMemo(() => {
-    const myAvatarClassId = party ? party[selectedCard].class : '-1';
-    return myAvatarClassId !== value;
-  }, [party, selectedCard, value]);
+    const oldCardOneClass = party ? party[0].class : '-1';
+    const oldCardTwoClass = party ? party[1].class : '-1';
+    const oldCardThreeClass = party ? party[2].class : '-1';
+
+    return (
+      oldCardOneClass !== cardOneClass ||
+      oldCardTwoClass !== cardTwoClass ||
+      oldCardThreeClass !== cardThreeClass
+    );
+  }, [cardOneClass, cardThreeClass, cardTwoClass, party]);
 
   const onSetPartyClasses = useCallback(async () => {
     if (!(address && party && selectedCharacter && classes)) return;
     setIsSaving(true);
 
     try {
-      const newClasses = party.map((slot, i) => {
-        if (i === selectedCard) {
-          return String(value);
-        } else {
-          return slot.class;
-        }
-      });
-
-      const success = await setPartyClasses(address, newClasses);
+      const success = await setPartyClasses(address, cardClasses);
 
       if (!success) {
         renderError('Error updating Raid Party');
@@ -216,16 +241,15 @@ export const RaidPartyModal: React.FC = () => {
     }
   }, [
     address,
+    cardClasses,
     classes,
     party,
     onClose,
     renderError,
     renderSuccess,
     resetSelectedCharacter,
-    selectedCard,
     selectedCharacter,
     setPartyClasses,
-    value,
   ]);
 
   const isTradeActive =
@@ -235,6 +259,17 @@ export const RaidPartyModal: React.FC = () => {
     ]).length > 0;
 
   if (!(address && classes && selectedCharacter)) return null;
+
+  const getRootProps = [
+    getCardOneRootProps,
+    getCardTwoRootProps,
+    getCardThreeRootProps,
+  ];
+  const getRadioProps = [
+    getCardOneRadioProps,
+    getCardTwoRadioProps,
+    getCardThreeRadioProps,
+  ];
 
   return (
     <Modal closeOnEsc closeOnOverlayClick isOpen={isOpen} onClose={onClose}>
@@ -253,9 +288,9 @@ export const RaidPartyModal: React.FC = () => {
               <Text fontSize="xs">
                 (Your primary card&apos;s class will be your avatar)
               </Text>
-              <Wrap mt={2} spacing={2} {...getRootProps()}>
+              <Wrap mt={2} spacing={2} {...getRootProps[selectedCard]?.()}>
                 {options.map(value => {
-                  const radio = getRadioProps({ value });
+                  const radio = getRadioProps[selectedCard]?.({ value });
                   const _class = classesWithVillager.find(
                     c => c.classId === value,
                   );
@@ -314,13 +349,13 @@ export const RaidPartyModal: React.FC = () => {
                   character={character}
                   isSelected={i === selectedCard}
                   primary={i === 0}
-                  selectedClassId={selectedCharacterParty?.[i].class}
+                  selectedClassId={cardClasses[i]}
                 />
               </Box>
             ))}
           </HStack>
           <CharacterStats
-            avatarClassId={String(value)}
+            avatarClassId={cardClasses[selectedCard]}
             characterStats={characterStats}
             equippedWeapons={equippedWeapons}
             equippedWearable={equippedWearable}
