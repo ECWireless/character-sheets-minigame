@@ -30,6 +30,45 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
             go fast by playing alone, or you can form a raid party with other
             characters, and go far.
           </Text>
+          <Text fontSize="lg" fontWeight={500} mt={8}>
+            Selecting a Class
+          </Text>
+          <Text fontSize="sm" mt={2}>
+            Each class has unique modifiers that affect your character&apos;s
+            stats. To select a class, click the &quot;Raid Party&quot; button in
+            the top-right corner of the screen. In the popup, you&apos;ll have
+            the ability to pick a class for each of your 3 cards.
+          </Text>
+          <Text fontSize="lg" fontWeight={500} mt={8}>
+            Trading Cards
+          </Text>
+          <Text fontSize="sm" mt={2}>
+            To trade cards with another player, select the other player on the
+            map (they must be spawned). When their party popup opens, click
+            &quot;Trade Cards&quot;. When the next popup opens, lock in the
+            cards you want to give and receive, then click &quot;Make
+            Offer.&quot; The other player can then accept or reject your offer.
+            When you receive a new card, you will have the opportunity to select
+            a new class for that card.
+          </Text>
+          <Text fontSize="sm" mt={2}>
+            Note that you must have at least 1 of your original cards (your
+            &quot;primary&quot; card) in your party at all times.
+          </Text>
+          <Text fontSize="lg" fontWeight={500} mt={8}>
+            Battling Moloch
+          </Text>
+          <Text fontSize="sm" mt={2}>
+            To battle a Moloch Soldier, make sure you are spawned on the map,
+            then walk up to a living moloch and hit &quot;enter&quot; or
+            &quot;e.&quot; If you run from battle or die, you&apos;ll reappear
+            on the map, where you can re-battle the Moloch Soldier at any time.
+          </Text>
+          <Text fontSize="sm" mt={2}>
+            Beating a Moloch Soldier grants you a place on the leaderboard. Note
+            that there are only 4 Moloch Soldiers, and each player can only kill
+            1 Moloch, so there is a max of 4 players on the leaderboard.
+          </Text>
         </ModalBody>
       </ModalContent>
     </Modal>
