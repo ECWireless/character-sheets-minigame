@@ -222,7 +222,11 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
   }, [character, game, partyInfo, playerEntity]);
 
   const selectedCharacterParty = useMemo(() => {
-    if (!(selectedCharacter && selectedCharacterEntity)) return null;
+    const isModalOpen =
+      raidPartyModalControls.isOpen || tradeTableModalControls.isOpen;
+
+    if (!(isModalOpen && selectedCharacter && selectedCharacterEntity))
+      return null;
 
     const partyInfo = getComponentValue(PartyInfo, selectedCharacterEntity);
     if (!partyInfo) return null;
@@ -269,7 +273,14 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
     if (party.length !== 3) return null;
 
     return party as [Slot, Slot, Slot];
-  }, [game, PartyInfo, selectedCharacter, selectedCharacterEntity]);
+  }, [
+    game,
+    PartyInfo,
+    raidPartyModalControls.isOpen,
+    selectedCharacter,
+    selectedCharacterEntity,
+    tradeTableModalControls.isOpen,
+  ]);
 
   const resetSelectedCharacter = useCallback(() => {
     setSelectedCharacter(null);
