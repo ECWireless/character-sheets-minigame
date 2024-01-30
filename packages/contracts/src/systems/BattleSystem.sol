@@ -102,7 +102,6 @@ contract BattleSystem is System {
         } else {
           slotTwoHealth = slotTwoHealth - damage;
         }
-        BattleInfo.set(player, true, slotOneHealth, slotTwoHealth, slotThreeHealth, molochSoldier, molochHealth, false);
       }
     }
 
@@ -115,7 +114,6 @@ contract BattleSystem is System {
         } else {
           slotThreeHealth = slotThreeHealth - damage;
         }
-        BattleInfo.set(player, true, slotOneHealth, slotTwoHealth, slotThreeHealth, molochSoldier, molochHealth, false);
       }
     }
 

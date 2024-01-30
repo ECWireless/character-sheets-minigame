@@ -120,6 +120,7 @@ export const BattleModal: React.FC = () => {
   const onMolochAttack = useCallback(async () => {
     try {
       if (!address) throw new Error('No address found');
+      if (!battleInfo) throw new Error('No battle info found');
       if (!myParty) throw new Error('No party found');
       if (!characterStats) throw new Error('No character stats found');
       if (!wearableBonuses) throw new Error('No wearable bonuses found');
@@ -127,7 +128,11 @@ export const BattleModal: React.FC = () => {
       setIsMolochAttacking(true);
 
       const moveId = generateRandomNumber(1, 4);
-      const slotIndex = generateRandomNumber(0, 2);
+      let slotIndex = generateRandomNumber(0, 2);
+      while (battleInfo.healthBySlots[slotIndex] === 0) {
+        slotIndex = generateRandomNumber(0, 2);
+      }
+
       const damage = calculatePlayerDamage(
         characterStats[myParty[slotIndex].character.id],
         moveId,
@@ -149,6 +154,7 @@ export const BattleModal: React.FC = () => {
     }
   }, [
     address,
+    battleInfo,
     characterStats,
     molochAttack,
     myParty,
@@ -158,18 +164,18 @@ export const BattleModal: React.FC = () => {
   ]);
 
   useEffect(() => {
-    if (!battleInfo) return;
-    const molochHealth = battleInfo?.molochHealth ?? 0;
-    const totalSlotsHealth = battleInfo?.healthBySlots.reduce(
+    if (!(battleInfo && isOpen)) return;
+    const molochHealth = battleInfo.molochHealth ?? 0;
+    const totalSlotsHealth = battleInfo.healthBySlots.reduce(
       (acc, curr) => acc + curr,
       0,
     );
 
-    if (molochHealth <= 0) {
+    if (molochHealth <= 0 && !battleInfo.active) {
       molochDefeatedModalControls.onOpen();
     }
 
-    if (totalSlotsHealth <= 0) {
+    if (totalSlotsHealth <= 0 && !battleInfo.active) {
       molochWonModalControls.onOpen();
     } else {
       setSelectedCard(prev => {
@@ -185,7 +191,7 @@ export const BattleModal: React.FC = () => {
         return prev;
       });
     }
-  }, [battleInfo, molochDefeatedModalControls, molochWonModalControls]);
+  }, [battleInfo, isOpen, molochDefeatedModalControls, molochWonModalControls]);
 
   if (
     !(

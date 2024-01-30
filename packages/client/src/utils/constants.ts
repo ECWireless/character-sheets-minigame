@@ -160,10 +160,10 @@ export const WEAPON_STATS: {
 
 export const MOLOCH_SOLDIER_STATS = {
   heath: 20,
-  attack: 7,
-  defense: 5,
-  specialAttack: 8,
-  specialDefense: 5,
+  attack: 8,
+  defense: 6,
+  specialAttack: 3,
+  specialDefense: 3,
 };
 
 export const MOLOCH_SOLDIER_MOVES: {
