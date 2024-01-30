@@ -96,7 +96,7 @@ export const useKeyboardMovement = (
         moveBy(playerAddress, 1, 0);
       }
 
-      if (e.key === 'e') {
+      if (e.key === 'e' || e.key === 'Enter') {
         const playerEntity = getPlayerEntity(playerAddress);
         if (!playerEntity) return;
 

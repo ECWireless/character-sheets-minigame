@@ -65,8 +65,8 @@ export const TradeTableModal: React.FC = () => {
   } = useMUD();
   const { renderError, renderSuccess } = useToast();
 
-  const [mySelectedCard, setMySelectedCard] = useState(1);
-  const [otherSelectedCard, setOtherSelectedCard] = useState(1);
+  const [mySelectedCard, setMySelectedCard] = useState(3);
+  const [otherSelectedCard, setOtherSelectedCard] = useState(3);
   const [lockedCards, setLockedCards] = useState<[number, number]>([0, 0]);
   const [isPending, setIsPending] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
@@ -108,7 +108,9 @@ export const TradeTableModal: React.FC = () => {
   ]);
 
   const tradeRequests = useMemo(() => {
+    if (!isOpen) return [];
     const entities = getEntitiesWithValue(TradeInfo, {
+      active: true,
       initiatedBy: selectedCharacter
         ? getAddress(selectedCharacter.player)
         : '',
@@ -127,10 +129,12 @@ export const TradeTableModal: React.FC = () => {
         rejected: tradeInfo.rejected,
       };
     });
-  }, [address, selectedCharacter, TradeInfo]);
+  }, [address, isOpen, selectedCharacter, TradeInfo]);
 
   const tradeOffers = useMemo(() => {
+    if (!isOpen) return [];
     const entities = getEntitiesWithValue(TradeInfo, {
+      active: true,
       initiatedBy: address ? getAddress(address) : '',
       initiatedWith: selectedCharacter
         ? getAddress(selectedCharacter.player)
@@ -149,7 +153,7 @@ export const TradeTableModal: React.FC = () => {
         rejected: tradeInfo.rejected,
       };
     });
-  }, [address, selectedCharacter, TradeInfo]);
+  }, [address, isOpen, selectedCharacter, TradeInfo]);
 
   const isTradeRequestActive = useMemo(
     () => tradeRequests.filter(tr => tr.active).length > 0,
@@ -194,16 +198,20 @@ export const TradeTableModal: React.FC = () => {
       const myPartyCharacters = myParty.map(s => s.character);
       const otherPartyCharacters = selectedCharacterParty.map(s => s.character);
 
-      let _mySelectedCard = myPartyCharacters?.findIndex(
-        c =>
-          c.player.toLowerCase() ===
-          activeTradeOffers[0]?.offeredCardPlayer.toLowerCase(),
-      );
-      let _otherSelectedCard = otherPartyCharacters?.findIndex(
-        c =>
-          c.player.toLowerCase() ===
-          activeTradeOffers[0]?.requestedCardPlayer.toLowerCase(),
-      );
+      let _mySelectedCard = myPartyCharacters
+        ?.reverse()
+        .findIndex(
+          c =>
+            c.player.toLowerCase() ===
+            activeTradeOffers[0]?.offeredCardPlayer.toLowerCase(),
+        );
+      let _otherSelectedCard = otherPartyCharacters
+        ?.reverse()
+        .findIndex(
+          c =>
+            c.player.toLowerCase() ===
+            activeTradeOffers[0]?.requestedCardPlayer.toLowerCase(),
+        );
 
       if (
         _mySelectedCard === undefined ||
@@ -211,8 +219,8 @@ export const TradeTableModal: React.FC = () => {
         _otherSelectedCard === undefined ||
         _otherSelectedCard < 0
       ) {
-        setMySelectedCard(1);
-        setOtherSelectedCard(1);
+        setMySelectedCard(3);
+        setOtherSelectedCard(3);
         renderError('Error loading trade offer!');
         return;
       }
@@ -238,16 +246,20 @@ export const TradeTableModal: React.FC = () => {
       const myPartyCards = myParty.map(s => s.character);
       const otherPartyCards = selectedCharacterParty.map(s => s.character);
 
-      let _mySelectedCard = myPartyCards?.findIndex(
-        c =>
-          c.player.toLowerCase() ===
-          activeTradeRequests[0]?.requestedCardPlayer.toLowerCase(),
-      );
-      let _otherSelectedCard = otherPartyCards?.findIndex(
-        c =>
-          c.player.toLowerCase() ===
-          activeTradeRequests[0]?.offeredCardPlayer.toLowerCase(),
-      );
+      let _mySelectedCard = myPartyCards
+        ?.reverse()
+        .findIndex(
+          c =>
+            c.player.toLowerCase() ===
+            activeTradeRequests[0]?.requestedCardPlayer.toLowerCase(),
+        );
+      let _otherSelectedCard = otherPartyCards
+        ?.reverse()
+        .findIndex(
+          c =>
+            c.player.toLowerCase() ===
+            activeTradeRequests[0]?.offeredCardPlayer.toLowerCase(),
+        );
 
       if (
         _mySelectedCard === undefined ||
@@ -255,8 +267,8 @@ export const TradeTableModal: React.FC = () => {
         _otherSelectedCard === undefined ||
         _otherSelectedCard < 0
       ) {
-        setMySelectedCard(1);
-        setOtherSelectedCard(1);
+        setMySelectedCard(3);
+        setOtherSelectedCard(3);
         renderError('Error loading trade request!');
         return;
       }
@@ -278,8 +290,8 @@ export const TradeTableModal: React.FC = () => {
       setMyClassValue(myAvatarClassId);
       setOtherClassValue(otherAvatarClassId);
     } else {
-      setMySelectedCard(1);
-      setOtherSelectedCard(1);
+      setMySelectedCard(3);
+      setOtherSelectedCard(3);
       setLockedCards([0, 0]);
     }
   }, [

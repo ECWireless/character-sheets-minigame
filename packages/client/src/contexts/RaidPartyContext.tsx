@@ -222,7 +222,11 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
   }, [character, game, partyInfo, playerEntity]);
 
   const selectedCharacterParty = useMemo(() => {
-    if (!(selectedCharacter && selectedCharacterEntity)) return null;
+    const isModalOpen =
+      raidPartyModalControls.isOpen || tradeTableModalControls.isOpen;
+
+    if (!(isModalOpen && selectedCharacter && selectedCharacterEntity))
+      return null;
 
     const partyInfo = getComponentValue(PartyInfo, selectedCharacterEntity);
     if (!partyInfo) return null;
@@ -269,7 +273,14 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
     if (party.length !== 3) return null;
 
     return party as [Slot, Slot, Slot];
-  }, [game, PartyInfo, selectedCharacter, selectedCharacterEntity]);
+  }, [
+    game,
+    PartyInfo,
+    raidPartyModalControls.isOpen,
+    selectedCharacter,
+    selectedCharacterEntity,
+    tradeTableModalControls.isOpen,
+  ]);
 
   const resetSelectedCharacter = useCallback(() => {
     setSelectedCharacter(null);
@@ -324,13 +335,15 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
   }, []);
 
   const equippedWearable = useMemo(() => {
-    if (!(character && selectedCharacter)) return null;
+    if (!(character && myParty && selectedCharacter)) return null;
 
     return {
-      [character.id]: getEquippedWearable(character),
+      [myParty[0].character.id]: getEquippedWearable(myParty[0].character),
+      [myParty[1].character.id]: getEquippedWearable(myParty[1].character),
+      [myParty[2].character.id]: getEquippedWearable(myParty[2].character),
       [selectedCharacter.id]: getEquippedWearable(selectedCharacter),
     };
-  }, [character, getEquippedWearable, selectedCharacter]);
+  }, [character, getEquippedWearable, myParty, selectedCharacter]);
 
   const getWearableBonuses = useCallback(
     (_character: Character) => {
@@ -359,13 +372,15 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
   );
 
   const wearableBonuses = useMemo(() => {
-    if (!(character && selectedCharacter)) return null;
+    if (!(character && myParty && selectedCharacter)) return null;
 
     return {
-      [character.id]: getWearableBonuses(character),
+      [myParty[0].character.id]: getWearableBonuses(myParty[0].character),
+      [myParty[1].character.id]: getWearableBonuses(myParty[1].character),
+      [myParty[2].character.id]: getWearableBonuses(myParty[2].character),
       [selectedCharacter.id]: getWearableBonuses(selectedCharacter),
     };
-  }, [character, getWearableBonuses, selectedCharacter]);
+  }, [character, getWearableBonuses, myParty, selectedCharacter]);
 
   const getCharacterStats = useCallback(
     (_character: Character, classValue: string): Stats => {
