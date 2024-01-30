@@ -14,7 +14,7 @@ import {
   Wrap,
   WrapItem,
 } from '@chakra-ui/react';
-import { useEntityQuery } from '@latticexyz/react';
+import { useComponentValue, useEntityQuery } from '@latticexyz/react';
 import { Has, HasValue } from '@latticexyz/recs';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
@@ -28,12 +28,13 @@ import { useMUD } from '../../contexts/MUDContext';
 import { useRaidParty } from '../../contexts/RaidPartyContext';
 import { useToast } from '../../hooks/useToast';
 import { CLASS_STATS, WEARABLE_STATS } from '../../utils/constants';
+import { getPlayerEntity } from '../../utils/helpers';
 import { EquippableTraitType } from '../../utils/types';
 
 export const RaidPartyModal: React.FC = () => {
   const { address } = useAccount();
   const {
-    components: { CharacterSheetInfo, TradeInfo },
+    components: { BattleInfo, CharacterSheetInfo, TradeInfo },
     systemCalls: { setPartyClasses },
   } = useMUD();
   const {
@@ -258,6 +259,17 @@ export const RaidPartyModal: React.FC = () => {
       Has(CharacterSheetInfo),
     ]).length > 0;
 
+  const myPlayerEntity = useMemo(() => {
+    return getPlayerEntity(address);
+  }, [address]);
+
+  const otherPlayerEntity = useMemo(() => {
+    return getPlayerEntity(selectedCharacter?.player);
+  }, [selectedCharacter?.player]);
+
+  const myBattleInfo = useComponentValue(BattleInfo, myPlayerEntity);
+  const otherBattleInfo = useComponentValue(BattleInfo, otherPlayerEntity);
+
   if (!(address && classes && selectedCharacter)) return null;
 
   const getRootProps = [
@@ -282,7 +294,14 @@ export const RaidPartyModal: React.FC = () => {
           <ModalCloseButton size="lg" />
         </ModalHeader>
         <ModalBody>
-          {isMyCharacterSelected && (
+          {myBattleInfo?.molochDefeated && (
+            <Text color="orange" fontSize="sm" mb={4} textAlign="center">
+              You cannot{' '}
+              {isMyCharacterSelected ? 'change your Raid Party' : 'trade cards'}{' '}
+              after defeating a Moloch Soldier.
+            </Text>
+          )}
+          {isMyCharacterSelected && !myBattleInfo?.molochDefeated && (
             <>
               <Text>Select a class avatar :</Text>
               <Text fontSize="xs">
@@ -318,22 +337,24 @@ export const RaidPartyModal: React.FC = () => {
               </HStack>
             </>
           )}
-          {!isMyCharacterSelected && (
-            <VStack mb={8} spacing={4}>
-              {isTradeActive && (
-                <Text align="center" color="red" fontSize="sm">
-                  You already have an active trade. Creating a new one will
-                  cancel the active one.
-                </Text>
-              )}
-              <Button
-                onClick={() => onOpenTradeModal(selectedCharacter)}
-                size="sm"
-              >
-                Trade Cards
-              </Button>
-            </VStack>
-          )}
+          {!isMyCharacterSelected &&
+            !myBattleInfo?.molochDefeated &&
+            !otherBattleInfo?.molochDefeated && (
+              <VStack mb={8} spacing={4}>
+                {isTradeActive && (
+                  <Text align="center" color="red" fontSize="sm">
+                    You already have an active trade. Creating a new one will
+                    cancel the active one.
+                  </Text>
+                )}
+                <Button
+                  onClick={() => onOpenTradeModal(selectedCharacter)}
+                  size="sm"
+                >
+                  Trade Cards
+                </Button>
+              </VStack>
+            )}
           <Text>
             {isMyCharacterSelected ? 'Your' : `${selectedCharacter.name}'s`}{' '}
             character cards (max of 3):
