@@ -18,12 +18,12 @@ import { ClassTag } from './ClassTag';
 import { XPDisplaySmall } from './XPDisplay';
 
 export const CharacterCardSmall: React.FC<{
+  cardCount?: number;
   character: Character;
   isSelected?: boolean;
   locked?: boolean;
-  primary?: boolean;
   selectedClassId?: string;
-}> = ({ character, isSelected, locked, primary, selectedClassId }) => {
+}> = ({ cardCount, character, isSelected, locked, selectedClassId }) => {
   const { classes, experience, heldItems, image, jailed, name } = character;
 
   const itemTotal = useMemo(() => {
@@ -86,9 +86,9 @@ export const CharacterCardSmall: React.FC<{
           >
             <XPDisplaySmall experience={experience} />
           </HStack>
-          {primary && (
+          {cardCount && (
             <Text fontSize="xs" left={2} pos="absolute" top={0}>
-              Primary
+              Personal cards left: {cardCount}
             </Text>
           )}
         </Box>

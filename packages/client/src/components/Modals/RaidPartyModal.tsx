@@ -1,6 +1,7 @@
 import {
-  Box,
   Button,
+  Grid,
+  GridItem,
   HStack,
   Modal,
   ModalBody,
@@ -40,11 +41,13 @@ export const RaidPartyModal: React.FC = () => {
   const {
     isMyCharacterSelected,
     isRaidPartyModalOpen: isOpen,
+    myCharacterCardCounter,
     myParty,
     onCloseRaidPartyModal: onClose,
     onOpenTradeTableModal: onOpenTradeModal,
     resetSelectedCharacter,
     selectedCharacter,
+    selectedCharacterCardCounter,
     selectedCharacterParty,
   } = useRaidParty();
   const { renderError, renderSuccess } = useToast();
@@ -54,6 +57,18 @@ export const RaidPartyModal: React.FC = () => {
     if (selectedCharacterParty) return selectedCharacterParty;
     return myParty;
   }, [myParty, selectedCharacter, selectedCharacterParty]);
+
+  const cardCount = useMemo(() => {
+    if (isMyCharacterSelected) {
+      return myCharacterCardCounter;
+    } else {
+      return selectedCharacterCardCounter;
+    }
+  }, [
+    isMyCharacterSelected,
+    myCharacterCardCounter,
+    selectedCharacterCardCounter,
+  ]);
 
   const [isSaving, setIsSaving] = useState(false);
   const [selectedCard, setSelectedCard] = useState(0);
@@ -163,7 +178,7 @@ export const RaidPartyModal: React.FC = () => {
 
   const classes = useMemo(() => {
     if (!party) return null;
-    return party[selectedCard].character.classes;
+    return party[selectedCard]?.character.classes ?? null;
   }, [party, selectedCard]);
 
   const classesWithVillager = useMemo(() => {
@@ -190,9 +205,9 @@ export const RaidPartyModal: React.FC = () => {
 
   const resetData = useCallback(() => {
     if (party) {
-      setCardOneClass(party[0].class);
-      setCardTwoClass(party[1].class);
-      setCardThreeClass(party[2].class);
+      setCardOneClass(party[0]?.class ?? '-1');
+      setCardTwoClass(party[1]?.class ?? '-1');
+      setCardThreeClass(party[2]?.class ?? '-1');
     } else {
       setCardOneClass('-1');
       setCardTwoClass('-1');
@@ -208,9 +223,9 @@ export const RaidPartyModal: React.FC = () => {
   }, [resetData, isOpen]);
 
   const hasChanged = useMemo(() => {
-    const oldCardOneClass = party ? party[0].class : '-1';
-    const oldCardTwoClass = party ? party[1].class : '-1';
-    const oldCardThreeClass = party ? party[2].class : '-1';
+    const oldCardOneClass = party ? party[0]?.class : '-1';
+    const oldCardTwoClass = party ? party[1]?.class : '-1';
+    const oldCardThreeClass = party ? party[2]?.class : '-1';
 
     return (
       oldCardOneClass !== cardOneClass ||
@@ -305,7 +320,7 @@ export const RaidPartyModal: React.FC = () => {
             <>
               <Text>Select a class avatar :</Text>
               <Text fontSize="xs">
-                (Your primary card&apos;s class will be your avatar)
+                (Your personal card&apos;s class will be your avatar)
               </Text>
               <Wrap mt={2} spacing={2} {...getRootProps[selectedCard]?.()}>
                 {options.map(value => {
@@ -357,24 +372,40 @@ export const RaidPartyModal: React.FC = () => {
             )}
           <Text>
             {isMyCharacterSelected ? 'Your' : `${selectedCharacter.name}'s`}{' '}
-            character cards (max of 3):
+            party:
           </Text>
-          <HStack align="flex-start" mt={4} spacing={6}>
+          <Grid gap={6} mt={4} templateColumns="repeat(3, 1fr)">
             {party?.map(({ character }, i) => (
-              <Box
+              <GridItem
                 key={`${character.id}-${i}`}
                 onClick={() => setSelectedCard(i)}
-                w="100%"
               >
                 <CharacterCardSmall
+                  cardCount={cardCount}
                   character={character}
                   isSelected={i === selectedCard}
-                  primary={i === 0}
                   selectedClassId={cardClasses[i]}
                 />
-              </Box>
+              </GridItem>
             ))}
-          </HStack>
+            {party &&
+              party.length < 3 &&
+              new Array(3 - (party?.length ?? 0)).fill(0).map((_, i) => (
+                <GridItem
+                  key={`empty-${i}`}
+                  border="2px solid"
+                  borderColor="rgba(219, 211, 139, 0.75)"
+                  p={3}
+                  _hover={{
+                    cursor: 'not-allowed',
+                  }}
+                >
+                  <VStack justify="center" h="100%">
+                    <Text>EMPTY SLOT</Text>
+                  </VStack>
+                </GridItem>
+              ))}
+          </Grid>
           <CharacterStats
             avatarClassId={cardClasses[selectedCard]}
             characterStats={characterStats}
