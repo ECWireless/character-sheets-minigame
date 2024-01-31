@@ -6,6 +6,7 @@ import { positionToEntityKey } from "../lib/positionToEntityKey.sol";
 import { verifyEIP712Signature } from "../lib/signature.sol";
 import {
   AccountInfo,
+  CardCounter,
   CharacterSheetInfo,
   MapConfig,
   MolochSoldier,
@@ -17,7 +18,7 @@ import {
 } from "../codegen/index.sol";
 
 contract MapSystem is System {
-  function login(uint256 chainId, address gameAddress, address playerAddress, bytes calldata signature) public {
+  function createAccount(uint256 chainId, address gameAddress, address playerAddress, bytes calldata signature) public {
     bytes32 player = addressToEntityKey(playerAddress);
 
     (,, uint256 nonce) = AccountInfo.get(player);
@@ -28,7 +29,12 @@ contract MapSystem is System {
     Player.set(player, true);
     AccountInfo.set(player, address(_msgSender()), chainId, nonce);
     CharacterSheetInfo.set(player, chainId, gameAddress, playerAddress);
-    PartyInfo.set(player, playerAddress, -1, playerAddress, -1, playerAddress, -1);
+
+    (address playerSlotOne,,,,,) = PartyInfo.get(player);
+    if (playerSlotOne == address(0)) {
+      PartyInfo.set(player, playerAddress, -1, address(0), -1, address(0), -1);
+      CardCounter.set(player, 3);
+    }
   }
 
   function logout(address playerAddress) public {

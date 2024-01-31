@@ -6,6 +6,7 @@ pragma solidity >=0.8.21;
 import { AccountInfo, AccountInfoTableId } from "./tables/AccountInfo.sol";
 import { BattleCounter, BattleCounterTableId } from "./tables/BattleCounter.sol";
 import { BattleInfo, BattleInfoTableId } from "./tables/BattleInfo.sol";
+import { CardCounter, CardCounterTableId } from "./tables/CardCounter.sol";
 import { CharacterSheetInfo, CharacterSheetInfoTableId } from "./tables/CharacterSheetInfo.sol";
 import { MapConfig, MapConfigTableId } from "./tables/MapConfig.sol";
 import { MolochSoldier, MolochSoldierTableId } from "./tables/MolochSoldier.sol";
