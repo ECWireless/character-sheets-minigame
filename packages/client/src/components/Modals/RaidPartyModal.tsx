@@ -28,9 +28,7 @@ import { RadioOption } from '../../components/RadioOption';
 import { useMUD } from '../../contexts/MUDContext';
 import { useRaidParty } from '../../contexts/RaidPartyContext';
 import { useToast } from '../../hooks/useToast';
-import { CLASS_STATS, WEARABLE_STATS } from '../../utils/constants';
 import { getPlayerEntity } from '../../utils/helpers';
-import { EquippableTraitType } from '../../utils/types';
 
 export const RaidPartyModal: React.FC = () => {
   const { address } = useAccount();
@@ -39,6 +37,9 @@ export const RaidPartyModal: React.FC = () => {
     systemCalls: { setPartyClasses },
   } = useMUD();
   const {
+    equippedWeapons,
+    equippedWearable,
+    getCharacterStats,
     isMyCharacterSelected,
     isRaidPartyModalOpen: isOpen,
     myCharacterCardCounter,
@@ -49,6 +50,7 @@ export const RaidPartyModal: React.FC = () => {
     selectedCharacter,
     selectedCharacterCardCounter,
     selectedCharacterParty,
+    wearableBonuses,
   } = useRaidParty();
   const { renderError, renderSuccess } = useToast();
 
@@ -101,80 +103,15 @@ export const RaidPartyModal: React.FC = () => {
     defaultValue: '-1',
   });
 
-  const equippedWeapons = useMemo(() => {
-    if (!selectedCharacter) return null;
-    const { equippedItems } = selectedCharacter;
-    return equippedItems.filter(
-      item =>
-        item.attributes.find(
-          a =>
-            a.value === EquippableTraitType.EQUIPPED_ITEM_1 ||
-            a.value === EquippableTraitType.EQUIPPED_ITEM_2,
-        ) !== undefined,
-    );
-  }, [selectedCharacter]);
-
-  const equippedWearable = useMemo(() => {
-    if (!selectedCharacter) return null;
-    const { equippedItems } = selectedCharacter;
-    return (
-      equippedItems.find(
-        item =>
-          item.attributes.find(
-            a => a.value === EquippableTraitType.EQUIPPED_WEARABLE,
-          ) !== undefined,
-      ) ?? null
-    );
-  }, [selectedCharacter]);
-
-  const wearableBonuses = useMemo(() => {
-    if (!equippedWearable) return null;
-
-    const { itemId } = equippedWearable;
-    const numberId = Number(itemId);
-    const wearable = WEARABLE_STATS[numberId];
-    if (!wearable) {
-      return { attack: 0, defense: 0, specialAttack: 0, specialDefense: 0 };
-    } else {
-      return {
-        attack: wearable.attack,
-        defense: wearable.defense,
-        specialAttack: wearable.specialAttack,
-        specialDefense: wearable.specialDefense,
-      };
-    }
-  }, [equippedWearable]);
-
   const cardClasses = useMemo(
     () => [cardOneClass, cardTwoClass, cardThreeClass].map(c => String(c)),
     [cardOneClass, cardThreeClass, cardTwoClass],
   );
 
   const characterStats = useMemo(() => {
-    if (!selectedCharacter) return null;
-
-    if (cardClasses[selectedCard] === '-1') {
-      return {
-        health: 10,
-        attack: 1,
-        defense: 1,
-        specialAttack: 1,
-        specialDefense: 1,
-      };
-    }
-
-    const selectedClass = Number(cardClasses[selectedCard]);
-    const classStats = CLASS_STATS[selectedClass];
-    const { attack, defense, specialAttack, specialDefense } = classStats;
-
-    return {
-      health: 10,
-      attack: attack + (wearableBonuses?.attack ?? 0),
-      defense: defense + (wearableBonuses?.defense ?? 0),
-      specialAttack: specialAttack + (wearableBonuses?.specialAttack ?? 0),
-      specialDefense: specialDefense + (wearableBonuses?.specialDefense ?? 0),
-    };
-  }, [cardClasses, selectedCard, selectedCharacter, wearableBonuses]);
+    if (!selectedCharacter || !cardClasses[selectedCard]) return null;
+    return getCharacterStats(selectedCharacter, cardClasses[selectedCard]);
+  }, [cardClasses, getCharacterStats, selectedCard, selectedCharacter]);
 
   const classes = useMemo(() => {
     if (!party) return null;
@@ -285,7 +222,18 @@ export const RaidPartyModal: React.FC = () => {
   const myBattleInfo = useComponentValue(BattleInfo, myPlayerEntity);
   const otherBattleInfo = useComponentValue(BattleInfo, otherPlayerEntity);
 
-  if (!(address && classes && selectedCharacter)) return null;
+  if (
+    !(
+      address &&
+      classes &&
+      characterStats &&
+      equippedWeapons &&
+      equippedWearable &&
+      selectedCharacter &&
+      wearableBonuses
+    )
+  )
+    return null;
 
   const getRootProps = [
     getCardOneRootProps,
@@ -409,9 +357,9 @@ export const RaidPartyModal: React.FC = () => {
           <CharacterStats
             avatarClassId={cardClasses[selectedCard]}
             characterStats={characterStats}
-            equippedWeapons={equippedWeapons}
-            equippedWearable={equippedWearable}
-            wearableBonuses={wearableBonuses}
+            equippedWeapons={equippedWeapons[selectedCharacter.id]}
+            equippedWearable={equippedWearable[selectedCharacter.id]}
+            wearableBonuses={wearableBonuses[selectedCharacter.id]}
           />
         </ModalBody>
       </ModalContent>
