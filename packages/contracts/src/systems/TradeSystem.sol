@@ -4,7 +4,6 @@ import { System } from "@latticexyz/world/src/System.sol";
 import { addressToEntityKey, addressesToEntityKey } from "../lib/addressToEntityKey.sol";
 import {
   AccountInfo,
-  CardCounter,
   PartyInfo,
   Player,
   TradeInfo
@@ -101,22 +100,23 @@ contract TradeSystem is System {
     bytes32 player = addressToEntityKey(initiatedBy);
     require(Player.get(player), "not a player");
 
-    (address burnerAddress,,) = AccountInfo.get(player);
-    require(burnerAddress == address(_msgSender()), "not the burner address for this character");
-
     (address playerSlotOne,, address playerSlotTwo,, address playerSlotThree,) = PartyInfo.get(player);
 
-    uint8 personalCardCount = CardCounter.get(player);
-    if (personalCardCount == 0) {
-      personalCardCount = 3;
+    uint8 personalCardCount = 0;
+    if (playerSlotOne == initiatedBy) {
+      personalCardCount++;
+    }	
+    if (playerSlotTwo == initiatedBy) {	
+      personalCardCount++;	
+    }	
+    if (playerSlotThree == initiatedBy) {	
+      personalCardCount++;	
     }
-
     require(personalCardCount > 1 || offeredCardPlayer != initiatedBy, "cannot offer last personal card");
     require(playerSlotOne == offeredCardPlayer || playerSlotTwo == offeredCardPlayer || playerSlotThree == offeredCardPlayer, "you don't have this card");
 
     if (playerSlotOne == address(0)) {
-      PartyInfo.set(player, initiatedBy, -1, address(0), -1, address(0), -1);
-      CardCounter.set(player, 3);
+      PartyInfo.set(player, initiatedBy, -1, initiatedBy, -1, initiatedBy, -1);
     }
   }
 
@@ -126,17 +126,22 @@ contract TradeSystem is System {
 
     (address initiatedWithSlotOne,, address initiatedWithSlotTwo,, address initiatedWithSlotThree,) = PartyInfo.get(initiatedWithPlayer);
 
-    uint8 initiatedWithPersonalCardCount = CardCounter.get(initiatedWithPlayer);
-    if (initiatedWithPersonalCardCount == 0) {
-      initiatedWithPersonalCardCount = 3;
+    uint8 initiatedWithPersonalCardCount = 0;
+    if (initiatedWithSlotOne == initiatedWith) {
+      initiatedWithPersonalCardCount++;
+    }
+    if (initiatedWithSlotTwo == initiatedWith) {	
+      initiatedWithPersonalCardCount++;	
+    }	
+    if (initiatedWithSlotThree == initiatedWith) {	
+      initiatedWithPersonalCardCount++;	
     }
 
     require(initiatedWithPersonalCardCount > 1 || requestedCardPlayer != initiatedWith, "cannot request last personal card");
     require(initiatedWithSlotOne == requestedCardPlayer || initiatedWithSlotTwo == requestedCardPlayer || initiatedWithSlotThree == requestedCardPlayer, "they don't have this card");
 
     if (initiatedWithSlotOne == address(0)) {
-      PartyInfo.set(initiatedWithPlayer, initiatedWith, -1, address(0), -1, address(0), -1);
-      CardCounter.set(initiatedWithPlayer, 3);
+      PartyInfo.set(initiatedWithPlayer, initiatedWith, -1, initiatedWith, -1, initiatedWith, -1);
     }
   }
 
@@ -152,14 +157,6 @@ contract TradeSystem is System {
     } else if (initiatedBySlotOne == offeredCardPlayer) {
       PartyInfo.set(initiatedByPlayer, requestedCardPlayer, -1, initiatedBySlotTwo, initiatedBySlotTwoClass, initiatedBySlotThree, initiatedBySlotThreeClass);
     }
-
-    uint8 personalCardCount = CardCounter.get(initiatedByPlayer);
-    if (offeredCardPlayer == initiatedBy) {
-      personalCardCount = personalCardCount - 1;
-    } else if (requestedCardPlayer == initiatedBy) {
-      personalCardCount = personalCardCount + 1;
-    }
-    CardCounter.set(initiatedByPlayer, personalCardCount);
   }
 
   function updateInitiatedWithPartyAfterTrade(address initiatedWith, address offeredCardPlayer, address requestedCardPlayer) internal {
@@ -174,13 +171,5 @@ contract TradeSystem is System {
     } else if (initiatedWithSlotOne == requestedCardPlayer) {
       PartyInfo.set(initiatedWithPlayer, offeredCardPlayer, -1, initiatedWithSlotTwo, initiatedWithSlotTwoClass, initiatedWithSlotThree, initiatedWithSlotThreeClass);
     }
-
-    uint8 initiatedWithPersonalCardCount = CardCounter.get(initiatedWithPlayer);
-    if (requestedCardPlayer == initiatedWith) {
-      initiatedWithPersonalCardCount = initiatedWithPersonalCardCount - 1;
-    } else if (offeredCardPlayer == initiatedWith) {
-      initiatedWithPersonalCardCount = initiatedWithPersonalCardCount + 1;
-    }
-    CardCounter.set(initiatedWithPlayer, initiatedWithPersonalCardCount);
   }
 }
