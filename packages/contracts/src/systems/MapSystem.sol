@@ -6,6 +6,7 @@ import { positionToEntityKey } from "../lib/positionToEntityKey.sol";
 import { verifyEIP712Signature } from "../lib/signature.sol";
 import {
   AccountInfo,
+  CardCounter,
   CharacterSheetInfo,
   MapConfig,
   MolochSoldier,
@@ -31,7 +32,8 @@ contract MapSystem is System {
 
     (address playerSlotOne,,,,,) = PartyInfo.get(player);
     if (playerSlotOne == address(0)) {
-      PartyInfo.set(player, playerAddress, -1, playerAddress, -1, playerAddress, -1);
+      PartyInfo.set(player, playerAddress, -1, address(0), -1, address(0), -1);
+      CardCounter.set(player, 3);
     }
   }
 
