@@ -424,21 +424,12 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
 
   const getCharacterStats = useCallback(
     (_character: Character, classValue: string): Stats => {
-      if (classValue === '-1') {
-        return {
-          health: DEFAULT_CHARACTER_HEALTH,
-          attack: 1,
-          defense: 1,
-          specialAttack: 1,
-          specialDefense: 1,
-        };
-      }
-
       const selectedClass = Number(classValue);
       const classStats = CLASS_STATS[selectedClass];
-      const { attack, defense, specialAttack, specialDefense } = classStats;
+      const { attack, defense, specialAttack, specialDefense } =
+        classStats ?? {};
 
-      if (wearableBonuses && wearableBonuses[_character.id]) {
+      if (wearableBonuses && wearableBonuses[_character.id] && classStats) {
         return {
           health: DEFAULT_CHARACTER_HEALTH,
           attack: attack + wearableBonuses[_character.id].attack,
@@ -448,7 +439,7 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
           specialDefense:
             specialDefense + wearableBonuses[_character.id].specialDefense,
         };
-      } else {
+      } else if (classStats) {
         return {
           health: DEFAULT_CHARACTER_HEALTH,
           attack,
@@ -457,6 +448,13 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
           specialDefense,
         };
       }
+      return {
+        health: DEFAULT_CHARACTER_HEALTH,
+        attack: 1,
+        defense: 1,
+        specialAttack: 1,
+        specialDefense: 1,
+      };
     },
     [wearableBonuses],
   );
@@ -545,6 +543,7 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
       molochHealth,
       molochDefeated,
     } = _battleInfo;
+
     return {
       active,
       healthBySlots: [slotOneHealth, slotTwoHealth, slotThreeHealth] as [

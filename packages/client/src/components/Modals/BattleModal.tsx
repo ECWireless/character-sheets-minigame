@@ -16,6 +16,7 @@ import { useMUD } from '../../contexts/MUDContext';
 import { useRaidParty } from '../../contexts/RaidPartyContext';
 import { useToast } from '../../hooks/useToast';
 import {
+  DEFAULT_MOLOCH_HEALTH,
   MOLOCH_SOLDIER_MOVES,
   MOLOCH_SOLDIER_STATS,
   POWER_TYPE,
@@ -74,6 +75,7 @@ export const BattleModal: React.FC = () => {
     isBattleModalOpen: isOpen,
     isMyTurn,
     isRunning,
+    myCharacterCardCounter,
     myParty,
     onRunFromBattle,
     wearableBonuses,
@@ -95,27 +97,20 @@ export const BattleModal: React.FC = () => {
   const cardClass = useMemo(() => {
     if (!(myParty && myParty[selectedCard - 1])) return null;
 
-    return myParty[selectedCard - 1].class;
+    return myParty[selectedCard - 1]?.class;
   }, [myParty, selectedCard]);
 
   const characterStats = useMemo(() => {
-    if (!(cardClass && character && myParty)) return null;
+    if (!(cardClass && myParty)) return null;
 
-    return {
-      [myParty[0].character.id]: getCharacterStats(
-        myParty[0].character,
-        cardClass,
-      ),
-      [myParty[1].character.id]: getCharacterStats(
-        myParty[1].character,
-        cardClass,
-      ),
-      [myParty[2].character.id]: getCharacterStats(
-        myParty[2].character,
-        cardClass,
-      ),
-    };
-  }, [cardClass, character, getCharacterStats, myParty]);
+    const _characterStats = {} as Record<string, Stats>;
+
+    myParty.forEach(({ character }) => {
+      _characterStats[character.id] = getCharacterStats(character, cardClass);
+    });
+
+    return _characterStats;
+  }, [cardClass, getCharacterStats, myParty]);
 
   const onMolochAttack = useCallback(async () => {
     try {
@@ -129,7 +124,11 @@ export const BattleModal: React.FC = () => {
 
       const moveId = generateRandomNumber(1, 4);
       let slotIndex = generateRandomNumber(0, 2);
-      while (battleInfo.healthBySlots[slotIndex] === 0) {
+
+      while (
+        battleInfo.healthBySlots[slotIndex] === 0 ||
+        !characterStats[myParty[slotIndex]?.character.id]
+      ) {
         slotIndex = generateRandomNumber(0, 2);
       }
 
@@ -165,6 +164,7 @@ export const BattleModal: React.FC = () => {
 
   useEffect(() => {
     if (!(battleInfo && isOpen)) return;
+
     const molochHealth = battleInfo.molochHealth ?? 0;
     const totalSlotsHealth = battleInfo.healthBySlots.reduce(
       (acc, curr) => acc + curr,
@@ -248,10 +248,10 @@ export const BattleModal: React.FC = () => {
                     startingHealth={characterStats[character.id]?.health ?? 0}
                   />
                   <CharacterCardSmall
+                    cardCount={i === 0 ? myCharacterCardCounter : undefined}
                     character={character}
                     isSelected={i + 1 === selectedCard}
                     locked={locked}
-                    primary={i === 0}
                     selectedClassId={myParty ? myParty[i].class : '-1'}
                   />
                 </VStack>
@@ -325,7 +325,7 @@ export const BattleModal: React.FC = () => {
             <VStack w="250px">
               <HealthBar
                 currentHealth={battleInfo?.molochHealth ?? 0}
-                startingHealth={20}
+                startingHealth={DEFAULT_MOLOCH_HEALTH}
               />
               <MolochCardSmall />
             </VStack>
@@ -335,24 +335,24 @@ export const BattleModal: React.FC = () => {
 
       <CharacterStats
         avatarClassId={cardClass}
-        characterStats={characterStats[myParty[selectedCard - 1].character.id]}
+        characterStats={characterStats[myParty[selectedCard - 1]?.character.id]}
         equippedWearable={
-          equippedWearable[myParty[selectedCard - 1].character.id]
+          equippedWearable[myParty[selectedCard - 1]?.character.id]
         }
         wearableBonuses={
-          wearableBonuses[myParty[selectedCard - 1].character.id]
+          wearableBonuses[myParty[selectedCard - 1]?.character.id]
         }
       />
 
       <AttackModal
-        characterStats={characterStats[myParty[selectedCard - 1].character.id]}
+        characterStats={characterStats[myParty[selectedCard - 1]?.character.id]}
         equippedWeapons={
-          equippedWeapons[myParty[selectedCard - 1].character.id]
+          equippedWeapons[myParty[selectedCard - 1]?.character.id]
         }
         isOpen={isAttackModalOpen}
         onClose={onCloseAttackModal}
         wearableBonuses={
-          wearableBonuses[myParty[selectedCard - 1].character.id]
+          wearableBonuses[myParty[selectedCard - 1]?.character.id]
         }
       />
 

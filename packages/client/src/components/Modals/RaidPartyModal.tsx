@@ -329,7 +329,7 @@ export const RaidPartyModal: React.FC = () => {
                 onClick={() => setSelectedCard(i)}
               >
                 <CharacterCardSmall
-                  cardCount={cardCount}
+                  cardCount={i === 0 ? cardCount : undefined}
                   character={character}
                   isSelected={i === selectedCard}
                   selectedClassId={cardClasses[i]}
