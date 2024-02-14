@@ -551,6 +551,96 @@ export const TradeTableModal: React.FC = () => {
     selectedCharacter,
   ]);
 
+  const myLockButtonDetails = useMemo(() => {
+    if (!(character && myParty && selectedCharacterParty))
+      return {
+        isDisabled: true,
+        text: 'Loading...',
+      };
+    if (
+      myParty[mySelectedCard - 1].character.id ===
+        selectedCharacterParty[1]?.character.id ||
+      myParty[mySelectedCard - 1]?.character.id ===
+        selectedCharacterParty[2]?.character.id
+    ) {
+      return {
+        isDisabled: true,
+        text: 'You cannot offer a card that the other party already has.',
+      };
+    }
+
+    if (mySelectedCard === 1 && myCharacterCardCounter === 1) {
+      return {
+        isDisabled: true,
+        text: 'You cannot trade your last personal card.',
+      };
+    }
+    if (!!lockedCards[0]) {
+      return {
+        isDisabled: false,
+        text: `You have ${character.name} locked for a trade.`,
+      };
+    }
+    return {
+      isDisabled: false,
+      text: `Lock ${character.name} to make trade offer.`,
+    };
+  }, [
+    character,
+    lockedCards,
+    myCharacterCardCounter,
+    myParty,
+    mySelectedCard,
+    selectedCharacterParty,
+  ]);
+
+  const otherLockButtonDetails = useMemo(() => {
+    if (!(myParty && selectedCharacter && selectedCharacterParty)) {
+      return {
+        isDisabled: true,
+        text: 'Loading...',
+      };
+    }
+    if (
+      selectedCharacterParty[otherSelectedCard - 1].character.id ===
+        myParty[1]?.character.id ||
+      selectedCharacterParty[otherSelectedCard - 1].character.id ===
+        myParty[2]?.character.id
+    ) {
+      return {
+        isDisabled: true,
+        text: 'You cannot request a card that you already have.',
+      };
+    }
+    if (
+      otherSelectedCard === 1 &&
+      selectedCharacterCardCounter === 1 &&
+      selectedCharacter
+    ) {
+      return {
+        isDisabled: true,
+        text: `${selectedCharacter.name} cannot trade their last personal card.`,
+      };
+    }
+    if (!!lockedCards[1]) {
+      return {
+        isDisabled: false,
+        text: `You have ${selectedCharacter.name} locked for a trade.`,
+      };
+    }
+    return {
+      isDisabled: false,
+      text: `Lock ${selectedCharacter.name} to make trade offer.`,
+    };
+  }, [
+    lockedCards,
+    otherSelectedCard,
+    myParty,
+    selectedCharacter,
+    selectedCharacterParty,
+    selectedCharacterCardCounter,
+  ]);
+
   if (
     !(
       address &&
@@ -711,17 +801,9 @@ export const TradeTableModal: React.FC = () => {
               </Grid>
               {!pauseControls && (
                 <VStack my={8} spacing={4}>
-                  <Text>
-                    {mySelectedCard === 1 && myCharacterCardCounter === 1
-                      ? 'You cannot trade your last personal card.'
-                      : !!lockedCards[0]
-                        ? `You have ${character.name} locked for a trade.`
-                        : `Lock ${character.name} to make trade offer.`}
-                  </Text>
+                  <Text>{myLockButtonDetails.text}</Text>
                   <Button
-                    isDisabled={
-                      mySelectedCard === 1 && myCharacterCardCounter === 1
-                    }
+                    isDisabled={myLockButtonDetails.isDisabled}
                     onClick={() =>
                       setLockedCards(prev =>
                         !!lockedCards[0]
@@ -813,19 +895,9 @@ export const TradeTableModal: React.FC = () => {
               </Grid>
               {!pauseControls && (
                 <VStack my={8} spacing={4}>
-                  <Text>
-                    {otherSelectedCard === 1 &&
-                    selectedCharacterCardCounter === 1
-                      ? `${selectedCharacter.name} cannot trade their last personal card.`
-                      : !!lockedCards[1]
-                        ? `You have ${selectedCharacter.name} locked for a trade.`
-                        : `Lock ${selectedCharacter.name} to make trade offer.`}
-                  </Text>
+                  <Text>{otherLockButtonDetails.text}</Text>
                   <Button
-                    isDisabled={
-                      otherSelectedCard === 1 &&
-                      selectedCharacterCardCounter === 1
-                    }
+                    isDisabled={otherLockButtonDetails.isDisabled}
                     onClick={() =>
                       setLockedCards(prev =>
                         !!lockedCards[1]

@@ -30,8 +30,8 @@ contract TradeSystem is System {
     require(active, "no trade initiated");
 
 
-    initiatedByChecks(initiatedBy, offeredCardPlayer);
-    initiatedWithChecks(initiatedWith, requestedCardPlayer);
+    initiatedByChecks(initiatedBy, offeredCardPlayer, requestedCardPlayer);
+    initiatedWithChecks(initiatedWith, requestedCardPlayer, offeredCardPlayer);
 
     updateInitiatedByPartyAfterTrade(initiatedBy, offeredCardPlayer, requestedCardPlayer);
     updateInitiatedWithPartyAfterTrade(initiatedWith, offeredCardPlayer, requestedCardPlayer);
@@ -66,8 +66,8 @@ contract TradeSystem is System {
       tradeEntity = addressesToEntityKey(initiatedWith, initiatedBy);
     }
 
-    initiatedByChecks(initiatedBy, offeredCardPlayer);
-    initiatedWithChecks(initiatedWith, requestedCardPlayer);
+    initiatedByChecks(initiatedBy, offeredCardPlayer, requestedCardPlayer);
+    initiatedWithChecks(initiatedWith, requestedCardPlayer, offeredCardPlayer);
 
     TradeInfo.set(tradeEntity, true, initiatedBy, initiatedWith, offeredCardPlayer, requestedCardPlayer, false, false);
   }
@@ -97,7 +97,7 @@ contract TradeSystem is System {
     INTERNAL FUNCTIONS
   */
 
-  function initiatedByChecks(address initiatedBy, address offeredCardPlayer) internal {
+  function initiatedByChecks(address initiatedBy, address offeredCardPlayer, address requestedCardPlayer) internal {
     bytes32 player = addressToEntityKey(initiatedBy);
     require(Player.get(player), "not a player");
 
@@ -108,6 +108,7 @@ contract TradeSystem is System {
       personalCardCount = 3;
     }
 
+    require(playerSlotTwo != requestedCardPlayer && playerSlotThree != requestedCardPlayer, "you already have this card");
     require(personalCardCount > 1 || offeredCardPlayer != initiatedBy, "cannot offer last personal card");
     require(playerSlotOne == offeredCardPlayer || playerSlotTwo == offeredCardPlayer || playerSlotThree == offeredCardPlayer, "you don't have this card");
 
@@ -117,7 +118,7 @@ contract TradeSystem is System {
     }
   }
 
-  function initiatedWithChecks(address initiatedWith, address requestedCardPlayer) internal {
+  function initiatedWithChecks(address initiatedWith, address requestedCardPlayer, address offeredCardPlayer) internal {
     bytes32 initiatedWithPlayer = addressToEntityKey(initiatedWith);
     require(Player.get(initiatedWithPlayer), "initiatedWith is not a player");
 
@@ -128,6 +129,7 @@ contract TradeSystem is System {
       initiatedWithPersonalCardCount = 3;
     }
 
+    require(initiatedWithSlotTwo != offeredCardPlayer && initiatedWithSlotThree != offeredCardPlayer, "they already have this card");
     require(initiatedWithPersonalCardCount > 1 || requestedCardPlayer != initiatedWith, "cannot request last personal card");
     require(initiatedWithSlotOne == requestedCardPlayer || initiatedWithSlotTwo == requestedCardPlayer || initiatedWithSlotThree == requestedCardPlayer, "they don't have this card");
 
