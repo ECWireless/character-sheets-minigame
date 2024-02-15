@@ -19,9 +19,13 @@ const classesWithAttackAbility = [
   'wizard',
   'tavern keeper',
   'scribe',
+  'rogue',
   'paladin',
   'monk',
+  'hunter',
   'healer',
+  'dwarf',
+  'cleric',
   'archer',
 ];
 
