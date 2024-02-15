@@ -1,6 +1,21 @@
 import { Entity } from '@latticexyz/recs';
 import { encodeEntity } from '@latticexyz/store-sync/recs';
 
+import rogueAttackLeft from '../assets/rogue/rogue_attack_left.gif';
+import rogueAttackRight from '../assets/rogue/rogue_attack_right.gif';
+import rogueLeft from '../assets/rogue/rogue_walk_left.gif';
+import rogueRight from '../assets/rogue/rogue_walk_right.gif';
+
+import clericAttackLeft from '../assets/cleric/cleric_attack_left.gif';
+import clericAttackRight from '../assets/cleric/cleric_attack_right.gif';
+import clericLeft from '../assets/cleric/cleric_walk_left.gif';
+import clericRight from '../assets/cleric/cleric_walk_right.gif';
+
+import hunterAttackLeft from '../assets/hunter/hunter_attack_left.gif';
+import hunterAttackRight from '../assets/hunter/hunter_attack_right.gif';
+import hunterLeft from '../assets/hunter/hunter_walk_left.gif';
+import hunterRight from '../assets/hunter/hunter_walk_right.gif';
+
 import archerAttackLeft from '../assets/archer/archer_attack_left.gif';
 import archerAttackRight from '../assets/archer/archer_attack_right.gif';
 import archerLeft from '../assets/archer/archer_walk_left.gif';
@@ -430,6 +445,60 @@ export const getCharacterImage = (
         default:
           return scribeRight;
       }
+
+      case 'hunter':
+        if (actionRunning) {
+          return direction === 'right' ? hunterAttackRight : hunterAttackLeft;
+        }
+  
+        switch (direction) {
+          case 'up':
+            return hunterRight;
+          case 'down':
+            return hunterLeft;
+          case 'left':
+            return hunterLeft;
+          case 'right':
+            return hunterRight;
+          default:
+            return hunterRight;
+        }
+
+        case 'cleric':
+          if (actionRunning) {
+            return direction === 'right' ? clericAttackRight : clericAttackLeft;
+          }
+    
+          switch (direction) {
+            case 'up':
+              return clericRight;
+            case 'down':
+              return clericLeft;
+            case 'left':
+              return clericLeft;
+            case 'right':
+              return clericRight;
+            default:
+              return clericRight;
+          }
+
+          case 'rogue':
+            if (actionRunning) {
+              return direction === 'right' ? rogueAttackRight : rogueAttackLeft;
+            }
+      
+            switch (direction) {
+              case 'up':
+                return rogueRight;
+              case 'down':
+                return rogueLeft;
+              case 'left':
+                return rogueLeft;
+              case 'right':
+                return rogueRight;
+              default:
+                return rogueRight;
+            }
 
     case 'paladin':
       if (actionRunning) {
