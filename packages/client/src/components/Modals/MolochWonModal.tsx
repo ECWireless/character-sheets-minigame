@@ -33,8 +33,8 @@ export const MolochWonModal: React.FC<MolochWonModalProps> = ({
           <VStack spacing="24px">
             <Text fontSize="lg" textAlign="center">
               Sorry, it looks like Moloch got the best of you this time. Change
-              your party classes or trade cards with another player to improve
-              your chances of winning!
+              your party&apos;s classes or trade cards with another player to
+              improve your chances of winning!
             </Text>
             <Button onClick={() => window.location.reload()}>Close</Button>
           </VStack>

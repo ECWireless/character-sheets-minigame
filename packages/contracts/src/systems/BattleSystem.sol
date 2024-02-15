@@ -8,10 +8,14 @@ import {
   BattleCounter,
   BattleInfo,
   MolochSoldier,
+  PartyInfo,
   Player
 } from "../codegen/index.sol";
 
 contract BattleSystem is System {
+  uint32 constant DEFAULT_CHARACTER_HEALTH = 100;
+  uint32 constant DEFAULT_MOLOCH_HEALTH = 200;
+
   function attack(address playerAddress, bytes32 molochSoldier, uint32 damage) public {
     bytes32 player = addressToEntityKey(playerAddress);
     require(attackChecks(player, molochSoldier), "attack checks failed");
@@ -67,8 +71,20 @@ contract BattleSystem is System {
 
     require(!active, "you already have an active battle");
     require(!molochDefeated, "you have already defeated at least one moloch soldier");
+
+    (,, address playerSlotTwo,, address playerSlotThree,) = PartyInfo.get(player);
+
+    uint32 slotTwoHealth = DEFAULT_CHARACTER_HEALTH;
+    uint32 slotThreeHealth = DEFAULT_CHARACTER_HEALTH;
+
+    if (playerSlotTwo == address(0)) {
+      slotTwoHealth = 0;
+    }
+    if (playerSlotThree == address(0)) {
+      slotThreeHealth = 0;
+    }
     
-    BattleInfo.set(player, true, 10, 10, 10, molochSoldier, 20, false);
+    BattleInfo.set(player, true, DEFAULT_CHARACTER_HEALTH, slotTwoHealth, slotThreeHealth, molochSoldier, DEFAULT_MOLOCH_HEALTH, false);
     BattleCounter.set(player, 1);
   }
 
@@ -138,7 +154,7 @@ contract BattleSystem is System {
     (bool active,,,,,,) = BattleInfo.get(player);
     require(active, "battle not active");
 
-    BattleInfo.set(player, false, 10, 10, 10, bytes32(0), 20, false);
+    BattleInfo.set(player, false, DEFAULT_CHARACTER_HEALTH, DEFAULT_CHARACTER_HEALTH, DEFAULT_CHARACTER_HEALTH, bytes32(0), DEFAULT_MOLOCH_HEALTH, false);
     BattleCounter.set(player, 1);
   }
 }

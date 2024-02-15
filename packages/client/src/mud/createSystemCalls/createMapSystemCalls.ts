@@ -16,7 +16,7 @@ export const createMapSystemCalls = (
     return runQuery([Has(Obstruction), HasValue(Position, { x, y })]).size > 0;
   };
 
-  const login = async (
+  const createAccount = async (
     chainId: number,
     gameAddress: string,
     playerAddress: string,
@@ -28,7 +28,7 @@ export const createMapSystemCalls = (
     }
 
     try {
-      const tx = await worldContract.write.login([
+      const tx = await worldContract.write.createAccount([
         BigInt(chainId),
         gameAddress.toLowerCase() as Address,
         playerAddress.toLowerCase() as Address,
@@ -246,7 +246,7 @@ export const createMapSystemCalls = (
   };
 
   return {
-    login,
+    createAccount,
     logout,
     makeOffer,
     moveTo,

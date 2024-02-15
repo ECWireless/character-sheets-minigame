@@ -1,6 +1,8 @@
 import {
   Box,
   Button,
+  Grid,
+  GridItem,
   HStack,
   Modal,
   ModalBody,
@@ -32,7 +34,20 @@ import { useMUD } from '../../contexts/MUDContext';
 import { useRaidParty } from '../../contexts/RaidPartyContext';
 import { useToast } from '../../hooks/useToast';
 
-const reversePartyIndex = (index: number): number => {
+const reversePartyIndex = (index: number, partySize: number) => {
+  if (partySize === 1) return 1;
+
+  if (partySize === 2) {
+    switch (index) {
+      case 1:
+        return 2;
+      case 2:
+        return 1;
+      default:
+        return 1;
+    }
+  }
+
   switch (index) {
     case 1:
       return 3;
@@ -53,9 +68,11 @@ export const TradeTableModal: React.FC = () => {
     equippedWearable,
     getCharacterStats,
     isTradeTableModalOpen: isOpen,
+    myCharacterCardCounter,
     myParty,
     onCloseTradeTableModal: onClose,
     selectedCharacter,
+    selectedCharacterCardCounter,
     selectedCharacterParty,
     wearableBonuses,
   } = useRaidParty();
@@ -65,8 +82,8 @@ export const TradeTableModal: React.FC = () => {
   } = useMUD();
   const { renderError, renderSuccess } = useToast();
 
-  const [mySelectedCard, setMySelectedCard] = useState(3);
-  const [otherSelectedCard, setOtherSelectedCard] = useState(3);
+  const [mySelectedCard, setMySelectedCard] = useState(1);
+  const [otherSelectedCard, setOtherSelectedCard] = useState(1);
   const [lockedCards, setLockedCards] = useState<[number, number]>([0, 0]);
   const [isPending, setIsPending] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
@@ -91,9 +108,9 @@ export const TradeTableModal: React.FC = () => {
   });
 
   useEffect(() => {
-    const myAvatarClassId = myParty ? myParty[mySelectedCard - 1].class : '-1';
+    const myAvatarClassId = myParty ? myParty[mySelectedCard - 1]?.class : '-1';
     const otherAvatarClassId = selectedCharacterParty
-      ? selectedCharacterParty[otherSelectedCard - 1].class
+      ? selectedCharacterParty[otherSelectedCard - 1]?.class
       : '-1';
 
     setMyClassValue(myAvatarClassId);
@@ -185,9 +202,9 @@ export const TradeTableModal: React.FC = () => {
   );
 
   const resetData = useCallback(() => {
-    const myAvatarClassId = myParty ? myParty[0].class : '-1';
+    const myAvatarClassId = myParty ? myParty[0]?.class : '-1';
     const otherAvatarClassId = selectedCharacterParty
-      ? selectedCharacterParty[0].class
+      ? selectedCharacterParty[0]?.class
       : '-1';
 
     setMyClassValue(myAvatarClassId);
@@ -195,17 +212,17 @@ export const TradeTableModal: React.FC = () => {
 
     if (isTradeOfferActive && myParty && selectedCharacterParty) {
       const activeTradeOffers = tradeOffers.filter(t => t.active);
-      const myPartyCharacters = myParty.map(s => s.character);
-      const otherPartyCharacters = selectedCharacterParty.map(s => s.character);
+      const myPartyCards = myParty.map(s => s.character);
+      const otherPartyCards = selectedCharacterParty.map(s => s.character);
 
-      let _mySelectedCard = myPartyCharacters
+      let _mySelectedCard = myPartyCards
         ?.reverse()
         .findIndex(
           c =>
             c.player.toLowerCase() ===
             activeTradeOffers[0]?.offeredCardPlayer.toLowerCase(),
         );
-      let _otherSelectedCard = otherPartyCharacters
+      let _otherSelectedCard = otherPartyCards
         ?.reverse()
         .findIndex(
           c =>
@@ -219,24 +236,27 @@ export const TradeTableModal: React.FC = () => {
         _otherSelectedCard === undefined ||
         _otherSelectedCard < 0
       ) {
-        setMySelectedCard(3);
-        setOtherSelectedCard(3);
+        setMySelectedCard(1);
+        setOtherSelectedCard(1);
         renderError('Error loading trade offer!');
         return;
       }
 
-      _mySelectedCard = reversePartyIndex(_mySelectedCard + 1);
-      _otherSelectedCard = reversePartyIndex(_otherSelectedCard + 1);
+      _mySelectedCard = reversePartyIndex(_mySelectedCard + 1, myParty.length);
+      _otherSelectedCard = reversePartyIndex(
+        _otherSelectedCard + 1,
+        selectedCharacterParty.length,
+      );
 
       setMySelectedCard(_mySelectedCard);
       setOtherSelectedCard(_otherSelectedCard);
       setLockedCards([_mySelectedCard, _otherSelectedCard]);
 
       const myAvatarClassId = myParty
-        ? myParty[_mySelectedCard - 1].class
+        ? myParty[_mySelectedCard - 1]?.class
         : '-1';
       const otherAvatarClassId = selectedCharacterParty
-        ? selectedCharacterParty[_otherSelectedCard - 1].class
+        ? selectedCharacterParty[_otherSelectedCard - 1]?.class
         : '-1';
 
       setMyClassValue(myAvatarClassId);
@@ -267,31 +287,34 @@ export const TradeTableModal: React.FC = () => {
         _otherSelectedCard === undefined ||
         _otherSelectedCard < 0
       ) {
-        setMySelectedCard(3);
-        setOtherSelectedCard(3);
+        setMySelectedCard(1);
+        setOtherSelectedCard(1);
         renderError('Error loading trade request!');
         return;
       }
 
-      _mySelectedCard = reversePartyIndex(_mySelectedCard + 1);
-      _otherSelectedCard = reversePartyIndex(_otherSelectedCard + 1);
+      _mySelectedCard = reversePartyIndex(_mySelectedCard + 1, myParty.length);
+      _otherSelectedCard = reversePartyIndex(
+        _otherSelectedCard + 1,
+        selectedCharacterParty.length,
+      );
 
       setMySelectedCard(_mySelectedCard);
       setOtherSelectedCard(_otherSelectedCard);
       setLockedCards([_mySelectedCard, _otherSelectedCard]);
 
       const myAvatarClassId = myParty
-        ? myParty[_mySelectedCard - 1].class
+        ? myParty[_mySelectedCard - 1]?.class
         : '-1';
       const otherAvatarClassId = selectedCharacterParty
-        ? selectedCharacterParty[_otherSelectedCard - 1].class
+        ? selectedCharacterParty[_otherSelectedCard - 1]?.class
         : '-1';
 
       setMyClassValue(myAvatarClassId);
       setOtherClassValue(otherAvatarClassId);
     } else {
-      setMySelectedCard(3);
-      setOtherSelectedCard(3);
+      setMySelectedCard(1);
+      setOtherSelectedCard(1);
       setLockedCards([0, 0]);
     }
   }, [
@@ -528,6 +551,96 @@ export const TradeTableModal: React.FC = () => {
     selectedCharacter,
   ]);
 
+  const myLockButtonDetails = useMemo(() => {
+    if (!(character && myParty && selectedCharacterParty))
+      return {
+        isDisabled: true,
+        text: 'Loading...',
+      };
+    if (
+      myParty[mySelectedCard - 1].character.id ===
+        selectedCharacterParty[1]?.character.id ||
+      myParty[mySelectedCard - 1]?.character.id ===
+        selectedCharacterParty[2]?.character.id
+    ) {
+      return {
+        isDisabled: true,
+        text: 'You cannot offer a card that the other party already has.',
+      };
+    }
+
+    if (mySelectedCard === 1 && myCharacterCardCounter === 1) {
+      return {
+        isDisabled: true,
+        text: 'You cannot trade your last personal card.',
+      };
+    }
+    if (!!lockedCards[0]) {
+      return {
+        isDisabled: false,
+        text: `You have ${character.name} locked for a trade.`,
+      };
+    }
+    return {
+      isDisabled: false,
+      text: `Lock ${character.name} to make trade offer.`,
+    };
+  }, [
+    character,
+    lockedCards,
+    myCharacterCardCounter,
+    myParty,
+    mySelectedCard,
+    selectedCharacterParty,
+  ]);
+
+  const otherLockButtonDetails = useMemo(() => {
+    if (!(myParty && selectedCharacter && selectedCharacterParty)) {
+      return {
+        isDisabled: true,
+        text: 'Loading...',
+      };
+    }
+    if (
+      selectedCharacterParty[otherSelectedCard - 1].character.id ===
+        myParty[1]?.character.id ||
+      selectedCharacterParty[otherSelectedCard - 1].character.id ===
+        myParty[2]?.character.id
+    ) {
+      return {
+        isDisabled: true,
+        text: 'You cannot request a card that you already have.',
+      };
+    }
+    if (
+      otherSelectedCard === 1 &&
+      selectedCharacterCardCounter === 1 &&
+      selectedCharacter
+    ) {
+      return {
+        isDisabled: true,
+        text: `${selectedCharacter.name} cannot trade their last personal card.`,
+      };
+    }
+    if (!!lockedCards[1]) {
+      return {
+        isDisabled: false,
+        text: `You have ${selectedCharacter.name} locked for a trade.`,
+      };
+    }
+    return {
+      isDisabled: false,
+      text: `Lock ${selectedCharacter.name} to make trade offer.`,
+    };
+  }, [
+    lockedCards,
+    otherSelectedCard,
+    myParty,
+    selectedCharacter,
+    selectedCharacterParty,
+    selectedCharacterCardCounter,
+  ]);
+
   if (
     !(
       address &&
@@ -647,8 +760,8 @@ export const TradeTableModal: React.FC = () => {
           )}
           <HStack alignItems="flex-start" spacing={24}>
             <Box w="100%">
-              <Text>Your character cards (max of 3):</Text>
-              <HStack mt={4} spacing={4}>
+              <Text>Your party:</Text>
+              <Grid gap={4} mt={4} templateColumns="repeat(3, 1fr)">
                 {partyCharacters[character.id].map((character, i) => (
                   <Box
                     key={`${character.id}-${i}`}
@@ -658,26 +771,39 @@ export const TradeTableModal: React.FC = () => {
                     w="100%"
                   >
                     <CharacterCardSmall
+                      cardCount={i === 0 ? myCharacterCardCounter : undefined}
                       character={character}
                       isSelected={i + 1 === mySelectedCard}
                       locked={!!lockedCards[0] && lockedCards[0] !== i + 1}
-                      primary={i === 0}
-                      selectedClassId={myParty ? myParty[i].class : '-1'}
+                      selectedClassId={myParty ? myParty[i]?.class : '-1'}
                     />
                   </Box>
                 ))}
-              </HStack>
+                {partyCharacters[character.id] &&
+                  partyCharacters[character.id].length < 3 &&
+                  new Array(3 - (partyCharacters[character.id]?.length ?? 0))
+                    .fill(0)
+                    .map((_, i) => (
+                      <GridItem
+                        key={`empty-${i}`}
+                        border="2px solid"
+                        borderColor="rgba(219, 211, 139, 0.75)"
+                        p={3}
+                        _hover={{
+                          cursor: 'not-allowed',
+                        }}
+                      >
+                        <VStack justify="center" h="100%">
+                          <Text>EMPTY SLOT</Text>
+                        </VStack>
+                      </GridItem>
+                    ))}
+              </Grid>
               {!pauseControls && (
                 <VStack my={8} spacing={4}>
-                  <Text>
-                    {mySelectedCard === 1
-                      ? 'You cannot trade a primary card'
-                      : !!lockedCards[0]
-                        ? `You have ${character.name} locked for a trade.`
-                        : `Lock ${character.name} to make trade offer.`}
-                  </Text>
+                  <Text>{myLockButtonDetails.text}</Text>
                   <Button
-                    isDisabled={mySelectedCard === 1}
+                    isDisabled={myLockButtonDetails.isDisabled}
                     onClick={() =>
                       setLockedCards(prev =>
                         !!lockedCards[0]
@@ -720,10 +846,8 @@ export const TradeTableModal: React.FC = () => {
               />
             </Box>
             <Box w="100%">
-              <Text>
-                {selectedCharacter.name}&apos;s character cards (max of 3):
-              </Text>
-              <HStack mt={4} spacing={4}>
+              <Text>{selectedCharacter.name}&apos;s party:</Text>
+              <Grid gap={4} mt={4} templateColumns="repeat(3, 1fr)">
                 {partyCharacters[selectedCharacter.id].map((character, i) => (
                   <Box
                     key={`${character.id}-${i}`}
@@ -733,30 +857,47 @@ export const TradeTableModal: React.FC = () => {
                     w="100%"
                   >
                     <CharacterCardSmall
+                      cardCount={
+                        i === 0 ? selectedCharacterCardCounter : undefined
+                      }
                       character={character}
                       isSelected={i + 1 === otherSelectedCard}
                       locked={!!lockedCards[1] && lockedCards[1] !== i + 1}
-                      primary={i === 0}
                       selectedClassId={
                         selectedCharacterParty
-                          ? selectedCharacterParty[i].class
+                          ? selectedCharacterParty[i]?.class
                           : '-1'
                       }
                     />
                   </Box>
                 ))}
-              </HStack>
+                {partyCharacters[selectedCharacter.id] &&
+                  partyCharacters[selectedCharacter.id].length < 3 &&
+                  new Array(
+                    3 - (partyCharacters[selectedCharacter.id]?.length ?? 0),
+                  )
+                    .fill(0)
+                    .map((_, i) => (
+                      <GridItem
+                        key={`empty-${i}`}
+                        border="2px solid"
+                        borderColor="rgba(219, 211, 139, 0.75)"
+                        p={3}
+                        _hover={{
+                          cursor: 'not-allowed',
+                        }}
+                      >
+                        <VStack justify="center" h="100%">
+                          <Text>EMPTY SLOT</Text>
+                        </VStack>
+                      </GridItem>
+                    ))}
+              </Grid>
               {!pauseControls && (
                 <VStack my={8} spacing={4}>
-                  <Text>
-                    {otherSelectedCard === 1
-                      ? 'You cannot trade a primary card'
-                      : !!lockedCards[1]
-                        ? `You have ${selectedCharacter.name} locked for a trade.`
-                        : `Lock ${selectedCharacter.name} to make trade offer.`}
-                  </Text>
+                  <Text>{otherLockButtonDetails.text}</Text>
                   <Button
-                    isDisabled={otherSelectedCard === 1}
+                    isDisabled={otherLockButtonDetails.isDisabled}
                     onClick={() =>
                       setLockedCards(prev =>
                         !!lockedCards[1]

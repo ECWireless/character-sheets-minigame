@@ -13,7 +13,11 @@ import { useAccount } from 'wagmi';
 import { useGame } from '../contexts/GameContext';
 import { useMUD } from '../contexts/MUDContext';
 import { useToast } from '../hooks/useToast';
-import { CLASS_STATS, WEARABLE_STATS } from '../utils/constants';
+import {
+  CLASS_STATS,
+  DEFAULT_CHARACTER_HEALTH,
+  WEARABLE_STATS,
+} from '../utils/constants';
 import { getPlayerEntity } from '../utils/helpers';
 import { Character, EquippableTraitType, Stats } from '../utils/types';
 
@@ -45,7 +49,8 @@ type RaidPartyContextType = {
   isRaidPartyModalOpen: boolean;
   isRunning: boolean;
   isTradeTableModalOpen: boolean;
-  myParty: [Slot, Slot, Slot] | null;
+  myCharacterCardCounter: number;
+  myParty: Slot[] | null;
   onCloseBattleInitiationModal: () => void;
   onCloseBattleModal: () => void;
   onCloseRaidPartyModal: () => void;
@@ -58,7 +63,8 @@ type RaidPartyContextType = {
   onRunFromBattle: () => void;
   resetSelectedCharacter: () => void;
   selectedCharacter: Character | null;
-  selectedCharacterParty: [Slot, Slot, Slot] | null;
+  selectedCharacterCardCounter: number;
+  selectedCharacterParty: Slot[] | null;
   wearableBonuses: {
     [characterId: string]: Omit<Stats, 'health'>;
   } | null;
@@ -83,6 +89,7 @@ const RaidPartyContext = createContext<RaidPartyContextType>({
   isRaidPartyModalOpen: false,
   isRunning: false,
   isTradeTableModalOpen: false,
+  myCharacterCardCounter: 3,
   myParty: null,
   onCloseBattleInitiationModal: () => {},
   onCloseBattleModal: () => {},
@@ -96,6 +103,7 @@ const RaidPartyContext = createContext<RaidPartyContextType>({
   onRunFromBattle: () => {},
   resetSelectedCharacter: () => {},
   selectedCharacter: null,
+  selectedCharacterCardCounter: 3,
   selectedCharacterParty: null,
   wearableBonuses: null,
 });
@@ -108,7 +116,7 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
 }) => {
   const { address } = useAccount();
   const {
-    components: { BattleCounter, BattleInfo, PartyInfo, Position },
+    components: { BattleCounter, BattleInfo, CardCounter, PartyInfo, Position },
     systemCalls: { initiateBattle, runFromBattle },
   } = useMUD();
   const { character, game } = useGame();
@@ -216,10 +224,11 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
       });
     }
 
-    if (party.length !== 3) return null;
-
-    return party as [Slot, Slot, Slot];
+    return party;
   }, [character, game, partyInfo, playerEntity]);
+
+  const myCharacterCardCounter =
+    useComponentValue(CardCounter, playerEntity)?.value ?? 3;
 
   const selectedCharacterParty = useMemo(() => {
     const isModalOpen =
@@ -270,9 +279,7 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
       });
     }
 
-    if (party.length !== 3) return null;
-
-    return party as [Slot, Slot, Slot];
+    return party;
   }, [
     game,
     PartyInfo,
@@ -281,6 +288,9 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
     selectedCharacterEntity,
     tradeTableModalControls.isOpen,
   ]);
+
+  const selectedCharacterCardCounter =
+    useComponentValue(CardCounter, selectedCharacterEntity)?.value ?? 3;
 
   const resetSelectedCharacter = useCallback(() => {
     setSelectedCharacter(null);
@@ -313,10 +323,20 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
   const equippedWeapons = useMemo(() => {
     if (!(myParty && selectedCharacter)) return null;
 
+    const _equippedWeapons = {} as {
+      [characterId: string]: Character['equippedItems'];
+    };
+
+    myParty.forEach(slot => {
+      if (slot?.character) {
+        _equippedWeapons[slot.character.id] = getEquippedWeapons(
+          slot.character,
+        );
+      }
+    });
+
     return {
-      [myParty[0].character.id]: getEquippedWeapons(myParty[0].character),
-      [myParty[1].character.id]: getEquippedWeapons(myParty[1].character),
-      [myParty[2].character.id]: getEquippedWeapons(myParty[2].character),
+      ..._equippedWeapons,
       [selectedCharacter.id]: getEquippedWeapons(selectedCharacter),
     };
   }, [getEquippedWeapons, myParty, selectedCharacter]);
@@ -337,10 +357,20 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
   const equippedWearable = useMemo(() => {
     if (!(character && myParty && selectedCharacter)) return null;
 
+    const _equippedWearable = {} as {
+      [characterId: string]: Character['equippedItems'][0] | null;
+    };
+
+    myParty.forEach(slot => {
+      if (slot?.character) {
+        _equippedWearable[slot.character.id] = getEquippedWearable(
+          slot.character,
+        );
+      }
+    });
+
     return {
-      [myParty[0].character.id]: getEquippedWearable(myParty[0].character),
-      [myParty[1].character.id]: getEquippedWearable(myParty[1].character),
-      [myParty[2].character.id]: getEquippedWearable(myParty[2].character),
+      ..._equippedWearable,
       [selectedCharacter.id]: getEquippedWearable(selectedCharacter),
     };
   }, [character, getEquippedWearable, myParty, selectedCharacter]);
@@ -374,33 +404,34 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
   const wearableBonuses = useMemo(() => {
     if (!(character && myParty && selectedCharacter)) return null;
 
+    const _wearableBonuses = {} as {
+      [characterId: string]: Omit<Stats, 'health'>;
+    };
+
+    myParty.forEach(slot => {
+      if (slot?.character) {
+        _wearableBonuses[slot.character.id] = getWearableBonuses(
+          slot.character,
+        );
+      }
+    });
+
     return {
-      [myParty[0].character.id]: getWearableBonuses(myParty[0].character),
-      [myParty[1].character.id]: getWearableBonuses(myParty[1].character),
-      [myParty[2].character.id]: getWearableBonuses(myParty[2].character),
+      ..._wearableBonuses,
       [selectedCharacter.id]: getWearableBonuses(selectedCharacter),
     };
   }, [character, getWearableBonuses, myParty, selectedCharacter]);
 
   const getCharacterStats = useCallback(
     (_character: Character, classValue: string): Stats => {
-      if (classValue === '-1') {
-        return {
-          health: 10,
-          attack: 1,
-          defense: 1,
-          specialAttack: 1,
-          specialDefense: 1,
-        };
-      }
-
       const selectedClass = Number(classValue);
       const classStats = CLASS_STATS[selectedClass];
-      const { attack, defense, specialAttack, specialDefense } = classStats;
+      const { attack, defense, specialAttack, specialDefense } =
+        classStats ?? {};
 
-      if (wearableBonuses && wearableBonuses[_character.id]) {
+      if (wearableBonuses && wearableBonuses[_character.id] && classStats) {
         return {
-          health: 10,
+          health: DEFAULT_CHARACTER_HEALTH,
           attack: attack + wearableBonuses[_character.id].attack,
           defense: defense + wearableBonuses[_character.id].defense,
           specialAttack:
@@ -408,15 +439,22 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
           specialDefense:
             specialDefense + wearableBonuses[_character.id].specialDefense,
         };
-      } else {
+      } else if (classStats) {
         return {
-          health: 10,
+          health: DEFAULT_CHARACTER_HEALTH,
           attack,
           defense,
           specialAttack,
           specialDefense,
         };
       }
+      return {
+        health: DEFAULT_CHARACTER_HEALTH,
+        attack: 1,
+        defense: 1,
+        specialAttack: 1,
+        specialDefense: 1,
+      };
     },
     [wearableBonuses],
   );
@@ -505,6 +543,7 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
       molochHealth,
       molochDefeated,
     } = _battleInfo;
+
     return {
       active,
       healthBySlots: [slotOneHealth, slotTwoHealth, slotThreeHealth] as [
@@ -540,6 +579,7 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
         isRaidPartyModalOpen: raidPartyModalControls.isOpen,
         isRunning,
         isTradeTableModalOpen: tradeTableModalControls.isOpen,
+        myCharacterCardCounter,
         myParty,
         onCloseBattleInitiationModal: battleInitiationModalControls.onClose,
         onCloseBattleModal: battleModalControls.onClose,
@@ -553,6 +593,7 @@ export const RaidPartyProvider: React.FC<React.PropsWithChildren> = ({
         onRunFromBattle,
         resetSelectedCharacter,
         selectedCharacter,
+        selectedCharacterCardCounter,
         selectedCharacterParty,
         wearableBonuses,
       }}

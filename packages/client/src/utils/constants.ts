@@ -9,102 +9,102 @@ export const RAIDGUILD_GAME_ADDRESS = String(
 export const CLASS_STATS: { [key: number]: { [key: string]: number } } = {
   // Warrior
   0: {
-    attack: 5,
-    defense: 3,
-    specialAttack: 1,
-    specialDefense: 1,
+    attack: 15,
+    defense: 9,
+    specialAttack: 3,
+    specialDefense: 3,
   },
   // Wizard
   1: {
-    attack: 1,
-    defense: 1,
-    specialAttack: 5,
-    specialDefense: 3,
+    attack: 3,
+    defense: 3,
+    specialAttack: 15,
+    specialDefense: 9,
   },
   // Tavern Keeper
   2: {
-    attack: 4,
-    defense: 4,
-    specialAttack: 1,
-    specialDefense: 1,
-  },
-  // Scribe
-  3: {
-    attack: 2,
-    defense: 2,
+    attack: 12,
+    defense: 12,
     specialAttack: 3,
     specialDefense: 3,
   },
+  // Scribe
+  3: {
+    attack: 6,
+    defense: 6,
+    specialAttack: 9,
+    specialDefense: 9,
+  },
   // Rogue
   4: {
-    attack: 4,
-    defense: 1,
-    specialAttack: 3,
-    specialDefense: 2,
+    attack: 12,
+    defense: 3,
+    specialAttack: 9,
+    specialDefense: 6,
   },
   // Paladin
   5: {
-    attack: 5,
-    defense: 4,
-    specialAttack: 1,
+    attack: 15,
+    defense: 12,
+    specialAttack: 3,
     specialDefense: 0,
   },
   // Monk
   6: {
-    attack: 2,
-    defense: 2,
-    specialAttack: 3,
-    specialDefense: 3,
+    attack: 6,
+    defense: 6,
+    specialAttack: 9,
+    specialDefense: 9,
   },
   // Hunter
   7: {
-    attack: 3,
-    defense: 1,
-    specialAttack: 3,
-    specialDefense: 1,
+    attack: 9,
+    defense: 3,
+    specialAttack: 9,
+    specialDefense: 3,
   },
   // Healer
   8: {
-    attack: 1,
-    defense: 1,
-    specialAttack: 3,
-    specialDefense: 5,
+    attack: 3,
+    defense: 3,
+    specialAttack: 9,
+    specialDefense: 15,
   },
   // Dwarf
   9: {
-    attack: 4,
-    defense: 4,
-    specialAttack: 1,
-    specialDefense: 1,
+    attack: 12,
+    defense: 12,
+    specialAttack: 3,
+    specialDefense: 3,
   },
   // Cleric
   10: {
-    attack: 3,
-    defense: 2,
-    specialAttack: 2,
-    specialDefense: 3,
+    attack: 9,
+    defense: 6,
+    specialAttack: 6,
+    specialDefense: 9,
   },
   // Archer
   11: {
-    attack: 4,
-    defense: 1,
-    specialAttack: 1,
-    specialDefense: 2,
+    attack: 12,
+    defense: 3,
+    specialAttack: 3,
+    specialDefense: 6,
   },
 };
 
 export const WEARABLE_STATS: { [key: string]: { [key: string]: number } } = {
   // Archer Clothing
   0: {
-    attack: 3,
+    attack: 9,
     defense: 0,
-    specialAttack: 1,
+    specialAttack: 3,
     specialDefense: 0,
   },
   // Warrior Clothing
   2: {
-    attack: 2,
-    defense: 2,
+    attack: 6,
+    defense: 6,
     specialAttack: 0,
     specialDefense: 0,
   },
@@ -112,15 +112,15 @@ export const WEARABLE_STATS: { [key: string]: { [key: string]: number } } = {
   3: {
     attack: 0,
     defense: 0,
-    specialAttack: 2,
-    specialDefense: 2,
+    specialAttack: 6,
+    specialDefense: 6,
   },
   // Monk Clothing
   5: {
     attack: 0,
     defense: 0,
-    specialAttack: 2,
-    specialDefense: 2,
+    specialAttack: 6,
+    specialDefense: 6,
   },
 };
 
@@ -134,36 +134,36 @@ export const WEAPON_STATS: {
 } = {
   1: {
     name: 'Sword of Undhur',
-    power: 3,
+    power: 30,
     type: POWER_TYPE.ATTACK,
     color: 'red',
   },
   4: {
     name: "Hunter's Dagger",
-    power: 1,
+    power: 10,
     type: POWER_TYPE.ATTACK,
     color: 'red',
   },
   6: {
     name: 'The Ghoul Slayer',
-    power: 4,
+    power: 40,
     type: POWER_TYPE.ATTACK,
     color: 'red',
   },
   7: {
     name: 'Wooden Staff',
-    power: 3,
+    power: 30,
     type: POWER_TYPE.SPECIAL_ATTACK,
     color: 'blue',
   },
 };
 
 export const MOLOCH_SOLDIER_STATS = {
-  heath: 20,
-  attack: 8,
-  defense: 6,
-  specialAttack: 3,
-  specialDefense: 3,
+  heath: 200,
+  attack: 24,
+  defense: 18,
+  specialAttack: 9,
+  specialDefense: 9,
 };
 
 export const MOLOCH_SOLDIER_MOVES: {
@@ -171,26 +171,29 @@ export const MOLOCH_SOLDIER_MOVES: {
 } = {
   1: {
     name: 'Fireball',
-    power: 10,
+    power: 30,
     type: POWER_TYPE.SPECIAL_ATTACK,
     color: 'blue',
   },
   2: {
     name: 'Stomp',
-    power: 7,
+    power: 21,
     type: POWER_TYPE.ATTACK,
     color: 'red',
   },
   3: {
     name: 'Bite',
-    power: 8,
+    power: 24,
     type: POWER_TYPE.ATTACK,
     color: 'red',
   },
   4: {
     name: 'Coordination Failure',
-    power: 14,
+    power: 42,
     type: POWER_TYPE.SPECIAL_ATTACK,
     color: 'blue',
   },
 };
+
+export const DEFAULT_CHARACTER_HEALTH = 100;
+export const DEFAULT_MOLOCH_HEALTH = 200;

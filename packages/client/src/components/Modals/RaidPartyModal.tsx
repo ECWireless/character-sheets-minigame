@@ -1,6 +1,7 @@
 import {
-  Box,
   Button,
+  Grid,
+  GridItem,
   HStack,
   Modal,
   ModalBody,
@@ -27,9 +28,7 @@ import { RadioOption } from '../../components/RadioOption';
 import { useMUD } from '../../contexts/MUDContext';
 import { useRaidParty } from '../../contexts/RaidPartyContext';
 import { useToast } from '../../hooks/useToast';
-import { CLASS_STATS, WEARABLE_STATS } from '../../utils/constants';
 import { getPlayerEntity } from '../../utils/helpers';
-import { EquippableTraitType } from '../../utils/types';
 
 export const RaidPartyModal: React.FC = () => {
   const { address } = useAccount();
@@ -38,14 +37,20 @@ export const RaidPartyModal: React.FC = () => {
     systemCalls: { setPartyClasses },
   } = useMUD();
   const {
+    equippedWeapons,
+    equippedWearable,
+    getCharacterStats,
     isMyCharacterSelected,
     isRaidPartyModalOpen: isOpen,
+    myCharacterCardCounter,
     myParty,
     onCloseRaidPartyModal: onClose,
     onOpenTradeTableModal: onOpenTradeModal,
     resetSelectedCharacter,
     selectedCharacter,
+    selectedCharacterCardCounter,
     selectedCharacterParty,
+    wearableBonuses,
   } = useRaidParty();
   const { renderError, renderSuccess } = useToast();
 
@@ -54,6 +59,18 @@ export const RaidPartyModal: React.FC = () => {
     if (selectedCharacterParty) return selectedCharacterParty;
     return myParty;
   }, [myParty, selectedCharacter, selectedCharacterParty]);
+
+  const cardCount = useMemo(() => {
+    if (isMyCharacterSelected) {
+      return myCharacterCardCounter;
+    } else {
+      return selectedCharacterCardCounter;
+    }
+  }, [
+    isMyCharacterSelected,
+    myCharacterCardCounter,
+    selectedCharacterCardCounter,
+  ]);
 
   const [isSaving, setIsSaving] = useState(false);
   const [selectedCard, setSelectedCard] = useState(0);
@@ -86,84 +103,19 @@ export const RaidPartyModal: React.FC = () => {
     defaultValue: '-1',
   });
 
-  const equippedWeapons = useMemo(() => {
-    if (!selectedCharacter) return null;
-    const { equippedItems } = selectedCharacter;
-    return equippedItems.filter(
-      item =>
-        item.attributes.find(
-          a =>
-            a.value === EquippableTraitType.EQUIPPED_ITEM_1 ||
-            a.value === EquippableTraitType.EQUIPPED_ITEM_2,
-        ) !== undefined,
-    );
-  }, [selectedCharacter]);
-
-  const equippedWearable = useMemo(() => {
-    if (!selectedCharacter) return null;
-    const { equippedItems } = selectedCharacter;
-    return (
-      equippedItems.find(
-        item =>
-          item.attributes.find(
-            a => a.value === EquippableTraitType.EQUIPPED_WEARABLE,
-          ) !== undefined,
-      ) ?? null
-    );
-  }, [selectedCharacter]);
-
-  const wearableBonuses = useMemo(() => {
-    if (!equippedWearable) return null;
-
-    const { itemId } = equippedWearable;
-    const numberId = Number(itemId);
-    const wearable = WEARABLE_STATS[numberId];
-    if (!wearable) {
-      return { attack: 0, defense: 0, specialAttack: 0, specialDefense: 0 };
-    } else {
-      return {
-        attack: wearable.attack,
-        defense: wearable.defense,
-        specialAttack: wearable.specialAttack,
-        specialDefense: wearable.specialDefense,
-      };
-    }
-  }, [equippedWearable]);
-
   const cardClasses = useMemo(
     () => [cardOneClass, cardTwoClass, cardThreeClass].map(c => String(c)),
     [cardOneClass, cardThreeClass, cardTwoClass],
   );
 
   const characterStats = useMemo(() => {
-    if (!selectedCharacter) return null;
-
-    if (cardClasses[selectedCard] === '-1') {
-      return {
-        health: 10,
-        attack: 1,
-        defense: 1,
-        specialAttack: 1,
-        specialDefense: 1,
-      };
-    }
-
-    const selectedClass = Number(cardClasses[selectedCard]);
-    const classStats = CLASS_STATS[selectedClass];
-    const { attack, defense, specialAttack, specialDefense } = classStats;
-
-    return {
-      health: 10,
-      attack: attack + (wearableBonuses?.attack ?? 0),
-      defense: defense + (wearableBonuses?.defense ?? 0),
-      specialAttack: specialAttack + (wearableBonuses?.specialAttack ?? 0),
-      specialDefense: specialDefense + (wearableBonuses?.specialDefense ?? 0),
-    };
-  }, [cardClasses, selectedCard, selectedCharacter, wearableBonuses]);
+    if (!selectedCharacter || !cardClasses[selectedCard]) return null;
+    return getCharacterStats(selectedCharacter, cardClasses[selectedCard]);
+  }, [cardClasses, getCharacterStats, selectedCard, selectedCharacter]);
 
   const classes = useMemo(() => {
     if (!party) return null;
-    return party[selectedCard].character.classes;
+    return party[selectedCard]?.character.classes ?? null;
   }, [party, selectedCard]);
 
   const classesWithVillager = useMemo(() => {
@@ -190,9 +142,9 @@ export const RaidPartyModal: React.FC = () => {
 
   const resetData = useCallback(() => {
     if (party) {
-      setCardOneClass(party[0].class);
-      setCardTwoClass(party[1].class);
-      setCardThreeClass(party[2].class);
+      setCardOneClass(party[0]?.class ?? '-1');
+      setCardTwoClass(party[1]?.class ?? '-1');
+      setCardThreeClass(party[2]?.class ?? '-1');
     } else {
       setCardOneClass('-1');
       setCardTwoClass('-1');
@@ -208,9 +160,9 @@ export const RaidPartyModal: React.FC = () => {
   }, [resetData, isOpen]);
 
   const hasChanged = useMemo(() => {
-    const oldCardOneClass = party ? party[0].class : '-1';
-    const oldCardTwoClass = party ? party[1].class : '-1';
-    const oldCardThreeClass = party ? party[2].class : '-1';
+    const oldCardOneClass = party ? party[0]?.class : '-1';
+    const oldCardTwoClass = party ? party[1]?.class : '-1';
+    const oldCardThreeClass = party ? party[2]?.class : '-1';
 
     return (
       oldCardOneClass !== cardOneClass ||
@@ -270,7 +222,18 @@ export const RaidPartyModal: React.FC = () => {
   const myBattleInfo = useComponentValue(BattleInfo, myPlayerEntity);
   const otherBattleInfo = useComponentValue(BattleInfo, otherPlayerEntity);
 
-  if (!(address && classes && selectedCharacter)) return null;
+  if (
+    !(
+      address &&
+      classes &&
+      characterStats &&
+      equippedWeapons &&
+      equippedWearable &&
+      selectedCharacter &&
+      wearableBonuses
+    )
+  )
+    return null;
 
   const getRootProps = [
     getCardOneRootProps,
@@ -305,7 +268,7 @@ export const RaidPartyModal: React.FC = () => {
             <>
               <Text>Select a class avatar :</Text>
               <Text fontSize="xs">
-                (Your primary card&apos;s class will be your avatar)
+                (Your personal card&apos;s class will be your avatar)
               </Text>
               <Wrap mt={2} spacing={2} {...getRootProps[selectedCard]?.()}>
                 {options.map(value => {
@@ -357,30 +320,46 @@ export const RaidPartyModal: React.FC = () => {
             )}
           <Text>
             {isMyCharacterSelected ? 'Your' : `${selectedCharacter.name}'s`}{' '}
-            character cards (max of 3):
+            party:
           </Text>
-          <HStack align="flex-start" mt={4} spacing={6}>
+          <Grid gap={6} mt={4} templateColumns="repeat(3, 1fr)">
             {party?.map(({ character }, i) => (
-              <Box
+              <GridItem
                 key={`${character.id}-${i}`}
                 onClick={() => setSelectedCard(i)}
-                w="100%"
               >
                 <CharacterCardSmall
+                  cardCount={i === 0 ? cardCount : undefined}
                   character={character}
                   isSelected={i === selectedCard}
-                  primary={i === 0}
                   selectedClassId={cardClasses[i]}
                 />
-              </Box>
+              </GridItem>
             ))}
-          </HStack>
+            {party &&
+              party.length < 3 &&
+              new Array(3 - (party?.length ?? 0)).fill(0).map((_, i) => (
+                <GridItem
+                  key={`empty-${i}`}
+                  border="2px solid"
+                  borderColor="rgba(219, 211, 139, 0.75)"
+                  p={3}
+                  _hover={{
+                    cursor: 'not-allowed',
+                  }}
+                >
+                  <VStack justify="center" h="100%">
+                    <Text>EMPTY SLOT</Text>
+                  </VStack>
+                </GridItem>
+              ))}
+          </Grid>
           <CharacterStats
             avatarClassId={cardClasses[selectedCard]}
             characterStats={characterStats}
-            equippedWeapons={equippedWeapons}
-            equippedWearable={equippedWearable}
-            wearableBonuses={wearableBonuses}
+            equippedWeapons={equippedWeapons[selectedCharacter.id]}
+            equippedWearable={equippedWearable[selectedCharacter.id]}
+            wearableBonuses={wearableBonuses[selectedCharacter.id]}
           />
         </ModalBody>
       </ModalContent>

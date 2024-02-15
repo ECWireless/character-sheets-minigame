@@ -85,7 +85,7 @@ export const GameViewInner: React.FC = () => {
   const {
     components: { AccountInfo, BattleInfo, CharacterSheetInfo, SyncProgress },
     network: { playerEntity: burnerPlayerEntity },
-    systemCalls: { login, updateBurnerWallet },
+    systemCalls: { createAccount, updateBurnerWallet },
   } = useMUD();
 
   const [updateCounter, setUpdateCounter] = useState(0);
@@ -105,7 +105,7 @@ export const GameViewInner: React.FC = () => {
     return getPlayerEntity(address);
   }, [walletClient?.account.address]);
 
-  const onLogin = useCallback(async () => {
+  const onCreateAccount = useCallback(async () => {
     const address = walletClient?.account.address;
     try {
       if (!(address && walletClient)) {
@@ -136,7 +136,7 @@ export const GameViewInner: React.FC = () => {
         primaryType: 'LoginRequest',
         message,
       })) as `0x${string}`;
-      await login(chainId, game.id, address, signature);
+      await createAccount(chainId, game.id, address, signature);
     } catch (e) {
       renderError(e, 'Error logging in');
       disconnect();
@@ -144,9 +144,9 @@ export const GameViewInner: React.FC = () => {
   }, [
     AccountInfo,
     burnerPlayerEntity,
+    createAccount,
     disconnect,
     game,
-    login,
     playerEntity,
     renderError,
     walletClient,
@@ -157,10 +157,10 @@ export const GameViewInner: React.FC = () => {
     if (playerEntity && walletClient && walletClient.account.address) {
       const accountInfo = getComponentValue(AccountInfo, playerEntity);
       if (!accountInfo) {
-        onLogin();
+        onCreateAccount();
       }
     }
-  }, [AccountInfo, game, onLogin, playerEntity, walletClient]);
+  }, [AccountInfo, game, onCreateAccount, playerEntity, walletClient]);
 
   const needsBurnerAddressUpdate = useMemo(() => {
     if (!walletClient?.account) return false;

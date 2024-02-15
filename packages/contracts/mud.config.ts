@@ -28,6 +28,7 @@ export default mudConfig({
         molochDefeated: "bool",
       },
     },
+    CardCounter: "uint8",
     CharacterSheetInfo: {
       dataStruct: false,
       valueSchema: {

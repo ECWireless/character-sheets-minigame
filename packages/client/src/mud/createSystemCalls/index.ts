@@ -25,7 +25,7 @@ export function createSystemCalls(
   }: ClientComponents,
 ) {
   const {
-    login,
+    createAccount,
     logout,
     makeOffer,
     moveTo,
@@ -65,8 +65,8 @@ export function createSystemCalls(
     acceptOffer,
     attack,
     cancelOffer,
+    createAccount,
     initiateBattle,
-    login,
     logout,
     makeOffer,
     molochAttack,
