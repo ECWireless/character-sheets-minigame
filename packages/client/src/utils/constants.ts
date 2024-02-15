@@ -49,48 +49,47 @@ export const CLASS_STATS: { [key: number]: { [key: string]: number } } = {
     specialAttack: 3,
     specialDefense: 0,
   },
-  // CONTINUE
   // Monk
   6: {
-    attack: 2,
-    defense: 2,
-    specialAttack: 3,
-    specialDefense: 3,
+    attack: 6,
+    defense: 6,
+    specialAttack: 9,
+    specialDefense: 9,
   },
   // Hunter
   7: {
-    attack: 3,
-    defense: 1,
-    specialAttack: 3,
-    specialDefense: 1,
+    attack: 9,
+    defense: 3,
+    specialAttack: 9,
+    specialDefense: 3,
   },
   // Healer
   8: {
-    attack: 1,
-    defense: 1,
-    specialAttack: 3,
-    specialDefense: 5,
+    attack: 3,
+    defense: 3,
+    specialAttack: 9,
+    specialDefense: 15,
   },
   // Dwarf
   9: {
-    attack: 4,
-    defense: 4,
-    specialAttack: 1,
-    specialDefense: 1,
+    attack: 12,
+    defense: 12,
+    specialAttack: 3,
+    specialDefense: 3,
   },
   // Cleric
   10: {
-    attack: 3,
-    defense: 2,
-    specialAttack: 2,
-    specialDefense: 3,
+    attack: 9,
+    defense: 6,
+    specialAttack: 6,
+    specialDefense: 9,
   },
   // Archer
   11: {
-    attack: 4,
-    defense: 1,
-    specialAttack: 1,
-    specialDefense: 2,
+    attack: 12,
+    defense: 3,
+    specialAttack: 3,
+    specialDefense: 6,
   },
 };
 

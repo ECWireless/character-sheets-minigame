@@ -234,30 +234,50 @@ export const BattleModal: React.FC = () => {
       <Grid gap={6} templateColumns="repeat(5, 1fr)">
         <GridItem colSpan={3}>
           <Text>Your character cards:</Text>
-          <HStack alignItems="flex-start" mt={4} spacing={4}>
+          <Grid gap={6} mt={4} templateColumns="repeat(3, 1fr)">
             {myParty?.map(({ character }, i) => {
               const locked = battleInfo?.healthBySlots[i] === 0;
               return (
-                <VStack
-                  key={`${character.id}-${i}`}
-                  onClick={() => (locked ? undefined : setSelectedCard(i + 1))}
-                  w="250px"
-                >
-                  <HealthBar
-                    currentHealth={battleInfo?.healthBySlots[i] ?? 0}
-                    startingHealth={characterStats[character.id]?.health ?? 0}
-                  />
-                  <CharacterCardSmall
-                    cardCount={i === 0 ? myCharacterCardCounter : undefined}
-                    character={character}
-                    isSelected={i + 1 === selectedCard}
-                    locked={locked}
-                    selectedClassId={myParty ? myParty[i].class : '-1'}
-                  />
-                </VStack>
+                <GridItem key={`${character.id}-${i}`}>
+                  <VStack
+                    onClick={() =>
+                      locked ? undefined : setSelectedCard(i + 1)
+                    }
+                    w="250px"
+                  >
+                    <HealthBar
+                      currentHealth={battleInfo?.healthBySlots[i] ?? 0}
+                      startingHealth={characterStats[character.id]?.health ?? 0}
+                    />
+                    <CharacterCardSmall
+                      cardCount={i === 0 ? myCharacterCardCounter : undefined}
+                      character={character}
+                      isSelected={i + 1 === selectedCard}
+                      locked={locked}
+                      selectedClassId={myParty ? myParty[i].class : '-1'}
+                    />
+                  </VStack>
+                </GridItem>
               );
             })}
-          </HStack>
+            {myParty &&
+              myParty.length < 3 &&
+              new Array(3 - (myParty?.length ?? 0)).fill(0).map((_, i) => (
+                <GridItem
+                  key={`empty-${i}`}
+                  border="2px solid"
+                  borderColor="rgba(219, 211, 139, 0.75)"
+                  p={3}
+                  _hover={{
+                    cursor: 'not-allowed',
+                  }}
+                >
+                  <VStack justify="center" h="100%">
+                    <Text>EMPTY SLOT</Text>
+                  </VStack>
+                </GridItem>
+              ))}
+          </Grid>
         </GridItem>
         <GridItem colSpan={1}>
           <Box h="100%" pos="relative">
