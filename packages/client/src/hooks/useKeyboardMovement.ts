@@ -24,7 +24,7 @@ const classesWithAttackAbility = [
   'monk',
   'hunter',
   'healer',
-  'dwarf',
+  'sorcerer',
   'cleric',
   'archer',
 ];

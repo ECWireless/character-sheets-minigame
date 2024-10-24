@@ -279,7 +279,13 @@ export const GameViewInner: React.FC = () => {
           src={loadingImage}
           w="100%"
         />
-        <Text pos="absolute" left="50%" top={4}>
+        <Text
+          left="50%"
+          pos="absolute"
+          textAlign="center"
+          top={4}
+          transform="translateX(-50%)"
+        >
           {syncProgress.message} {Math.round(syncProgress.percentage)}%
         </Text>
       </VStack>

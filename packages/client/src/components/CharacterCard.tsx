@@ -24,7 +24,7 @@ export const CharacterCardSmall: React.FC<{
   locked?: boolean;
   selectedClassId?: string;
 }> = ({ cardCount, character, isSelected, locked, selectedClassId }) => {
-  const { classes, experience, heldItems, image, jailed, name } = character;
+  const { experience, heldClasses, heldItems, image, jailed, name } = character;
 
   const itemTotal = useMemo(() => {
     return heldItems
@@ -98,7 +98,7 @@ export const CharacterCardSmall: React.FC<{
           </Text>
           <HStack justify="space-between" w="full">
             <Wrap spacing={2}>
-              {classes.map(classEntity => (
+              {heldClasses.map(classEntity => (
                 <WrapItem
                   key={classEntity.classId + classEntity.name}
                   border="2px solid"
