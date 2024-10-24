@@ -41,7 +41,7 @@ export const GameBoard: React.FC = () => {
 
   const { actionRunning } = useKeyboardMovement(
     address?.toLowerCase(),
-    character?.classes
+    character?.heldClasses
       .find(c => c.classId === myParty?.[0]?.class)
       ?.name?.toLowerCase() ?? 'villager',
   );
@@ -68,7 +68,7 @@ export const GameBoard: React.FC = () => {
 
     if (partyInfo) {
       const avatarClassId = partyInfo.slotOneClass.toString();
-      const avatarClass = characterByPlayer?.classes.find(
+      const avatarClass = characterByPlayer?.heldClasses.find(
         c => c.classId === avatarClassId,
       );
       avatarClassName = avatarClass?.name.toLowerCase() ?? 'villager';

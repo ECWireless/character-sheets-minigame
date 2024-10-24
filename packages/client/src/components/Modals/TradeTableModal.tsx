@@ -366,8 +366,8 @@ export const TradeTableModal: React.FC = () => {
     selectedCharacter,
   ]);
 
-  const { classes: myClasses } = character ?? {};
-  const { classes: otherClasses } = selectedCharacter ?? {};
+  const { heldClasses: myClasses } = character ?? {};
+  const { heldClasses: otherClasses } = selectedCharacter ?? {};
 
   const classesWithVillager = useMemo(() => {
     if (!(character && myClasses && otherClasses && selectedCharacter))

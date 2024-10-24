@@ -22,5 +22,8 @@ extra_output_files = [
 ]
 fs_permissions = [{ access = "read", path = "./"}]
 
-[profile.redstone-holesky]
-eth_rpc_url = "https://rpc.holesky.redstone.xyz"
+[profile.optimism-sepolia]
+eth_rpc_url = "https://optimism-sepolia.infura.io/v3/34a5f1a2463a4b27afadbf054248066b"
+
+[profile.garnet]
+eth_rpc_url = "https://rpc.garnetchain.com"

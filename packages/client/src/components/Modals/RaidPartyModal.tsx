@@ -115,7 +115,7 @@ export const RaidPartyModal: React.FC = () => {
 
   const classes = useMemo(() => {
     if (!party) return null;
-    return party[selectedCard]?.character.classes ?? null;
+    return party[selectedCard]?.character.heldClasses ?? null;
   }, [party, selectedCard]);
 
   const classesWithVillager = useMemo(() => {

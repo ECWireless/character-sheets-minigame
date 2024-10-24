@@ -1,29 +1,22 @@
 import { Entity } from '@latticexyz/recs';
 import { encodeEntity } from '@latticexyz/store-sync/recs';
 
-import rogueAttackLeft from '../assets/rogue/rogue_attack_left.gif';
-import rogueAttackRight from '../assets/rogue/rogue_attack_right.gif';
-import rogueLeft from '../assets/rogue/rogue_walk_left.gif';
-import rogueRight from '../assets/rogue/rogue_walk_right.gif';
-
-import clericAttackLeft from '../assets/cleric/cleric_attack_left.gif';
-import clericAttackRight from '../assets/cleric/cleric_attack_right.gif';
-import clericLeft from '../assets/cleric/cleric_walk_left.gif';
-import clericRight from '../assets/cleric/cleric_walk_right.gif';
-
-import hunterAttackLeft from '../assets/hunter/hunter_attack_left.gif';
-import hunterAttackRight from '../assets/hunter/hunter_attack_right.gif';
-import hunterLeft from '../assets/hunter/hunter_walk_left.gif';
-import hunterRight from '../assets/hunter/hunter_walk_right.gif';
-
 import archerAttackLeft from '../assets/archer/archer_attack_left.gif';
 import archerAttackRight from '../assets/archer/archer_attack_right.gif';
 import archerLeft from '../assets/archer/archer_walk_left.gif';
 import archerRight from '../assets/archer/archer_walk_right.gif';
+import clericAttackLeft from '../assets/cleric/cleric_attack_left.gif';
+import clericAttackRight from '../assets/cleric/cleric_attack_right.gif';
+import clericLeft from '../assets/cleric/cleric_walk_left.gif';
+import clericRight from '../assets/cleric/cleric_walk_right.gif';
 import healerAttackLeft from '../assets/healer/healer_attack_left.gif';
 import healerAttackRight from '../assets/healer/healer_attack_right.gif';
 import healerLeft from '../assets/healer/healer_walk_left.gif';
 import healerRight from '../assets/healer/healer_walk_right.gif';
+import hunterAttackLeft from '../assets/hunter/hunter_attack_left.gif';
+import hunterAttackRight from '../assets/hunter/hunter_attack_right.gif';
+import hunterLeft from '../assets/hunter/hunter_walk_left.gif';
+import hunterRight from '../assets/hunter/hunter_walk_right.gif';
 import monkAttackLeft from '../assets/monk/monk_attack_left.gif';
 import monkAttackRight from '../assets/monk/monk_attack_right.gif';
 import monkDown from '../assets/monk/monk_walk_down.gif';
@@ -34,10 +27,18 @@ import paladinAttackLeft from '../assets/paladin/paladin_attack_left.gif';
 import paladinAttackRight from '../assets/paladin/paladin_attack_right.gif';
 import paladinLeft from '../assets/paladin/paladin_walk_left.gif';
 import paladinRight from '../assets/paladin/paladin_walk_right.gif';
+import rogueAttackLeft from '../assets/rogue/rogue_attack_left.gif';
+import rogueAttackRight from '../assets/rogue/rogue_attack_right.gif';
+import rogueLeft from '../assets/rogue/rogue_walk_left.gif';
+import rogueRight from '../assets/rogue/rogue_walk_right.gif';
 import scribeAttackLeft from '../assets/scribe/scribe_attack_left.gif';
 import scribeAttackRight from '../assets/scribe/scribe_attack_right.gif';
 import scribeLeft from '../assets/scribe/scribe_walk_left.gif';
 import scribeRight from '../assets/scribe/scribe_walk_right.gif';
+import sorcererAttackLeft from '../assets/sorcerer/sorcerer_attack_left.gif';
+import sorcererAttackRight from '../assets/sorcerer/sorcerer_attack_right.gif';
+import sorcererLeft from '../assets/sorcerer/sorcerer_walk_left.gif';
+import sorcererRight from '../assets/sorcerer/sorcerer_walk_right.gif';
 import tavernAttackLeft from '../assets/tavern/tavern_attack_left.gif';
 import tavernAttackRight from '../assets/tavern/tavern_attack_right.gif';
 import tavernLeft from '../assets/tavern/tavern_walk_left.gif';
@@ -64,20 +65,24 @@ import {
   FullGameInfoFragment,
   GameMetaInfoFragment,
   ItemInfoFragment,
-  ItemRequirementInfoFragment,
 } from '../graphql/autogen/types';
+import { decodeCraftRequirements, decodeRequirementNode } from './requirements';
 import {
   Character,
   Class,
   EquippedItem,
   Game,
   GameMeta,
+  HeldClass,
   Item,
-  ItemRequirement,
   Metadata,
 } from './types';
 
-const IPFS_GATEWAYS = ['https://cloudflare-ipfs.com', 'https://ipfs.io'];
+const IPFS_GATEWAYS = [
+  'https://charactersheets.mypinata.cloud',
+  'https://cloudflare-ipfs.com',
+  'https://ipfs.io',
+];
 
 /**
  * Given a URI that may be ipfs, ipns, http, https, ar, or data protocol, return the fetch-able http(s) URLs for the same content
@@ -175,6 +180,67 @@ const fetchMetadata = async (ipfsUri: string): Promise<Metadata> => {
   };
 };
 
+export const formatFullCharacter = async (
+  character: CharacterInfoFragment,
+): Promise<Character> => {
+  const metadata = await fetchMetadata(character.uri);
+
+  const heldClasses = await Promise.all(
+    character.heldClasses.map(async c => {
+      const info = await formatClass(c.classEntity);
+      return {
+        ...info,
+        experience: BigInt(c.experience).toString(),
+        level: BigInt(c.level).toString(),
+      };
+    }),
+  );
+
+  const heldItems = await Promise.all(
+    character.heldItems.map(async i => {
+      const info = await formatItem(i.item);
+      return {
+        ...info,
+        amount: BigInt(i.amount).toString(),
+      };
+    }),
+  );
+
+  const equippedItems: EquippedItem[] = [];
+  character.equippedItems.map(e => {
+    const info = heldItems.find(i => i.itemId === e.item.itemId);
+    if (!info) return null;
+    equippedItems.push({
+      ...info,
+      amount: BigInt(e.heldItem.amount).toString(),
+      equippedAt: Number(e.equippedAt) * 1000,
+    });
+    return null;
+  });
+
+  return {
+    id: character.id,
+    chainId: Number(character.game.chainId),
+    gameId: character.game.id,
+    uri: character.uri,
+    name: metadata.name,
+    description: metadata.description,
+    image: uriToHttp(metadata.image)[0],
+    attributes: metadata.attributes,
+    experience: character.experience,
+    characterId: character.characterId,
+    account: character.account,
+    player: character.player,
+    jailed: character.jailed,
+    approved: character.approved,
+    removed: character.removed,
+    heldClasses,
+    heldItems,
+    equippedItems,
+    equippable_layer: null,
+  };
+};
+
 export const formatCharacter = async (
   character: CharacterInfoFragment,
   classes: Class[],
@@ -182,9 +248,19 @@ export const formatCharacter = async (
 ): Promise<Character> => {
   const metadata = await fetchMetadata(character.uri);
 
-  const characterClasses = classes.filter(c =>
-    character.heldClasses.find(h => h.classEntity.classId === c.classId),
-  );
+  const heldClasses = classes
+    .map(c => {
+      const held = character.heldClasses.find(
+        h => h.classEntity.classId === c.classId,
+      );
+      if (!held) return null;
+      return {
+        ...c,
+        experience: BigInt(held.experience).toString(),
+        level: BigInt(held.level).toString(),
+      };
+    })
+    .filter(c => c !== null) as HeldClass[];
 
   const heldItems: Item[] = [];
   const equippedItems: EquippedItem[] = [];
@@ -209,6 +285,8 @@ export const formatCharacter = async (
 
   return {
     id: character.id,
+    chainId: Number(character.game.chainId),
+    gameId: character.game.id,
     uri: character.uri,
     name: metadata.name,
     description: metadata.description,
@@ -221,7 +299,7 @@ export const formatCharacter = async (
     jailed: character.jailed,
     approved: character.approved,
     removed: character.removed,
-    classes: characterClasses,
+    heldClasses,
     heldItems,
     equippedItems,
     equippable_layer: null,
@@ -247,19 +325,16 @@ export const formatClass = async (
   };
 };
 
-export const formatItemRequirement = (
-  r: ItemRequirementInfoFragment,
-): ItemRequirement => {
-  return {
-    amount: BigInt(r.amount).toString(),
-    assetAddress: r.assetAddress,
-    assetCategory: r.assetCategory,
-    assetId: BigInt(r.assetId).toString(),
-  };
-};
-
 export const formatItem = async (item: ItemInfoFragment): Promise<Item> => {
   const metadata = await fetchMetadata(item.uri);
+
+  const decodedCraftRequirements = decodeCraftRequirements(
+    item.craftRequirementsBytes,
+  );
+
+  const decodedRequirementNode = decodeRequirementNode(
+    item.claimRequirementsBytes,
+  );
 
   return {
     id: item.id,
@@ -276,11 +351,13 @@ export const formatItem = async (item: ItemInfoFragment): Promise<Item> => {
     supply: BigInt(item.supply).toString(),
     totalSupply: BigInt(item.totalSupply).toString(),
     amount: BigInt(0).toString(),
-    requirements: item.requirements.map(formatItemRequirement),
     holders: item.holders.map(h => h.character),
     equippers: item.equippers.map(e => e.character),
     merkleRoot: item.merkleRoot,
     distribution: item.distribution,
+    craftable: item.craftable,
+    craftRequirements: decodedCraftRequirements,
+    claimRequirements: decodedRequirementNode,
   };
 };
 
@@ -446,59 +523,59 @@ export const getCharacterImage = (
           return scribeRight;
       }
 
-      case 'hunter':
-        if (actionRunning) {
-          return direction === 'right' ? hunterAttackRight : hunterAttackLeft;
-        }
-  
-        switch (direction) {
-          case 'up':
-            return hunterRight;
-          case 'down':
-            return hunterLeft;
-          case 'left':
-            return hunterLeft;
-          case 'right':
-            return hunterRight;
-          default:
-            return hunterRight;
-        }
+    case 'hunter':
+      if (actionRunning) {
+        return direction === 'right' ? hunterAttackRight : hunterAttackLeft;
+      }
 
-        case 'cleric':
-          if (actionRunning) {
-            return direction === 'right' ? clericAttackRight : clericAttackLeft;
-          }
-    
-          switch (direction) {
-            case 'up':
-              return clericRight;
-            case 'down':
-              return clericLeft;
-            case 'left':
-              return clericLeft;
-            case 'right':
-              return clericRight;
-            default:
-              return clericRight;
-          }
+      switch (direction) {
+        case 'up':
+          return hunterRight;
+        case 'down':
+          return hunterLeft;
+        case 'left':
+          return hunterLeft;
+        case 'right':
+          return hunterRight;
+        default:
+          return hunterRight;
+      }
 
-          case 'rogue':
-            if (actionRunning) {
-              return direction === 'right' ? rogueAttackRight : rogueAttackLeft;
-            }
-      
-            switch (direction) {
-              case 'up':
-                return rogueRight;
-              case 'down':
-                return rogueLeft;
-              case 'left':
-                return rogueLeft;
-              case 'right':
-                return rogueRight;
-              default:
-                return rogueRight;
-            }
+    case 'cleric':
+      if (actionRunning) {
+        return direction === 'right' ? clericAttackRight : clericAttackLeft;
+      }
+
+      switch (direction) {
+        case 'up':
+          return clericRight;
+        case 'down':
+          return clericLeft;
+        case 'left':
+          return clericLeft;
+        case 'right':
+          return clericRight;
+        default:
+          return clericRight;
+      }
+
+    case 'rogue':
+      if (actionRunning) {
+        return direction === 'right' ? rogueAttackRight : rogueAttackLeft;
+      }
+
+      switch (direction) {
+        case 'up':
+          return rogueRight;
+        case 'down':
+          return rogueLeft;
+        case 'left':
+          return rogueLeft;
+        case 'right':
+          return rogueRight;
+        default:
+          return rogueRight;
+      }
 
     case 'paladin':
       if (actionRunning) {
@@ -552,6 +629,24 @@ export const getCharacterImage = (
           return healerRight;
         default:
           return healerRight;
+      }
+
+    case 'sorcerer':
+      if (actionRunning) {
+        return direction === 'right' ? sorcererAttackRight : sorcererAttackLeft;
+      }
+
+      switch (direction) {
+        case 'up':
+          return sorcererRight;
+        case 'down':
+          return sorcererLeft;
+        case 'left':
+          return sorcererLeft;
+        case 'right':
+          return sorcererRight;
+        default:
+          return sorcererRight;
       }
 
     case 'archer':
